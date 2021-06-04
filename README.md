@@ -9,6 +9,7 @@
 - cors
 - cookie-parser
 - bcrypt
+- multer untuk membaca type form data dari client
 
 ## entitas 
 ![image](https://user-images.githubusercontent.com/37723902/120694299-3bc7e900-c4d4-11eb-8d92-cb9344f272c2.png)
