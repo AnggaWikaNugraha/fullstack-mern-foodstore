@@ -198,5 +198,6 @@ async function update(req, res, next) {
 
 module.exports = {
     index, // <---
-    store
+    store,
+    update,  // <---
 }
