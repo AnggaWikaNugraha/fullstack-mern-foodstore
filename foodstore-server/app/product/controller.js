@@ -1,6 +1,7 @@
 // (1) import model `Product`
 const Product = require('./model');
 const Category = require('../category/model');
+const Tag = require('../tag/model');
 const config = require('../config');
 
 const fs = require('fs');
@@ -11,11 +12,29 @@ async function store(req, res, next) {
 
         let payload = req.body;
 
+        if (payload.tags && payload.tags.length) {
+            // cari Tag berdasarkan nama Tag yang terdapat pada payload.tags
+            // $in operator Mongoose query 
+            // contoh : payload.tags bernilai ['coffee', 'hot'], 
+            // maka Mongoose akan mencari di collection Tag semua data tag yang memiliki nama coffee atau hot
+            let tags =
+                await Tag
+                    .find({ name: { $in: payload.tags } });
+
+            // (1) cek apakah tags membuahkan hasil
+            if (tags.length) {
+
+                // (2) jika ada, maka kita ambil `_id` untuk masing-masing `Tag` dan gabungkan dengan payload
+                payload = { ...payload, tags: tags.map(tag => tag._id) }
+            }
+        }
+
+
         // cari relasi category
         if (payload.category) {
             let category =
                 await Category
-                    // temukan category berdasarkan name , kemudian cocokkan dengan payload category dengan incessensitive 
+                    // temukan satu category berdasarkan name , kemudian cocokkan dengan payload category dengan incessensitive 
                     .findOne({ name: { $regex: payload.category, $options: 'i' } })
             if (category) {
                 payload = { ...payload, category: category._id };
@@ -112,7 +131,9 @@ async function index(req, res, next) {
             await Product
                 .find()
                 .limit(parseInt(limit)) // <---
-                .skip(parseInt(skip)); // <---
+                .skip(parseInt(skip)) // <---
+                .populate('category')
+                .populate('tags');
 
         return res.json(products);
 
@@ -135,6 +156,18 @@ async function update(req, res, next) {
                 payload = { ...payload, category: category._id };
             } else {
                 delete payload.category;
+            }
+        }
+
+        if (payload.tags && payload.tags.length) {
+            let tags =
+                await Tag
+                    .find({ name: { $in: payload.tags } });
+            // (1) cek apakah tags membuahkan hasil
+            if (tags.length) {
+
+                // (2) jika ada, maka kita ambil `_id` untuk masing-masing `Tag` dan gabungkan dengan payload
+                payload = { ...payload, tags: tags.map(tag => tag._id) }
             }
         }
 
