@@ -127,6 +127,18 @@ async function update(req, res, next) {
 
         let payload = req.body;
 
+        if (payload.category) {
+            let category =
+                await Category
+                    .findOne({ name: { $regex: payload.category, $options: 'i' } })
+            if (category) {
+                payload = { ...payload, category: category._id };
+            } else {
+                delete payload.category;
+            }
+        }
+
+
         if (req.file) {
             // ambil file gambarnya
             let tmp_path = req.file.path;
