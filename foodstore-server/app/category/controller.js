@@ -1,5 +1,26 @@
 const Category = require('./model');
 
+async function index(req, res, next) {
+
+    try {
+        // limit , jumlah data
+        // skip,  page keberapa
+        let { limit = 10, skip = 0 } = req.query;
+
+        let category =
+            await Category
+                .find()
+                .limit(parseInt(limit)) // <---
+                .skip(parseInt(skip)); // <---
+
+        return res.json(category);
+
+    } catch (err) {
+        next(err);
+    }
+
+}
+
 async function store(req, res, next) {
     try {
         // (1) tangkap payload dari _client request_ 
@@ -78,6 +99,7 @@ async function destroy(req, res, next) {
 
 
 module.exports = {
+    index,
     store,
     update, // <--
     destroy
