@@ -7,7 +7,8 @@ var logger = require('morgan');
 const productRouter = require('./app/product/router');
 const categoryRouter = require('./app/category/router');
 const tagRouter = require('./app/tag/router');
-
+const authRouter = require('./app/auth/router');
+const { decodeToken } = require('./app/auth/middleware');
 
 var app = express();
 
@@ -21,6 +22,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(decodeToken());
+app.use('/auth', authRouter);
 app.use('/api', productRouter);
 app.use('/api', categoryRouter);
 app.use('/api', tagRouter);
