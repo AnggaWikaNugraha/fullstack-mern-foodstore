@@ -162,6 +162,8 @@ async function index(req, res, next) {
             criteria = { ...criteria, tags: { $in: tags.map(tag => tag._id) } }
         }
 
+        let count = await Product.find(criteria).countDocuments();
+
         let products =
             await Product
                 .find(criteria)
@@ -170,7 +172,7 @@ async function index(req, res, next) {
                 .populate('category')
                 .populate('tags');
 
-        return res.json(products);
+        return res.json({ data: products, count }); // <--- perubahan 2
 
     } catch (err) {
         next(err);
