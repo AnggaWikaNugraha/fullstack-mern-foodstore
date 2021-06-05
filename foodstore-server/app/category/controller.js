@@ -66,8 +66,7 @@ async function update(req, res, next) {
         if (!policy.can('update', 'Category')) { // <-- can update Category
             return res.json({
                 error: 1,
-                message: `Anda tidak memiliki akses untuk mengupdate
-kategori`
+                message: `Anda tidak memiliki akses untuk mengupdate kategori`
             });
         }
         // (1) tangkap payload dari _client request_ 
