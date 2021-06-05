@@ -41,4 +41,17 @@ userSchema.path('email').validate(function (value) {
     return EMAIL_RE.test(value);
 }, attr => `${attr.value} harus merupakan email yang valid!`);
 
+userSchema.path('email').validate(async function (value) {
+    try {
+        // (1) lakukan pencarian ke _collection_ User berdasarkan `email`
+        const count = await this.model('User').count({ email: value });
+        // (2) kode ini mengindikasikan bahwa jika user ditemukan akan mengembalikan`false` jika tidak ditemukan mengembalikan`true`
+        // jika `false` maka validasi gagal
+        // jika `true` maka validasi berhasil
+        return !count;
+    } catch (err) {
+        throw err
+    }
+}, attr => `${attr.value} sudah terdaftar`)
+
 module.exports = model('User', userSchema);
