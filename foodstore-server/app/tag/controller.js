@@ -1,5 +1,26 @@
 const Tag = require('./model');
 
+async function index(req, res, next) {
+
+    try {
+        // limit , jumlah data
+        // skip,  page keberapa
+        let { limit = 10, skip = 0 } = req.query;
+
+        let tag =
+            await Tag
+                .find()
+                .limit(parseInt(limit)) // <---
+                .skip(parseInt(skip)); // <---
+
+        return res.json(tag);
+
+    } catch (err) {
+        next(err);
+    }
+
+}
+
 async function store(req, res, next) {
     try {
         // (1) dapatkan data dari request yang dikirimkan client
@@ -62,6 +83,7 @@ async function destroy(req, res, next) {
 
 
 module.exports = {
+    index,
     store,
     update,
     destroy
