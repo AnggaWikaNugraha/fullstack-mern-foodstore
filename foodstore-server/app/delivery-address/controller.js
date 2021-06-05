@@ -84,7 +84,46 @@ async function update(req, res, next) {
     }
 }
 
+async function destroy(req, res, next) {
+
+    let policy = policyFor(req.user);
+
+    try {
+
+        let { id } = req.params;
+
+        let address = await DeliveryAddress.findOne({ _id: id });
+
+        let subjectAddress = subject({ ...address, user: address.user });
+
+        if (!policy.can('delete', subjectAddress)) {
+            return res.json({
+                error: 1,
+                message: `You're not allowed to delete this resource`
+            });
+        }
+
+        await DeliveryAddress
+            .findOneAndDelete({ _id: id });
+
+        // (1) respon ke _client_
+        return res.json(address);
+
+    } catch (err) {
+        // (1) tangani kemungkinan error
+        if (err && err.name == 'ValidationError') {
+            return res.json({
+                error: 1,
+                message: err.message,
+                fields: err.errors
+            })
+        }
+        next(err)
+    }
+}
+
 module.exports = {
     store,
-    update
+    update,
+    destroy
 }
