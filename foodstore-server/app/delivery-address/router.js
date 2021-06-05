@@ -7,6 +7,7 @@ const addressController = require('./controller');
 // (3) definisikan _route_ untuk _endpoint_ `create` alamat pengiriman
 router.post('/delivery-addresses', multer().none(), addressController.store);
 router.put('/delivery-addresses/:id', multer().none(), addressController.update);
+router.delete('/delivery-addresses/:id', addressController.destroy);
 
 // (4) export `router`
 module.exports = router;
