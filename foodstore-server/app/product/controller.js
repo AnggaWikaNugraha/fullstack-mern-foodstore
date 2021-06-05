@@ -157,6 +157,18 @@ async function update(req, res, next) {
             }
         }
 
+        if (payload.tags && payload.tags.length) {
+            let tags =
+                await Tag
+                    .find({ name: { $in: payload.tags } });
+            // (1) cek apakah tags membuahkan hasil
+            if (tags.length) {
+
+                // (2) jika ada, maka kita ambil `_id` untuk masing-masing `Tag` dan gabungkan dengan payload
+                payload = { ...payload, tags: tags.map(tag => tag._id) }
+            }
+        }
+
 
         if (req.file) {
             // ambil file gambarnya
