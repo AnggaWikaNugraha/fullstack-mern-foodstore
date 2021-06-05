@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { model, Schema } = mongoose;
-
+const bcrypt = require('bcrypt');
 
 let userSchema = Schema({
     full_name: {
@@ -53,5 +53,12 @@ userSchema.path('email').validate(async function (value) {
         throw err
     }
 }, attr => `${attr.value} sudah terdaftar`)
+
+const HASH_ROUND = 10;
+userSchema.pre('save', function (next) {
+    this.password = bcrypt.hashSync(this.password, HASH_ROUND);
+    next() // <---
+});
+
 
 module.exports = model('User', userSchema);
