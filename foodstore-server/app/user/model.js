@@ -30,4 +30,15 @@ let userSchema = Schema({
     token: [String]
 }, { timestamps: true });
 
+// validasi email 
+userSchema.path('email').validate(function (value) {
+    // (1) email regular expression
+    const EMAIL_RE = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+
+    // (2) test email, hasilnya adalah `true` atau `false`
+    // jika ternyata `true` maka validasi berhasil 
+    // jika ternyata `false` maka validasi gagal
+    return EMAIL_RE.test(value);
+}, attr => `${attr.value} harus merupakan email yang valid!`);
+
 module.exports = model('User', userSchema);
