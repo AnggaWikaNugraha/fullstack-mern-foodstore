@@ -1,4 +1,5 @@
 const Tag = require('./model');
+const { policyFor } = require('../policy');
 
 async function index(req, res, next) {
 
@@ -23,6 +24,14 @@ async function index(req, res, next) {
 
 async function store(req, res, next) {
     try {
+        //--- cek policy ---/
+        let policy = policyFor(req.user);
+        if (!policy.can('create', 'Tag')) { // <-- can create Tag
+            return res.json({
+                error: 1,
+                message: `Anda tidak memiliki akses untuk membuat tag`
+            });
+        }
         // (1) dapatkan data dari request yang dikirimkan client
         let payload = req.body;
 
@@ -50,6 +59,14 @@ async function store(req, res, next) {
 
 async function update(req, res, next) {
     try {
+        //--- cek policy ---/
+        let policy = policyFor(req.user);
+        if (!policy.can('create', 'Tag')) { // <-- can create Tag
+            return res.json({
+                error: 1,
+                message: `Anda tidak memiliki akses untuk membuat tag`
+            });
+        }
         // (1) dapatkan data dari request yang dikirimkan client
         let payload = req.body;
 
@@ -74,6 +91,14 @@ async function update(req, res, next) {
 
 async function destroy(req, res, next) {
     try {
+        //--- cek policy ---/
+        let policy = policyFor(req.user);
+        if (!policy.can('create', 'Tag')) { // <-- can create Tag
+            return res.json({
+                error: 1,
+                message: `Anda tidak memiliki akses untuk membuat tag`
+            });
+        }
         let tag = await Tag.findOneAndDelete({ _id: req.params.id });
         return res.json(tag); // <--- 
     } catch (err) {
