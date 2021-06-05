@@ -1,5 +1,6 @@
 // (1) import model `Product`
 const Product = require('./model');
+const Category = require('../category/model');
 const config = require('../config');
 
 const fs = require('fs');
@@ -9,6 +10,20 @@ async function store(req, res, next) {
     try {
 
         let payload = req.body;
+
+        // cari relasi category
+        if (payload.category) {
+            let category =
+                await Category
+                    // temukan category berdasarkan name , kemudian cocokkan dengan payload category dengan incessensitive 
+                    .findOne({ name: { $regex: payload.category, $options: 'i' } })
+            if (category) {
+                payload = { ...payload, category: category._id };
+            } else {
+                delete payload.category;
+            }
+        }
+
 
         if (req.file) {
             // ambil file gambarnya
@@ -111,6 +126,18 @@ async function update(req, res, next) {
     try {
 
         let payload = req.body;
+
+        if (payload.category) {
+            let category =
+                await Category
+                    .findOne({ name: { $regex: payload.category, $options: 'i' } })
+            if (category) {
+                payload = { ...payload, category: category._id };
+            } else {
+                delete payload.category;
+            }
+        }
+
 
         if (req.file) {
             // ambil file gambarnya
