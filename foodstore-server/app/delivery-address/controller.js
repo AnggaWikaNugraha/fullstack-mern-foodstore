@@ -2,6 +2,44 @@ const DeliveryAddress = require('./model');
 const { policyFor } = require('../policy');
 const { subject } = require('@casl/ability');
 
+async function index(req, res, next) {
+
+    const policy = policyFor(req.user);
+
+    if (!policy.can('view', 'DeliveryAddress')) {
+        return res.json({
+            error: 1,
+            message: `You're not allowed to perform this action`
+        });
+    }
+
+    try {
+
+        let { limit = 10, skip = 0 } = req.query;
+        // (1) dapatkan jumlah data alamat pengiriman
+        const count = await DeliveryAddress.find({ user: req.user._id }).countDocuments();
+
+        const deliveryAddresses =
+            await DeliveryAddress
+                .find({ user: req.user._id })
+                .limit(parseInt(limit))
+                .skip(parseInt(skip))
+                .sort('-createdAt')
+
+        return res.json({ data: deliveryAddresses, count: count });
+
+    } catch (err) {
+        if (err && err.name == 'ValidationError') {
+            return res.json({
+                error: 1,
+                message: err.message,
+                fields: err.errors
+            })
+        }
+        next(err)
+    }
+}
+
 async function store(req, res, next) {
     let policy = policyFor(req.user);
 
@@ -123,6 +161,7 @@ async function destroy(req, res, next) {
 }
 
 module.exports = {
+    index,
     store,
     update,
     destroy
