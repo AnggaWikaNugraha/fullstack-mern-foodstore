@@ -131,7 +131,9 @@ async function index(req, res, next) {
             await Product
                 .find()
                 .limit(parseInt(limit)) // <---
-                .skip(parseInt(skip)); // <---
+                .skip(parseInt(skip)) // <---
+                .populate('category')
+                .populate('tags');
 
         return res.json(products);
 
