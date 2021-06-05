@@ -58,7 +58,27 @@ async function update(req, res, next) {
     }
 }
 
+async function destroy(req, res, next) {
+    try {
+
+        // (1) cari dan hapus categori di MongoDB berdasarkan field _id
+        let deleted = await Category.findOneAndDelete({
+            _id:
+                req.params.id
+        });
+
+        // (2) respon ke client dengan data category yang baru saja dihapus
+        return res.json(deleted);
+
+    } catch (err) {
+        // (3) handle kemungkinan error
+        next(err);
+    }
+}
+
+
 module.exports = {
     store,
-    update // <--
+    update, // <--
+    destroy
 }
