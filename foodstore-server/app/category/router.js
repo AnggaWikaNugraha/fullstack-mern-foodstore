@@ -9,6 +9,7 @@ const categoryController = require('./controller');
 
 // (4) endpoint untuk membuat kategori baru
 router.post('/categories', multer().none(), categoryController.store);
+router.put('/categories/:id', multer().none(), categoryController.update)
 
 // (5) export router agar bisa dipakai di file `app.js`
 module.exports = router;
