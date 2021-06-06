@@ -10,7 +10,7 @@ const tagRouter = require('./app/tag/router');
 const authRouter = require('./app/auth/router');
 const wilayahRouter = require('./app/wilayah/router');
 const deliveryRouter = require('./app/delivery-address/router');
-const cartRouter = require('/app/cart/router')
+const cartRouter = require('./app/cart/router')
 const { decodeToken } = require('./app/auth/middleware');
 
 var app = express();
