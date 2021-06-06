@@ -71,3 +71,37 @@ async function update(req, res, next) {
 
     }
 }
+
+async function index(req, res, next) {
+
+    let policy = policyFor(req.user);
+
+    if (!policy.can('read', 'Cart')) {
+        return res.json({
+            error: 1,
+            message: `You're not allowed to perform this action`
+        });
+    }
+    try {
+
+        let items = await CartItem.find({ user: req.user._id }).populate('product');
+
+        return res.json(items);
+    } catch (err) {
+
+        if (err && err.name == 'ValidationError') {
+            return res.json({
+                error: 1,
+                message: err.message,
+                fields: err.errors
+            });
+        }
+
+        next(err)
+    }
+}
+
+module.exports = {
+    index, // <-- export `index`
+    update
+}
