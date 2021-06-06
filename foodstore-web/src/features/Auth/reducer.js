@@ -1,4 +1,4 @@
-import { USER_LOGIN, USER_LOGOUT } from '../app/constants';
+import { USER_LOGIN, USER_LOGOUT } from '../../app/constants';
 
 let initialState = { user: null, token: null }
 
