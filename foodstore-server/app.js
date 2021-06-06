@@ -12,8 +12,9 @@ const wilayahRouter = require('./app/wilayah/router');
 const deliveryRouter = require('./app/delivery-address/router');
 const cartRouter = require('./app/cart/router')
 const orderRouter = require('./app/order/router');
-const invoiceRouter = require('/app/invoice/router');
+const invoiceRouter = require('./app/invoice/router');
 const { decodeToken } = require('./app/auth/middleware');
+const cors = require('cors');
 
 var app = express();
 
