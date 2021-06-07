@@ -28,6 +28,7 @@ export default function Register() {
             history.push("/register/berhasil");
         } else {
             setStatus(statuslist.error)
+            alert('error sandi or email wrong !')
         }
     }
 
