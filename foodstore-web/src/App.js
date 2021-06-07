@@ -9,6 +9,7 @@ import { listen } from './app/listener';
 // (1) import komponen Register
 import Register from './pages/Register/index';
 import RegisterSuccess from './pages/RegisterSucces';
+import Login from './pages/Login';
 
 function App() {
 
@@ -23,6 +24,9 @@ function App() {
       <Router>
         <Switch>
           {/* (2) buat route /register */}
+          <Route path="/login">
+            <Login />
+          </Route>
           <Route path="/register/berhasil">
             <RegisterSuccess />
           </Route>
