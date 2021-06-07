@@ -6,6 +6,8 @@ import { Provider } from 'react-redux';
 import store from './app/store';
 // (1) import fungsi listen
 import { listen } from './app/listener';
+// (1) import komponen Register
+import Register from './pages/Register/index';
 
 
 function App() {
@@ -20,6 +22,8 @@ function App() {
     <Provider store={store}>
       <Router>
         <Switch>
+          {/* (2) buat route /register */}
+          <Route path="/register" component={Register} />
           <Route path="/" component={Home} />
         </Switch>
       </Router>
