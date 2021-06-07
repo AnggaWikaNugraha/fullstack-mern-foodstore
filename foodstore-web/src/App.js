@@ -8,7 +8,7 @@ import store from './app/store';
 import { listen } from './app/listener';
 // (1) import komponen Register
 import Register from './pages/Register/index';
-
+import RegisterSuccess from './pages/RegisterSucces';
 
 function App() {
 
@@ -23,6 +23,9 @@ function App() {
       <Router>
         <Switch>
           {/* (2) buat route /register */}
+          <Route path="/register/berhasil">
+            <RegisterSuccess />
+          </Route>
           <Route path="/register" component={Register} />
           <Route path="/" component={Home} />
         </Switch>
