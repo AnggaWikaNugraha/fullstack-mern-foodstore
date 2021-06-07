@@ -27,22 +27,21 @@ export default function Login() {
         setStatus(statuslist.process);
 
         // (3) kirim data ke Web API menggunakan helper `login`
-        let { data } = await login(email, password);
-
+        let response = await login(email, password);
+        console.log(response)
         // (4) cek apakah server mengembalikan error
-        if (data.error) {
-
-            // (5) tangani error bertipe 'invalidCredential'
-            setError('password', { type: 'invalidCredential', message: data.message });
+        if (response.data.error) {
 
             // (6) set status menjadi `error`
             setStatus(statuslist.error);
+            alert('error sandi or email wrong !')
+
         } else {
 
             // (7) BERHASIL LOGIN 
 
             // (8) ambil data `user` dan `token` dari respon server
-            let { user, token } = data;
+            let { user, token } = response.data;
 
             // (9) dispatch ke Redux store, action `userLogin` dengan data `user` dan `token`
             dispatch(userLogin(user, token));
