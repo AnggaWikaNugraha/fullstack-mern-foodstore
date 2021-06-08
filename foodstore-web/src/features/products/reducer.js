@@ -67,7 +67,7 @@ export default function reducer(state = initialState, action) {
         case NEXT_PAGE_PRODUCT:
             return { ...state, currentPage: state.currentPage + 1 }
 
-        case PREV_PAGE:
+        case PREV_PAGE_PRODUCT:
             return { ...state, currentPage: state.currentPage - 1 }
 
         default:
