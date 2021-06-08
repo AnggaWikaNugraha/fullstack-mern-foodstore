@@ -5,13 +5,13 @@ import {
     Responsive, // (1) import Responsive
     CardProduct, // (2) import CardProduct
     Pagination,  // import Pagination
-    InputText  // import `InputText
-
+    InputText,  // import `InputText
+    Pill, // import `Pill`
 } from 'upkit';
-import menus from './menu'
-import TopBar from '../../src/component/Topbar';
+import menus from '../menu'
+import TopBar from '../../component/Topbar';
 import { useDispatch, useSelector } from 'react-redux';
-import { config } from '../config';
+import { config } from '../../config';
 import {
     fetchProducts,
     setPage,  // (1) import `setPage`
@@ -19,8 +19,10 @@ import {
     goToPrevPage, // (3) import `goToPrevPage`
     setKeyword, // import `setKeyword`
     setCategory, // import `setCategory`
-} from '../features/products/actions';
+    toggleTag, // import `toggleTag`
+} from '../../features/products/actions';
 import BounceLoader from 'react-spinners/BounceLoader';
+import { tags } from './tags';
 
 const Home = () => {
     let dispatch = useDispatch();
@@ -32,7 +34,8 @@ const Home = () => {
         dispatch,
         products.currentPage,
         products.keyword,
-        products.category
+        products.category,
+        products.tags
     ])
 
     return (
@@ -42,6 +45,18 @@ const Home = () => {
                 content={<div className="md:flex md:flex-row-reverse w-full mr-5 h-full min-h-screen">
                     <TopBar />
                     <div className="w-full md:w-3/4 pl-5 pb-10">
+                        <div className="mb-5 pl-2 flex w-3/3 overflow-auto pb-5">
+                            {tags[products.category].map((tag, index) => {
+                                return <div key={index}>
+                                    <Pill
+                                        text={tag}
+                                        icon={tag.slice(0, 1).toUpperCase()}
+                                        isActive={products.tags.includes(tag)}
+                                        onClick={_ => dispatch(toggleTag(tag))}
+                                    />
+                                </div>
+                            })}
+                        </div>
                         {products.status === 'process' && !products.data.length ?
                             <div className="flex justify-center">
                                 <BounceLoader color="red" />
