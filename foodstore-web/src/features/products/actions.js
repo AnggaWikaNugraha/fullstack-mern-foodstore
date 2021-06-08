@@ -10,7 +10,7 @@ import {
     PREV_PAGE_PRODUCT,
     TOGGLE_TAG_PRODUCT,
 } from '../../app/constants'
-import { getProducts } from '../../api/product';
+import { getProducts } from '../../api/products';
 import debounce from 'debounce-promise';
 
 export const startFetchingProducts = () => {
@@ -92,12 +92,19 @@ export const setTags = tags => {
 
 export const goToNextPage = () => {
     return {
-        type: NEXT_PAGE,
+        type: NEXT_PAGE_PRODUCT,
     }
 }
 
 export const goToPrevPage = () => {
     return {
-        type: PREV_PAGE
+        type: PREV_PAGE_PRODUCT
     }
+}
+
+export const toggleTag = tag => {
+    return {
+        type: TOGGLE_TAG_PRODUCT,
+        tag
+    };
 }

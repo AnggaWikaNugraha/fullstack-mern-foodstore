@@ -1,7 +1,7 @@
 // (1) import module dari `redux`
 import { combineReducers, createStore, applyMiddleware, compose } from 'redux';
 import authReducer from '../features/Auth/reducer';
-import productReducer from '../features/Products/reducer';
+import productReducer from '../features/products/reducer';
 
 // (2) import redux-thunk middleware
 import thunk from 'redux-thunk';
