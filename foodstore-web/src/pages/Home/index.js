@@ -45,7 +45,7 @@ const Home = () => {
                 content={<div className="md:flex md:flex-row-reverse w-full mr-5 h-full min-h-screen">
                     <TopBar />
                     <div className="w-full md:w-3/4 pl-5 pb-10">
-                        <div className="mb-5 pl-2 flex w-3/3 overflow-auto pb-5">
+                        <div className="mb-5 mt-5 pl-2 flex w-3/3 overflow-auto pb-5">
                             {tags[products.category].map((tag, index) => {
                                 return <div key={index}>
                                     <Pill
