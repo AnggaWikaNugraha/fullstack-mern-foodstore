@@ -1,7 +1,7 @@
 import React from 'react'
 import { HashRouter as Router, Route, Switch } from 'react-router-dom';
 import 'upkit/dist/style.min.css'
-import Home from './pages/Home';
+import Home from './pages/Home/index';
 import { Provider } from 'react-redux';
 import store from './app/store';
 // (1) import fungsi listen
@@ -17,7 +17,6 @@ function App() {
   React.useEffect(() => {
     listen();
   }, [])
-
 
   return (
     <Provider store={store}>
@@ -35,7 +34,6 @@ function App() {
         </Switch>
       </Router>
     </Provider>
-
   );
 }
 
