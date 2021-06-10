@@ -4,6 +4,7 @@ import TopBar from '../../component/Topbar';
 import BounceLoader from 'react-spinners/BounceLoader';
 import Cart from '../../component/Cart';
 
+import { useHistory } from 'react-router-dom';
 import { addItem, removeItem } from '../../features/Cart/actions';
 import { SideNav, LayoutSidebar, Responsive, CardProduct, Pagination, InputText, Pill, } from 'upkit';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,6 +15,9 @@ import { tags } from './tags';
 const Home = () => {
 
     let dispatch = useDispatch();
+
+    let history = useHistory();
+
     let products = useSelector(state => state.products);
     let cart = useSelector(state => state.cart);
 
@@ -103,6 +107,7 @@ const Home = () => {
                             items={cart}
                             onItemInc={item => dispatch(addItem(item))}
                             onItemDec={item => dispatch(removeItem(item))}
+                            onCheckout={_ => history.push("/checkout")}
                         />
                     </div>
 
