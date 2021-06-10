@@ -8,7 +8,7 @@ export default function reducer(state = initialState, action) {
 
     switch (action.type) {
 
-        case ADD_ITEM:
+        case ADD_ITEM_CART:
             if (state.find(item => item._id === action.item._id)) {
 
                 return state.map(item => ({
@@ -22,7 +22,7 @@ export default function reducer(state = initialState, action) {
 
             }
 
-        case REMOVE_ITEM:
+        case REMOVE_ITEM_CART:
 
             return state.map(item => ({
                 ...item,
@@ -30,10 +30,10 @@ export default function reducer(state = initialState, action) {
             }))
                 .filter(item => item.qty > 0);
 
-        case CLEAR_ITEMS:
+        case CLEAR_ITEMS_CART:
             return [];
 
-        case SET_ITEMS:
+        case SET_ITEMS_CART:
             return action.items
 
         default:
