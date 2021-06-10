@@ -17,7 +17,7 @@ function App() {
   React.useEffect(() => {
 
     listen();
-    getCart();
+    // getCart();
 
   }, [])
 
