@@ -1,35 +1,26 @@
 import React from 'react'
-import {
-    SideNav,
-    LayoutSidebar,
-    Responsive, // (1) import Responsive
-    CardProduct, // (2) import CardProduct
-    Pagination,  // import Pagination
-    InputText,  // import `InputText
-    Pill, // import `Pill`
-} from 'upkit';
 import menus from '../menu'
 import TopBar from '../../component/Topbar';
+import BounceLoader from 'react-spinners/BounceLoader';
+import Cart from '../../component/Cart';
+
+import { addItem, removeItem } from '../../features/Cart/actions';
+import { SideNav, LayoutSidebar, Responsive, CardProduct, Pagination, InputText, Pill, } from 'upkit';
 import { useDispatch, useSelector } from 'react-redux';
 import { config } from '../../config';
-import {
-    fetchProducts,
-    setPage,  // (1) import `setPage`
-    goToNextPage,  // (2) import `goToNextPage`
-    goToPrevPage, // (3) import `goToPrevPage`
-    setKeyword, // import `setKeyword`
-    setCategory, // import `setCategory`
-    toggleTag, // import `toggleTag`
-} from '../../features/products/actions';
-import BounceLoader from 'react-spinners/BounceLoader';
+import { fetchProducts, setPage, goToNextPage, goToPrevPage, setKeyword, setCategory, toggleTag } from '../../features/products/actions';
 import { tags } from './tags';
 
 const Home = () => {
+
     let dispatch = useDispatch();
     let products = useSelector(state => state.products);
+    let cart = useSelector(state => state.cart);
 
     React.useEffect(() => {
+
         dispatch(fetchProducts());
+
     }, [
         dispatch,
         products.currentPage,
@@ -41,10 +32,14 @@ const Home = () => {
     return (
         <div>
             <LayoutSidebar
+
                 sidebar={<SideNav items={menus} verticalAlign="top" onChange={category => dispatch(setCategory(category))} />}
-                content={<div className="md:flex md:flex-row-reverse w-full mr-5 h-full min-h-screen">
+                content={<div className="md:flex md:flex-row-reverse w-full mr-5 h-full min-h-screen"
+
+                >
                     <TopBar />
                     <div className="w-full md:w-3/4 pl-5 pb-10">
+
                         <div className="mb-5 mt-5 pl-2 flex w-3/3 overflow-auto pb-5">
                             {tags[products.category].map((tag, index) => {
                                 return <div key={index}>
@@ -57,11 +52,13 @@ const Home = () => {
                                 </div>
                             })}
                         </div>
+
                         {products.status === 'process' && !products.data.length ?
                             <div className="flex justify-center">
                                 <BounceLoader color="red" />
                             </div>
-                            : null}
+                            : null
+                        }
 
                         <div className="w-full text-center mb-10 mt-5">
                             <InputText
@@ -82,7 +79,7 @@ const Home = () => {
                                         title={product.name}
                                         imgUrl={`${config.api_host}/upload/${product.image_url}`}
                                         price={product.price}
-                                        onAddToCart={_ => null}
+                                        onAddToCart={_ => dispatch(addItem(product))}
                                     />
                                 </div>
                             })}
@@ -100,9 +97,15 @@ const Home = () => {
                         </div>
 
                     </div>
+
                     <div className="w-full md:w-1/4 h-full shadow-lg border-r border-white bg-gray-100">
-                        Keranjang belanja di sini
+                        <Cart
+                            items={cart}
+                            onItemInc={item => dispatch(addItem(item))}
+                            onItemDec={item => dispatch(removeItem(item))}
+                        />
                     </div>
+
                 </div>}
                 sidebarSize={80}
             />
