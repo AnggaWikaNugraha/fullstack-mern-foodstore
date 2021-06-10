@@ -1,6 +1,8 @@
 import { ADD_ITEM_CART, REMOVE_ITEM_CART, CLEAR_ITEMS_CART, SET_ITEMS_CART } from '../../app/constants'
 
-const initialState = [];
+const initialState = localStorage.getItem('cart')
+    ? JSON.parse(localStorage.getItem('cart'))
+    : [];
 
 export default function reducer(state = initialState, action) {
 
