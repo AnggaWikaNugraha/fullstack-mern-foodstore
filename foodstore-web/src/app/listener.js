@@ -1,4 +1,5 @@
 import store from './store';
+import { saveCart } from '../api/cart';
 
 // (1) definisikan variabel tanpa nilai awal 
 let currentAuth;
@@ -17,6 +18,8 @@ function listener() {
 
     currentCart = store.getState().cart;
 
+    let { token } = currentAuth;
+
     // (3) cek apakah nilai state `auth` berubah dari nilai sebelumnya 
     if (currentAuth !== previousAuth) {
 
@@ -28,6 +31,7 @@ function listener() {
 
         localStorage.setItem('cart', JSON.stringify(currentCart));
 
+        saveCart(token, currentCart);
     }
 }
 
