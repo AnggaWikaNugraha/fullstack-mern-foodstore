@@ -5,7 +5,7 @@ import { oneOf, number, oneOfType, string, func, shape } from 'prop-types';
 import { config } from '../../config';
 import { Select } from 'upkit';
 
-export default function SelectWilayah({ tingkat, kodeInduk, onChange }) {
+export default function SelectWilayah({ tingkat, kodeInduk, onChange, value }) {
 
     // (1) definisikan _state_ lokal
     let [data, setData] = React.useState([]);
