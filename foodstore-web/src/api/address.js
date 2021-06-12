@@ -20,3 +20,12 @@ export async function getAddress(params) {
     });
 
 }
+
+export async function createAddress(payload) {
+
+    let { token } = localStorage.getItem('auth')
+        ? JSON.parse(localStorage.getItem('auth')) : {};
+
+    return await axios.post(config.api_host + '/api/delivery-addresses', payload);
+
+}
