@@ -4,6 +4,7 @@ import Register from './pages/Register/index';
 import RegisterSuccess from './pages/RegisterSucces';
 import Login from './pages/Login';
 import Home from './pages/Home/index';
+import UserAddressAdd from './pages/UserAddressAdd';
 
 import { HashRouter as Router, Route, Switch } from 'react-router-dom';
 import { Provider } from 'react-redux';
@@ -32,6 +33,10 @@ function App() {
 
           <Route path="/register/berhasil">
             <RegisterSuccess />
+          </Route>
+
+          <Route path="/alamat-pengiriman/tambah">
+            <UserAddressAdd />
           </Route>
 
           <Route path="/register" component={Register} />
