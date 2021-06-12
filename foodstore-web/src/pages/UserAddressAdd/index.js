@@ -53,7 +53,9 @@ export default function UserAddressAdd() {
             kelurahan: formData.kelurahan.label
         }
 
-        let { data } = await createAddress(payload);
+        let respones = await createAddress(payload);
+        console.log(respones)
+        let data = respones.data
 
         if (data.error) return;
 
