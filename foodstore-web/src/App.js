@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Home from "./pages/Home/index";
 import UserAddressAdd from "./pages/UserAddressAdd";
 import UserAddress from "./pages/userAddress";
+import Checkout from "./pages/Checkout";
 
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
 import { Provider } from "react-redux";
@@ -38,6 +39,10 @@ function App() {
 
           <Route path="/alamat-pengiriman/">
             <UserAddress />
+          </Route>
+
+          <Route path="/checkout">
+            <Checkout />
           </Route>
 
           <Route path="/register" component={Register} />
