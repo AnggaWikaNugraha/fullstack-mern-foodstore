@@ -132,3 +132,22 @@ Request :
 - Checkout
 - Riwayat pemesanan
 - Kelola daftar alamat pengiriman
+
+##### add .env foodstore-server
+
+PORT = 3000
+SERVICE_NAME=foodstore-service
+DB_HOST=localhost
+
+DB_PORT=27017
+
+# SESUAIKAN dengan username mongo di mesinmu
+DB_USER=
+
+# SESUAIKAN dengan password user di mesinmu
+DB_PASS=
+
+# SESUAIKAN dengan nama database yang sudah kamu buat
+DB_NAME=foodstore 
+
+SECRET_KEY=
