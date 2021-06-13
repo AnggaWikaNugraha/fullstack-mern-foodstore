@@ -4,12 +4,15 @@ import FaCartPlus from "@meronex/icons/fa/FaCartPlus";
 import FaAddressCard from "@meronex/icons/fa/FaAddressCard";
 import FaInfoCircle from "@meronex/icons/fa/FaInfoCircle";
 import FaArrowRight from "@meronex/icons/fa/FaArrowRight";
+import FaArrowLeft from "@meronex/icons/fa/FaArrowLeft";
 
+import { Link } from "react-router-dom";
+import { useAddressData } from "../../hooks/address";
 import { sumPrice } from "../../utils/sum-price";
 import { formatRupiah } from "../../utils/format-rupiah";
 import { config } from "../../config";
 import { useSelector } from "react-redux";
-import { LayoutOne, Text, Steps, Table, Button } from "upkit";
+import { LayoutOne, Text, Steps, Table, Button, Responsive } from "upkit";
 
 const IconWrapper = ({ children }) => {
   return <div className="text-3xl flex justify-center">{children}</div>;
@@ -74,10 +77,32 @@ const columns = [
   },
 ];
 
+const addressColumns = [
+  {
+    Header: "Nama alamat",
+    accessor: (alamat) => {
+      return (
+        <div>
+          {alamat.nama} <br />
+          <small>
+            {alamat.provinsi}, {alamat.kabupaten}, {alamat.kecamatan},{" "}
+            {alamat.kelurahan} <br />
+            {alamat.detail}
+          </small>
+        </div>
+      );
+    },
+  },
+];
+
 export default function Checkout() {
   let [activeStep, setActiveStep] = React.useState(0);
 
   let cart = useSelector((state) => state.cart);
+
+  let { data, status, limit, page, count, setPage } = useAddressData();
+
+  let [selectedAddress, setSelectedAddress] = React.useState(null);
 
   return (
     <LayoutOne>
@@ -104,6 +129,56 @@ export default function Checkout() {
             {" "}
             Selanjutnya{" "}
           </Button>
+        </div>
+      ) : null}
+
+      {activeStep === 1 ? (
+        <div>
+          <br /> <br />
+          <Table
+            items={data}
+            columns={addressColumns}
+            perPage={limit}
+            page={page}
+            onPageChange={(page) => setPage(page)}
+            totalItems={count}
+            isLoading={status === "process"}
+            selectable
+            primaryKey={"_id"}
+            selectedRow={selectedAddress}
+            onSelectRow={(item) => setSelectedAddress(item)}
+          />
+          {!data.length && status === "success" ? (
+            <div className="text-center my-10">
+              <Link to="/alamat-pengiriman/tambah">
+                Kamu belum memiliki alamat pengiriman <br /> <br />
+                <Button> Tambah alamat </Button>
+              </Link>
+            </div>
+          ) : null}
+          <br /> <br />
+          <Responsive desktop={2} tablet={2} mobile={2}>
+            <div>
+              <Button
+                onClick={(_) => setActiveStep(activeStep - 1)}
+                color="gray"
+                iconBefore={<FaArrowLeft />}
+              >
+                Sebelumnya
+              </Button>
+            </div>
+
+            <div className="text-right">
+              <Button
+                onClick={(_) => setActiveStep(activeStep + 1)}
+                disabled={!selectedAddress}
+                color="red"
+                iconAfter={<FaArrowRight />}
+              >
+                Selanjutnya
+              </Button>
+            </div>
+          </Responsive>
         </div>
       ) : null}
     </LayoutOne>
