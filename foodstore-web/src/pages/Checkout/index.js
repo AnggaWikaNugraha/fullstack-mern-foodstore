@@ -5,6 +5,7 @@ import FaAddressCard from "@meronex/icons/fa/FaAddressCard";
 import FaInfoCircle from "@meronex/icons/fa/FaInfoCircle";
 import FaArrowRight from "@meronex/icons/fa/FaArrowRight";
 import FaArrowLeft from "@meronex/icons/fa/FaArrowLeft";
+import FaRegCheckCircle from "@meronex/icons/fa/FaRegCheckCircle";
 
 import { Link } from "react-router-dom";
 import { useAddressData } from "../../hooks/address";
@@ -176,6 +177,71 @@ export default function Checkout() {
                 iconAfter={<FaArrowRight />}
               >
                 Selanjutnya
+              </Button>
+            </div>
+          </Responsive>
+        </div>
+      ) : null}
+
+      {activeStep === 2 ? (
+        <div>
+          <Table
+            columns={[
+              {
+                Header: "",
+                accessor: "label",
+              },
+              {
+                Header: "",
+                accessor: "value",
+              },
+            ]}
+            items={[
+              {
+                label: "Alamat",
+                value: (
+                  <div>
+                    {selectedAddress.nama} <br />
+                    {selectedAddress.provinsi}, {selectedAddress.kabupaten},{" "}
+                    {selectedAddress.kecamatan}, {selectedAddress.kelurahan}{" "}
+                    <br />
+                    {selectedAddress.detail}
+                  </div>
+                ),
+              },
+              { label: "Subtotal", value: formatRupiah(sumPrice(cart)) },
+              { label: "Ongkir", value: formatRupiah(config.global_ongkir) },
+              {
+                label: "Total",
+                value: (
+                  <b>
+                    {formatRupiah(
+                      sumPrice(cart) + parseInt(config.global_ongkir)
+                    )}
+                  </b>
+                ),
+              },
+            ]}
+            showPagination={false}
+          />
+          <br />
+          <Responsive desktop={2} tablet={2} mobile={2}>
+            <div>
+              <Button
+                onClick={(_) => setActiveStep(activeStep - 1)}
+                color="gray"
+                iconBefore={<FaArrowLeft />}
+              >
+                Sebelumnya
+              </Button>
+            </div>
+            <div className="text-right">
+              <Button
+                color="red"
+                size="large"
+                iconBefore={<FaRegCheckCircle />}
+              >
+                Bayar
               </Button>
             </div>
           </Responsive>
