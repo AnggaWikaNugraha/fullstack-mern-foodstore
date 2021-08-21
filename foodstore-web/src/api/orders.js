@@ -19,3 +19,15 @@ export async function getOrders(params) {
     },
   });
 }
+
+export async function createOrder(payload) {
+  let { token } = localStorage.getItem("auth")
+    ? JSON.parse(localStorage.getItem("auth"))
+    : {};
+
+  return await axios.post(`${config.api_host}/api/orders`, payload, {
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+  });
+}
