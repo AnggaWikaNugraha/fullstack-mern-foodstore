@@ -9,6 +9,7 @@ import UserAddress from "./pages/userAddress";
 import Checkout from "./pages/Checkout";
 import Invoice from "./pages/invoice";
 import Product from "./pages/product";
+import Categories from "./pages/categories";
 
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
 import { Provider } from "react-redux";
@@ -16,6 +17,7 @@ import { getCart } from "./api/cart";
 import { listen } from "./app/listener";
 
 import "upkit/dist/style.min.css";
+import "./App.css";
 
 function App() {
   React.useEffect(() => {
@@ -53,6 +55,10 @@ function App() {
 
           <Route path="/admin/product">
             <Product />
+          </Route>
+
+          <Route path="/admin/categories">
+            <Categories />
           </Route>
 
           <Route path="/register" component={Register} />
