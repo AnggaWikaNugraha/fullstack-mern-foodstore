@@ -7,13 +7,15 @@ import FaArrowRight from "@meronex/icons/fa/FaArrowRight";
 import FaArrowLeft from "@meronex/icons/fa/FaArrowLeft";
 import FaRegCheckCircle from "@meronex/icons/fa/FaRegCheckCircle";
 
-import { Link } from "react-router-dom";
 import { useAddressData } from "../../hooks/address";
 import { sumPrice } from "../../utils/sum-price";
 import { formatRupiah } from "../../utils/format-rupiah";
 import { config } from "../../config";
-import { useSelector } from "react-redux";
 import { LayoutOne, Text, Steps, Table, Button, Responsive } from "upkit";
+import { createOrder } from "../../api/orders";
+import { useSelector, useDispatch } from "react-redux";
+import { clearItems } from "../../features/Cart/actions";
+import { Link, useHistory, Redirect } from "react-router-dom";
 
 const IconWrapper = ({ children }) => {
   return <div className="text-3xl flex justify-center">{children}</div>;
@@ -104,6 +106,32 @@ export default function Checkout() {
   let { data, status, limit, page, count, setPage } = useAddressData();
 
   let [selectedAddress, setSelectedAddress] = React.useState(null);
+
+  let history = useHistory();
+
+  let dispatch = useDispatch();
+
+  async function handleCreateOrder() {
+    let payload = {
+      delivery_fee: config.global_ongkir,
+      delivery_address: selectedAddress._id,
+    };
+
+    // (1) kirimkan `payload` ke Web API untuk membuat order baru
+    let { data } = await createOrder(payload);
+
+    // (1) hentikan operasi jika terjadi error
+    if (data?.error) return;
+
+    history.push(`/invoice/${data._id}`);
+
+    // (1) hapus semua item di keranjang belanja
+    dispatch(clearItems());
+  }
+
+  if (!cart.length) {
+    return <Redirect to="/" />;
+  }
 
   return (
     <LayoutOne>
@@ -240,6 +268,7 @@ export default function Checkout() {
                 color="red"
                 size="large"
                 iconBefore={<FaRegCheckCircle />}
+                onClick={handleCreateOrder}
               >
                 Bayar
               </Button>
