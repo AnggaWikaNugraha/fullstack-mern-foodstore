@@ -7,6 +7,7 @@ import Home from "./pages/Home/index";
 import UserAddressAdd from "./pages/UserAddressAdd";
 import UserAddress from "./pages/userAddress";
 import Checkout from "./pages/Checkout";
+import Invoice from "./pages/invoice";
 
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
 import { Provider } from "react-redux";
@@ -43,6 +44,10 @@ function App() {
 
           <Route path="/checkout">
             <Checkout />
+          </Route>
+
+          <Route path="/invoice/:order_id">
+            <Invoice />
           </Route>
 
           <Route path="/register" component={Register} />
