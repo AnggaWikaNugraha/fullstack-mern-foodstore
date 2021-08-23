@@ -35,15 +35,22 @@ async function register(req, res, next) {
   }
 }
 
-// cocokkan email saat login
+// cocokkan passwprd saat login dengan email yg dicari ke collection DB
 async function localStrategy(email, password, done) {
   try {
     let user = await User.findOne({ email })
-      // pilih yg tidak mau di munculkan
+
+      // pilih yg tidak mau di munculkan dengan menggunakan minus
       .select("-__v -createdAt -updatedAt -cart_items -token");
+
     if (!user) return done();
+
+    // user sudah d temukan kemudian cocokkan password
+    // jika password sama
     if (bcrypt.compareSync(password, user.password)) {
       ({ password, ...userWithoutPassword } = user.toJSON());
+
+      // retutn password cocok true, tidak cocok false
       return done(null, userWithoutPassword);
     }
   } catch (err) {
@@ -54,12 +61,15 @@ async function localStrategy(email, password, done) {
 
 async function login(req, res, next) {
   passport.authenticate("local", async function (err, user) {
+    // jika error dari localstrategy
     if (err) return next(err);
+
     if (!user)
       return res.json({ error: 1, message: "email or password incorrect" }); // <--
 
-    // (1) buat JSON Web Token
+    // (1) buat JSON Web Token dan menyimpannya ke atribut user
     let signed = jwt.sign(user, config.secretKey);
+
     // (2) simpan token tersebut ke user terkait
     await User.findOneAndUpdate(
       { _id: user._id },
