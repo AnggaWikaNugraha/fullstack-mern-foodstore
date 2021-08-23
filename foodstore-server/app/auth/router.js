@@ -4,6 +4,9 @@ const multer = require("multer");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const controller = require("./contoller");
+
+// bawaan request mengandung username dam password, kita pengen email dan password maka..
+// nantinya frontend akan memanggill endpoint POST http://localhost:3000/auth/login
 passport.use(
   new LocalStrategy({ usernameField: "email" }, controller.localStrategy)
 );
