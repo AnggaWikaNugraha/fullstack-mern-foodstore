@@ -11,7 +11,7 @@ async function index(req, res, next) {
       .limit(parseInt(limit)) // <---
       .skip(parseInt(skip)); // <---
 
-    return res.json(category);
+    return res.json({ data: category });
   } catch (err) {
     next(err);
   }
