@@ -68,8 +68,8 @@ async function login(req, res, next) {
       return res.json({ error: 1, message: "email or password incorrect" }); // <--
 
     // (1) buat JSON Web Token dan menyimpannya ke atribut user
+    // signed adalah berupa token
     let signed = jwt.sign(user, config.secretKey);
-
     // (2) simpan token tersebut ke user terkait
     await User.findOneAndUpdate(
       { _id: user._id },
@@ -102,7 +102,7 @@ function me(req, res, next) {
 
 async function logout(req, res, next) {
   let token = getToken(req);
-
+  console.log(req.headers.authorization);
   // (2) hapus `token` dari `User`
   let user = await User.findOneAndUpdate(
     { token: { $in: [token] } },
@@ -110,7 +110,7 @@ async function logout(req, res, next) {
     { useFindAndModify: false }
   );
 
-  // --- cek user atau token ---//
+  // // --- cek user atau token ---//
   if (!user || !token) {
     return res.json({
       error: 1,
