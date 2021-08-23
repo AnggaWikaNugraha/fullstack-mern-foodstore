@@ -3,6 +3,7 @@ const router = require("express").Router();
 const multer = require("multer");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
+
 const controller = require("./contoller");
 
 // bawaan request mengandung username dam password, kita pengen email dan password maka..
