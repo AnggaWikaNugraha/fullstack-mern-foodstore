@@ -102,7 +102,7 @@ function me(req, res, next) {
 
 async function logout(req, res, next) {
   let token = getToken(req);
-  console.log(req.headers.authorization);
+
   // (2) hapus `token` dari `User`
   let user = await User.findOneAndUpdate(
     { token: { $in: [token] } },

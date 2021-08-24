@@ -8,7 +8,6 @@ function decodeToken() {
     try {
       // tangkap token
       let token = getToken(req);
-      console.log(req);
 
       // jika token tida ada
       if (!token) return next(); // <---
