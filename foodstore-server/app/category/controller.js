@@ -20,12 +20,13 @@ async function index(req, res, next) {
 async function store(req, res, next) {
   try {
     let policy = policyFor(req.user);
-    // if (!policy.can('create', 'Category')) { // <-- can create Category
-    //     return res.json({
-    //         error: 1,
-    //         message: `Anda tidak memiliki akses untuk membuat kategori`
-    //     });
-    // }
+    if (!policy.can("create", "Category")) {
+      // <-- can create Category
+      return res.json({
+        error: 1,
+        message: `Anda tidak memiliki akses untuk membuat kategori`,
+      });
+    }
     // (1) tangkap payload dari _client request_
     let payload = req.body;
 
