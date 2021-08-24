@@ -13,14 +13,13 @@ async function store(req, res, next) {
     //--- cek policy ---/
     let policy = policyFor(req.user);
 
-    // if (!policy.can('create', 'Product')) {
-
-    //     return res.json({
-    //         error: 1,
-    //         message: `Anda tidak memiliki akses untuk membuat produk`
-    //     });
-
-    // }
+    // cari do plicy for yg bisa create product
+    if (!policy.can("create", "Product")) {
+      return res.json({
+        error: 1,
+        message: `Anda tidak memiliki akses untuk membuat produk`,
+      });
+    }
 
     let payload = req.body;
 
@@ -178,7 +177,6 @@ async function update(req, res, next) {
     }
 
     let payload = req.body;
-
     if (payload.category) {
       let category = await Category.findOne({
         name: { $regex: payload.category, $options: "i" },
@@ -305,7 +303,10 @@ async function destroy(req, res, next) {
       fs.unlinkSync(currentImage);
     }
 
-    return res.json(product);
+    return res.json({
+      message: "Berhasil delete",
+      data: product,
+    });
   } catch (err) {
     next(err);
   }
