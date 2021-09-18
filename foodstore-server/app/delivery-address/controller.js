@@ -4,20 +4,20 @@ const { subject } = require("@casl/ability");
 
 async function index(req, res, next) {
   const policy = policyFor(req.user);
-
-  // if (!policy.can("view", "DeliveryAddress")) {
-  //   return res.json({
-  //     error: 1,
-  //     message: `You're not allowed to perform this action`,
-  //   });
-  // }
+  console.log(policy);
+  if (!policy.can("view", "DeliveryAddress")) {
+    return res.json({
+      error: 1,
+      message: `You're not allowed to perform this action`,
+    });
+  }
 
   try {
     let { limit = 10, skip = 0 } = req.query;
     // (1) dapatkan jumlah data alamat pengiriman
-    // const count = await DeliveryAddress.find({
-    //   user: req.user._id,
-    // }).countDocuments();
+    const count = await DeliveryAddress.find({
+      user: req.user._id,
+    }).countDocuments();
 
     const deliveryAddresses = await DeliveryAddress.find()
       .limit(parseInt(limit))
@@ -40,13 +40,13 @@ async function index(req, res, next) {
 async function store(req, res, next) {
   let policy = policyFor(req.user);
 
-  // if (!policy.can('create', 'DeliveryAddress')) {
+  if (!policy.can('create', 'DeliveryAddress')) {
 
-  //     return res.json({
-  //         error: 1,
-  //         message: `You're not allowed to perform this action`
-  //     });
-  // }
+      return res.json({
+          error: 1,
+          message: `You're not allowed to perform this action`
+      });
+  }
 
   try {
     let payload = req.body;
@@ -54,7 +54,7 @@ async function store(req, res, next) {
     let user = req.user;
 
     // (1) buat instance `DeliveryAddress` berdasarkan payload dan data`user`
-    let address = new DeliveryAddress({ ...payload });
+    let address = new DeliveryAddress({ ...payload, user: user._id });
 
     // (2) simpan ke instance di atas ke MongoDB
     await address.save();
