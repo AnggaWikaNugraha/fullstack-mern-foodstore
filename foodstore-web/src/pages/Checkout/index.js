@@ -136,7 +136,9 @@ export default function Checkout() {
   return (
     <LayoutOne>
       <TopBar />
-      <Text as="h3"> Checkout </Text>
+      <div style={{ marginBottom: '20px' }}>
+        <Text as="h3"> Checkout </Text>
+      </div>
       <Steps steps={steps} active={activeStep}></Steps>
       {activeStep === 0 ? (
         <div>
