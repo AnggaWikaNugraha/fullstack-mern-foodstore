@@ -214,7 +214,7 @@ export default function Checkout() {
       ) : null}
 
       {activeStep === 2 ? (
-        <div>
+        <div style={{ marginTop: '20px' }}>
           <Table
             columns={[
               {
