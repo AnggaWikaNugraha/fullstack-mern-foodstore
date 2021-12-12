@@ -10,6 +10,7 @@ import Checkout from "./pages/Checkout";
 import Invoice from "./pages/invoice";
 import Product from "./pages/product";
 import Categories from "./pages/categories";
+import Logout from './pages/logout/index';
 
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
 import { Provider } from "react-redux";
@@ -49,6 +50,10 @@ function App() {
             <Checkout />
           </Route>
 
+          <Route path="/logout">
+            <Logout />
+          </Route>
+
           <Route path="/invoice/:order_id">
             <Invoice />
           </Route>
@@ -62,7 +67,10 @@ function App() {
           </Route>
 
           <Route path="/register" component={Register} />
+
           <Route path="/" component={Home} />
+
+
         </Switch>
       </Router>
     </Provider>
