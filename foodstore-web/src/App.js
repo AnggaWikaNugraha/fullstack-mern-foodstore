@@ -19,6 +19,8 @@ import { listen } from "./app/listener";
 
 import "upkit/dist/style.min.css";
 import "./App.css";
+import OnlyLogin from "./component/OnlyLogin";
+import OnlyGuest from "./component/OnlyGuest";
 
 function App() {
   React.useEffect(() => {
@@ -30,43 +32,39 @@ function App() {
     <Provider store={store}>
       <Router>
         <Switch>
-          <Route path="/login">
-            <Login />
-          </Route>
 
-          <Route path="/register/berhasil">
-            <RegisterSuccess />
-          </Route>
-
-          <Route path="/alamat-pengiriman/tambah">
-            <UserAddressAdd />
-          </Route>
-
-          <Route path="/alamat-pengiriman/">
-            <UserAddress />
-          </Route>
-
-          <Route path="/checkout">
-            <Checkout />
-          </Route>
-
-          <Route path="/logout">
+          <OnlyLogin path="/logout">
             <Logout />
-          </Route>
-
-          <Route path="/invoice/:order_id">
+          </OnlyLogin>
+          <OnlyLogin path="/alamat-pengiriman/tambah">
+            <UserAddressAdd />
+          </OnlyLogin>
+          <OnlyLogin path="/alamat-pengiriman/">
+            <UserAddress />
+          </OnlyLogin>
+          <OnlyLogin path="/checkout">
+            <Checkout />
+          </OnlyLogin>
+          <OnlyLogin path="/invoice/:order_id">
             <Invoice />
-          </Route>
+          </OnlyLogin>
+
+          <OnlyGuest path="/register">
+            <Register />
+          </OnlyGuest>
+          <OnlyGuest path="/login">
+            <Login />
+          </OnlyGuest>
+          <OnlyGuest path="/register/berhasil">
+            <RegisterSuccess />
+          </OnlyGuest>
 
           <Route path="/admin/product">
             <Product />
           </Route>
-
           <Route path="/admin/categories">
             <Categories />
           </Route>
-
-          <Route path="/register" component={Register} />
 
           <Route path="/" component={Home} />
 
