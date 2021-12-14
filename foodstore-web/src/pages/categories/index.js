@@ -1,14 +1,18 @@
 import React from "react";
-import menus from "../menu";
 import * as Yup from "yup";
 import DataTable from "react-data-table-component";
 
-import { useHistory } from "react-router-dom";
 import { SideNav, LayoutSidebar } from "upkit";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts, setCategory } from "../../features/products/actions";
 import { useFormik } from "formik";
 import { fetchItems } from "../../features/categories/action";
+import styled from "styled-components";
+import { NavLink } from "react-router-dom";
+
+const menus = [
+  { icon: '/images/menus/semua.png', label: 'Category', id: '' },
+];
 
 const Home = () => {
   let dispatch = useDispatch();
@@ -51,23 +55,36 @@ const Home = () => {
       selector: "name",
       sortable: true,
     },
+    {
+      name: 'Actions',
+      allowOverflow: true,
+      cell: row => {
+          return (
+              <>
+                <Button>Edit</Button>
+                <Button Bg={'#bababa'}>delete</Button>
+              </>
+          )
+      }
+  }
   ];
 
   return (
     <div>
       <LayoutSidebar
         sidebar={
-          <SideNav
-            items={menus}
-            verticalAlign="top"
-            onChange={(category) => dispatch(setCategory(category))}
-          />
+          <WrapSidebar>
+            <BtnNav>
+              <NavLink to={'/admin/categories'}>Categories</NavLink>
+            </BtnNav>
+            <NavLink to={'/admin/product'}>product</NavLink>
+          </WrapSidebar>
         }
         content={
           <div className="w-full p-10 mr-5 h-full min-h-screen">
-            <div className="container__category">
-              <h3 className="category__heading">CATEGORY</h3>
-
+            <div>
+              <Heading>CATEGORY</Heading>
+              <Button>Tambah</Button>
               <DataTable columns={columns} data={state.data} />
 
               {/* <form onSubmit={formik.handleSubmit}>
@@ -98,3 +115,28 @@ const Home = () => {
 };
 
 export default Home;
+
+const Heading = styled('p')((props)=> ({
+  fontSize : '23px',
+  marginBottom : '30px'
+}))
+
+const Button = styled('button')((props)=> ({
+  backgroundColor : props.Bg ? props.Bg : 'black',
+  color: props.CFont ? props.CFont : 'white',
+  padding: "10px 20px",
+  marginRight : '20px',
+  borderRadius : '5px'
+}))
+
+const WrapSidebar = styled('div')((props) => ({
+  display: 'flex',
+  flexDirection : "column"
+}))
+
+const BtnNav  = styled('button')((props)=> ({
+  backgroundColor : props.Bg ? props.Bg : 'black',
+  color: props.CFont ? props.CFont : 'white',
+  marginRight : '20px',
+  borderRadius : '5px',
+}))
