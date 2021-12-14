@@ -11,6 +11,7 @@ import Invoice from "./pages/invoice";
 import Product from "./pages/product";
 import Categories from "./pages/categories";
 import Logout from './pages/logout/index';
+import ErrorPage from './pages/404'
 
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
 import { Provider } from "react-redux";
@@ -21,6 +22,7 @@ import "upkit/dist/style.min.css";
 import "./App.css";
 import OnlyLogin from "./component/OnlyLogin";
 import OnlyGuest from "./component/OnlyGuest";
+import OnlyAdmin from "./component/OnlyAdmin";
 
 function App() {
   React.useEffect(() => {
@@ -62,8 +64,12 @@ function App() {
           <Route path="/admin/product">
             <Product />
           </Route>
-          <Route path="/admin/categories">
+          <OnlyAdmin path="/admin/categories">
             <Categories />
+          </OnlyAdmin>
+
+          <Route path="/error">
+            <ErrorPage />
           </Route>
 
           <Route path="/" component={Home} />
