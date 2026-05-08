@@ -1,6 +1,6 @@
 # Fullstack MERN Foodstore
 
-Aplikasi e-commerce makanan berbasis MERN Stack (MongoDB, Express, React, Node.js). Pengguna dapat menelusuri produk makanan, menambahkan ke keranjang, checkout, dan melihat riwayat pesanan. Admin dapat mengelola produk dan kategori.
+A food e-commerce application built with the MERN Stack (MongoDB, Express, React, Node.js). Users can browse food products, add items to their cart, checkout, and view order history. Admins can manage products and categories.
 
 ## Screenshots
 
@@ -11,97 +11,97 @@ Aplikasi e-commerce makanan berbasis MERN Stack (MongoDB, Express, React, Node.j
 
 ---
 
-## Struktur Proyek
+## Project Structure
 
 ```
 fullstack-mern-foodstore/
 ├── foodstore-server/          # Backend (Node.js + Express)
 │   ├── app/
-│   │   ├── auth/              # Autentikasi (register, login, logout, me)
-│   │   ├── cart/              # Keranjang belanja
-│   │   ├── cart-item/         # Model item keranjang
-│   │   ├── category/          # Kategori produk
-│   │   ├── delivery-address/  # Alamat pengiriman
-│   │   ├── invoice/           # Invoice/nota pesanan
-│   │   ├── order/             # Pesanan
-│   │   ├── order-item/        # Item pesanan
+│   │   ├── auth/              # Authentication (register, login, logout, me)
+│   │   ├── cart/              # Shopping cart
+│   │   ├── cart-item/         # Cart item model
+│   │   ├── category/          # Product categories
+│   │   ├── delivery-address/  # Delivery addresses
+│   │   ├── invoice/           # Order invoices
+│   │   ├── order/             # Orders
+│   │   ├── order-item/        # Order items
 │   │   ├── policy/            # Role-based access control (CASL)
-│   │   ├── product/           # Produk makanan
-│   │   ├── tag/               # Tag produk
-│   │   ├── user/              # Model user
-│   │   ├── wilayah/           # Data wilayah Indonesia (provinsi, kab, kec, desa)
+│   │   ├── product/           # Food products
+│   │   ├── tag/               # Product tags
+│   │   ├── user/              # User model
+│   │   ├── wilayah/           # Indonesian regional data (province, city, district, village)
 │   │   ├── config.js
 │   │   └── utils/
-│   ├── database/              # Koneksi MongoDB
-│   ├── public/upload/         # Penyimpanan gambar produk
+│   ├── database/              # MongoDB connection
+│   ├── public/upload/         # Product image storage
 │   └── app.js
 └── foodstore-web/             # Frontend (React)
     ├── src/
-    │   ├── api/               # Layer pemanggil API backend
+    │   ├── api/               # API call layer
     │   ├── app/               # Redux store & listener
-    │   ├── component/         # Komponen reusable (Topbar, Cart, OnlyLogin, dll)
+    │   ├── component/         # Reusable components (Topbar, Cart, OnlyLogin, etc.)
     │   ├── features/          # Redux slices (Auth, Cart, products, categories)
     │   ├── hooks/             # Custom hooks
-    │   ├── pages/             # Halaman-halaman aplikasi
-    │   └── utils/             # Fungsi utilitas
+    │   ├── pages/             # Application pages
+    │   └── utils/             # Utility functions
     └── public/
 ```
 
 ---
 
-# Server side
-- NodeJs
+# Server Side
+- Node.js
 - passport-local
 - passport
 - mongoose
-- mongodb Database
-- jsonwebtoken , JWT aunthentication dan otoritation
-- express framework 
+- MongoDB database
+- jsonwebtoken — JWT authentication and authorization
+- Express framework
 - cors
 - cookie-parser
 - bcrypt
-- multer untuk membaca type form data dari client
-- @casl/ability untuk role-based access control
-- csvtojson untuk membaca data wilayah dari file CSV
-- mongoose-sequence untuk auto-increment customer_id
-- dotenv untuk konfigurasi environment variable
+- multer — reads multipart/form-data from client
+- @casl/ability — role-based access control
+- csvtojson — reads regional data from CSV files
+- mongoose-sequence — auto-increments customer_id
+- dotenv — environment variable configuration
 
-## Entitas 
+## Entity Diagram
 ![image](https://user-images.githubusercontent.com/37723902/120694299-3bc7e900-c4d4-11eb-8d92-cb9344f272c2.png)
 
-## Role & Permission (CASL)
+## Roles & Permissions (CASL)
 
-| Role  | Akses                                                                                   |
-|-------|-----------------------------------------------------------------------------------------|
-| guest | Read product                                                                            |
-| user  | CRUD delivery address milik sendiri, update cart, create & view order, read invoice    |
-| admin | Manage semua resource (full access)                                                     |
+| Role  | Access                                                                                       |
+|-------|----------------------------------------------------------------------------------------------|
+| guest | Read products                                                                                |
+| user  | CRUD own delivery addresses, update cart, create & view orders, read own invoices           |
+| admin | Manage all resources (full access)                                                           |
 
 ---
 
-## Cara Menjalankan
+## Getting Started
 
 ### Backend (foodstore-server)
 
 ```bash
 cd foodstore-server
 npm install
-# Buat file .env (lihat konfigurasi di bawah)
+# Create .env file (see configuration below)
 npm start
 ```
 
-Server berjalan di `http://localhost:3000`
+Server runs at `http://localhost:3000`
 
 ### Frontend (foodstore-web)
 
 ```bash
 cd foodstore-web
 npm install
-# Buat file .env (lihat konfigurasi di bawah)
+# Create .env file (see configuration below)
 npm start
 ```
 
-Frontend berjalan di `http://localhost:3001` (atau port berikutnya yang tersedia)
+Frontend runs at `http://localhost:3001` (or the next available port)
 
 ---
 
@@ -109,7 +109,7 @@ Frontend berjalan di `http://localhost:3001` (atau port berikutnya yang tersedia
 
 Base URL: `http://localhost:3000`
 
-> Endpoint auth berada di `/auth`, sedangkan semua endpoint lainnya berada di bawah prefix `/api`
+> Auth endpoints are under `/auth`. All other endpoints are prefixed with `/api`.
 
 ---
 
@@ -126,7 +126,7 @@ Base URL: `http://localhost:3000`
 - Body (form-data) : `email`, `password`
 - Response : `{ user, token }`
 
-## Me (profil user yang sedang login)
+## Me (currently logged-in user profile)
 - Method : GET
 - Endpoint : `/auth/me`
 - Header : `Authorization: Bearer <token>`
@@ -138,8 +138,8 @@ Base URL: `http://localhost:3000`
 
 ---
 
-# Product.
-## Get Product:
+# Product
+## Get Products:
 Request :
 - Method : GET
 - Endpoint : `/api/products/`
@@ -158,101 +158,101 @@ Request :
 - Endpoint : `/api/products/:id`
 - Auth : Admin only
 
-## DELETE Product:
+## Delete Product:
 Request :
 - Method : DELETE
 - Endpoint : `/api/products/:id`
 - Auth : Admin only
 
 ---
-  
+
 # Category
-## Get Category:
+## Get Categories:
 Request :
 - Method : GET
-- Endpoint : `/api/categories/` 
+- Endpoint : `/api/categories/`
 ## Create Category:
 Request :
 - Method : POST
-- Endpoint : `/api/categories/` 
+- Endpoint : `/api/categories/`
 ## Edit Category:
 Request :
 - Method : PUT
-- Endpoint : `/api/categories/:id` 
+- Endpoint : `/api/categories/:id`
 ## Delete Category:
 Request :
 - Method : DELETE
-- Endpoint : `/api/categories/:id` 
+- Endpoint : `/api/categories/:id`
 
 ---
 
 # Tag
-## Get TAG:
+## Get Tags:
 Request :
 - Method : GET
 - Endpoint : `/api/tags/`
-## create TAG:
+## Create Tag:
 Request :
 - Method : POST
 - Endpoint : `/api/tags/`
-## edit TAG:
+## Edit Tag:
 Request :
 - Method : PUT
 - Endpoint : `/api/tags/:id`
-## Delete TAG:
+## Delete Tag:
 Request :
 - Method : DELETE
-- Endpoint : `/api/tags/:id`  
+- Endpoint : `/api/tags/:id`
 
 ---
 
-# DeliveryAddress
-## Get DeliveryAddress:
+# Delivery Address
+## Get Delivery Addresses:
 Request :
 - Method : GET
 - Endpoint : `/api/delivery-addresses/`
 - Auth : Login required
-## Create DeliveryAddress:
+## Create Delivery Address:
 Request :
 - Method : POST
 - Endpoint : `/api/delivery-addresses/`
 - Auth : Login required
 - Body : `nama`, `provinsi`, `kabupaten`, `kecamatan`, `kelurahan`, `detail`
-## EDIT DeliveryAddress:
+## Edit Delivery Address:
 Request :
 - Method : PUT
 - Endpoint : `/api/delivery-addresses/:id`
-- Auth : Login required (hanya milik user sendiri)
-## DELETE DeliveryAddress:
+- Auth : Login required (owner only)
+## Delete Delivery Address:
 Request :
 - Method : DELETE
-- Endpoint : `/api/delivery-addresses/:id` 
-- Auth : Login required (hanya milik user sendiri)
+- Endpoint : `/api/delivery-addresses/:id`
+- Auth : Login required (owner only)
 
 ---
 
 # Order
-## Get orders:
+## Get Orders:
 Request :
 - Method : GET
 - Endpoint : `/api/orders/`
 - Auth : Login required
-## Post orders:
+## Create Order:
 Request :
 - Method : POST
-- Endpoint : `/api/orders/` 
+- Endpoint : `/api/orders/`
 - Auth : Login required
-- Body : `delivery_fee`, `delivery_address` (ID alamat)
+- Body : `delivery_fee`, `delivery_address` (address ID)
 
 ---
 
 # Cart
-## Get CartItem:
+## Get Cart Items:
 Request :
 - Method : GET
 - Endpoint : `/api/carts/`
 - Auth : Login required
-## Update CartItem:
+## Update Cart Items:
 Request :
 - Method : PUT
 - Endpoint : `/api/carts/`
@@ -266,26 +266,26 @@ Request :
 Request :
 - Method : GET
 - Endpoint : `/api/invoices/:order_id`
-- Auth : Login required (hanya milik user sendiri)
+- Auth : Login required (owner only)
 
 ---
 
-# Wilayah (Data Wilayah Indonesia)
-## Get Provinsi:
+# Wilayah (Indonesian Regional Data)
+## Get Provinces:
 Request :
 - Method : GET
 - Endpoint : `/api/wilayah/provinsi`
-## Get Kabupaten:
+## Get Regencies/Cities:
 Request :
 - Method : GET
 - Endpoint : `/api/wilayah/kabupaten`
 - Query params : `provinsi`
-## Get Kecamatan:
+## Get Districts:
 Request :
 - Method : GET
 - Endpoint : `/api/wilayah/kecamatan`
 - Query params : `kabupaten`
-## Get Desa/Kelurahan:
+## Get Villages:
 Request :
 - Method : GET
 - Endpoint : `/api/wilayah/desa`
@@ -293,59 +293,58 @@ Request :
 
 ---
 
-# Client Side using react
- ## Stacks 
- - ReactJs dari client side
- - React Redux + redux-thunk middleware
- - Context API
- - TailwindCSS sebagai CSS framework
- - react-router-dom untuk routing
- - react-hook-form untuk form dan validasi input
- - axios untuk fetching API
- - Styled component dan composition
- - upkit sebagai UI component library
- - yup untuk skema validasi
- - formik untuk manajemen state form
- - react-spinners untuk loading indicator
- - react-data-table-component untuk tabel data admin
- - @emotion/react & @emotion/styled untuk styling
+# Client Side — React
+## Stacks
+- React.js — client side UI
+- React Redux + redux-thunk middleware
+- Context API
+- TailwindCSS — CSS framework
+- react-router-dom — routing
+- react-hook-form — form input handling
+- axios — API fetching
+- Styled components and composition
+- upkit — UI component library
+- yup — validation schema
+- formik — form state management
+- react-spinners — loading indicators
+- react-data-table-component — admin data tables
+- @emotion/react & @emotion/styled — styling
 
-## Halaman (Pages)
+## Pages
 
-| Path                        | Halaman                    | Akses        |
+| Path                        | Page                       | Access       |
 |-----------------------------|----------------------------|--------------|
-| `/`                         | Home (daftar produk)       | Semua        |
+| `/`                         | Home (product listing)     | Everyone     |
 | `/login`                    | Login                      | Guest only   |
-| `/register`                 | Daftar akun baru           | Guest only   |
-| `/register/berhasil`        | Registrasi berhasil        | Guest only   |
+| `/register`                 | Register new account       | Guest only   |
+| `/register/berhasil`        | Registration success       | Guest only   |
 | `/logout`                   | Logout                     | Login only   |
-| `/alamat-pengiriman/`       | Daftar alamat pengiriman   | Login only   |
-| `/alamat-pengiriman/tambah` | Tambah alamat pengiriman   | Login only   |
-| `/checkout`                 | Halaman checkout           | Login only   |
-| `/invoice/:order_id`        | Detail invoice             | Login only   |
-| `/admin/product`            | Kelola produk (admin)      | Admin only   |
-| `/admin/categories`         | Kelola kategori (admin)    | Admin only   |
-| `/error`                    | Halaman 404                | Semua        |
+| `/alamat-pengiriman/`       | Delivery address list      | Login only   |
+| `/alamat-pengiriman/tambah` | Add delivery address       | Login only   |
+| `/checkout`                 | Checkout                   | Login only   |
+| `/invoice/:order_id`        | Invoice detail             | Login only   |
+| `/admin/product`            | Manage products (admin)    | Admin only   |
+| `/admin/categories`         | Manage categories (admin)  | Admin only   |
+| `/error`                    | 404 page                   | Everyone     |
 
-## Fitur
-- Fitur-fitur utama yang akan kita bangun antara lain:
-- Daftar makanan
-- Pencarian makanan berdasarkan keyword
-- Filter makanan berdasarkan kategori
-- Filter makanan berdasarkan tags
-- Login & register user
-- Keranjang belanja (cart)
+## Features
+- Product listing
+- Search products by keyword
+- Filter products by category
+- Filter products by tags
+- User login & registration
+- Shopping cart
 - Checkout
-- Riwayat pemesanan
-- Kelola daftar alamat pengiriman
-- Halaman admin untuk kelola produk dan kategori
-- Data wilayah Indonesia (provinsi, kabupaten, kecamatan, kelurahan)
+- Order history
+- Manage delivery addresses
+- Admin page for managing products and categories
+- Indonesian regional data (province, city, district, village)
 
 ---
 
-## Konfigurasi Environment Variables
+## Environment Variables
 
-##### add .env foodstore-server
+##### add .env to foodstore-server
 
 ```
 PORT = 3000
@@ -353,19 +352,19 @@ SERVICE_NAME=foodstore-service
 DB_HOST=localhost
 DB_PORT=27017
 
-# SESUAIKAN dengan username mongo di mesinmu
+# Set to your MongoDB username
 DB_USER=
 
-# SESUAIKAN dengan password user di mesinmu
+# Set to your MongoDB user password
 DB_PASS=
 
-# SESUAIKAN dengan nama database yang sudah kamu buat
-DB_NAME=foodstore 
+# Set to your database name
+DB_NAME=foodstore
 
 SECRET_KEY=
 ```
 
-##### add .env foodstore-web
+##### add .env to foodstore-web
 
 ```
 REACT_APP_API_HOST=http://localhost:3000
