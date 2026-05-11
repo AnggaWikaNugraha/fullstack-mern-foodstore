@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DataTable from 'react-data-table-component';
 import { LayoutSidebar } from 'upkit';
 import styled from 'styled-components';
@@ -35,7 +35,7 @@ const AdminProduct = () => {
         getTags({ limit: 100 }).then(res => setTagOptions(Array.isArray(res.data) ? res.data : res.data.data || [])).catch(() => {});
     }, []);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         try {
             const { data } = await getProducts({ limit: perPage, skip: (page * perPage) - perPage });
@@ -45,9 +45,9 @@ const AdminProduct = () => {
             console.error(err);
         }
         setLoading(false);
-    };
+    }, [page]);
 
-    useEffect(() => { fetchData(); }, [page]);
+    useEffect(() => { fetchData(); }, [fetchData]);
 
     const openAdd = () => {
         setSelectedProduct(null);

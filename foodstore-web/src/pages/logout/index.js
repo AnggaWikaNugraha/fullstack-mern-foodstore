@@ -18,7 +18,7 @@ export default function Logout() {
         logout()
             .then(() => dispatch(userLogout()))
             .then(() => history.push('/'))
-    }, [history, logout])
+    }, [history, dispatch])
 
     return (
         <LayoutOne size="small">

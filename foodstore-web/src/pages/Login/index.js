@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { InputText, InputPassword, Button, FormControl, Card, LayoutOne } from 'upkit';
+import { InputText, Button, FormControl, Card, LayoutOne } from 'upkit';
 import { useForm } from 'react-hook-form';
-import { useHistory, Redirect, Link } from 'react-router-dom';
+import { useHistory, Link } from 'react-router-dom';
 
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { userLogin } from '../../features/Auth/actions';
-import { rules } from './validation';
 import { login } from '../../api/auth';
 
 const statuslist = {
@@ -16,7 +15,7 @@ const statuslist = {
 }
 
 export default function Login() {
-    const { register, handleSubmit, errors, setError } = useForm();
+    const { register, handleSubmit } = useForm();
     const [status, setStatus] = React.useState(statuslist.idle);
     const dispatch = useDispatch();
     const history = useHistory();

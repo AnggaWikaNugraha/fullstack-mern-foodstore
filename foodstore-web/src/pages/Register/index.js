@@ -5,7 +5,7 @@ import { LayoutOne, Card, FormControl, InputText, InputPassword, Button } from '
 // (1) import useForm
 import { useForm } from 'react-hook-form';
 import { registerUser } from '../../api/auth';
-import { useHistory, Link } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 const statuslist = {
     idle: 'idle',
     process: 'process',
@@ -15,9 +15,8 @@ const statuslist = {
 
 export default function Register() {
     // (2) keluarkan fungsi `register`, `handleSubmit`, `errors`, `setError` dari `useForm`
-    let { register, handleSubmit, errors, setError } = useForm();
-    // (2) state status dengan nilai default `statuslist.idle`
-    let [status, setStatus] = React.useState(statuslist.idle);
+    let { register, handleSubmit } = useForm();
+    let [, setStatus] = React.useState(statuslist.idle);
     let history = useHistory();
     // (1) buat fungsi untuk menangani form submit 
     const onSubmit = async formData => {
