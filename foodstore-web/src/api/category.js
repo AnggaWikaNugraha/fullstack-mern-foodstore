@@ -9,15 +9,11 @@ function getToken() {
 }
 
 export async function get(params) {
-    let { token } = localStorage.getItem("auth")
-        ? JSON.parse(localStorage.getItem("auth"))
-        : {};
     return await axios.get(`${config.api_host}/api/categories`, {
         params: {
             limit: params?.limit || 100,
             skip: params?.page ? params.page * (params.limit || 10) - (params.limit || 10) : 0,
         },
-        headers: { authorization: `Bearer ${token}` },
     });
 }
 
