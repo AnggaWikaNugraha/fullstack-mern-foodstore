@@ -1,30 +1,35 @@
 import React from 'react'
-import menus from '../menu'
 import TopBar from '../../component/Topbar';
 import BounceLoader from 'react-spinners/BounceLoader';
 import Cart from '../../component/Cart';
+import AppSidebar from '../../component/AppSidebar';
 
 import { useHistory } from 'react-router-dom';
 import { addItem, removeItem } from '../../features/Cart/actions';
-import { SideNav, LayoutSidebar, Responsive, CardProduct, Pagination, InputText, Pill, } from 'upkit';
+import { LayoutSidebar, Responsive, CardProduct, Pagination, InputText, Pill } from 'upkit';
 import { useDispatch, useSelector } from 'react-redux';
 import { config } from '../../config';
 import { fetchProducts, setPage, goToNextPage, goToPrevPage, setKeyword, setCategory, toggleTag } from '../../features/products/actions';
-import { tags } from './tags';
+import { getTags } from '../../api/tag';
 
 const Home = () => {
 
     let dispatch = useDispatch();
-
     let history = useHistory();
 
     let products = useSelector(state => state.products);
     let cart = useSelector(state => state.cart);
 
+    const [availableTags, setAvailableTags] = React.useState([]);
+
     React.useEffect(() => {
+        getTags({ limit: 100 })
+            .then(res => setAvailableTags(res.data))
+            .catch(() => setAvailableTags([]));
+    }, []);
 
+    React.useEffect(() => {
         dispatch(fetchProducts());
-
     }, [
         dispatch,
         products.currentPage,
@@ -36,26 +41,23 @@ const Home = () => {
     return (
         <div>
             <LayoutSidebar
-
-                sidebar={<SideNav items={menus} verticalAlign="top" onChange={category => dispatch(setCategory(category))} />}
-                content={<div className="md:flex md:flex-row-reverse w-full mr-5 h-full min-h-screen"
-
-                >
+                sidebar={<AppSidebar onCategoryChange={category => dispatch(setCategory(category))} />}
+                content={<div className="md:flex md:flex-row-reverse w-full mr-5 h-full min-h-screen">
 
                     <div className="w-full md:w-3/4 pl-5 pb-10">
                         <TopBar />
 
                         <div className="mb-5 mt-5 pl-2 flex w-3/3 overflow-auto pb-5">
-                            {tags[products.category].map((tag, index) => {
-                                return <div key={index}>
+                            {availableTags.map((tag, index) => (
+                                <div key={index}>
                                     <Pill
-                                        text={tag}
-                                        icon={tag.slice(0, 1).toUpperCase()}
-                                        isActive={products.tags.includes(tag)}
-                                        onClick={_ => dispatch(toggleTag(tag))}
+                                        text={tag.name}
+                                        icon={tag.name.slice(0, 1).toUpperCase()}
+                                        isActive={products.tags.includes(tag.name)}
+                                        onClick={() => dispatch(toggleTag(tag.name))}
                                     />
                                 </div>
-                            })}
+                            ))}
                         </div>
 
                         {products.status === 'process' && !products.data.length ?
@@ -71,23 +73,21 @@ const Home = () => {
                                 value={products.keyword}
                                 placeholder="cari makanan favoritmu..."
                                 fitContainer
-                                onChange={e => {
-                                    dispatch(setKeyword(e.target.value))
-                                }}
+                                onChange={e => dispatch(setKeyword(e.target.value))}
                             />
                         </div>
 
                         <Responsive desktop={3} items="stretch">
-                            {products.data.map((product, index) => {
-                                return <div key={index} className="p-2">
+                            {products.data.map((product, index) => (
+                                <div key={index} className="p-2">
                                     <CardProduct
                                         title={product.name}
                                         imgUrl={`${config.api_host}/upload/${product.image_url}`}
                                         price={product.price}
-                                        onAddToCart={_ => dispatch(addItem(product))}
+                                        onAddToCart={() => dispatch(addItem(product))}
                                     />
                                 </div>
-                            })}
+                            ))}
                         </Responsive>
 
                         <div className="text-center my-10">
@@ -96,8 +96,8 @@ const Home = () => {
                                 page={products.currentPage}
                                 perPage={products.perPage}
                                 onChange={page => dispatch(setPage(page))}
-                                onNext={_ => dispatch(goToNextPage())}
-                                onPrev={_ => dispatch(goToPrevPage())}
+                                onNext={() => dispatch(goToNextPage())}
+                                onPrev={() => dispatch(goToPrevPage())}
                             />
                         </div>
 
@@ -108,7 +108,7 @@ const Home = () => {
                             items={cart}
                             onItemInc={item => dispatch(addItem(item))}
                             onItemDec={item => dispatch(removeItem(item))}
-                            onCheckout={_ => history.push("/checkout")}
+                            onCheckout={() => history.push("/checkout")}
                         />
                     </div>
 

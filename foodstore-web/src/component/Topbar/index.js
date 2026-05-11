@@ -24,7 +24,7 @@ export default function TopBar() {
             </Button>
         }
         {
-            auth?.user.role === 'admin' && <Button onClick={() => history.push("/admin/categories")}>
+            auth?.user?.role === 'admin' && <Button onClick={() => history.push("/admin/categories")}>
                 Go to Admin
             </Button>
         }
