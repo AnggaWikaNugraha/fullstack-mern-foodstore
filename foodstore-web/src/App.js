@@ -10,6 +10,7 @@ import Checkout from "./pages/Checkout";
 import Invoice from "./pages/invoice";
 import Product from "./pages/product";
 import Categories from "./pages/categories";
+import Tag from "./pages/tag";
 import Logout from './pages/logout/index';
 import ErrorPage from './pages/404'
 
@@ -61,11 +62,14 @@ function App() {
             <RegisterSuccess />
           </OnlyGuest>
 
-          <Route path="/admin/product">
+          <OnlyAdmin path="/admin/product">
             <Product />
-          </Route>
+          </OnlyAdmin>
           <OnlyAdmin path="/admin/categories">
             <Categories />
+          </OnlyAdmin>
+          <OnlyAdmin path="/admin/tag">
+            <Tag />
           </OnlyAdmin>
 
           <Route path="/error">
