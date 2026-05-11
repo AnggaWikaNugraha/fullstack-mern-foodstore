@@ -3,6 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+require('./database');
 // --> import file product router
 const productRouter = require('./app/product/router');
 const categoryRouter = require('./app/category/router');
