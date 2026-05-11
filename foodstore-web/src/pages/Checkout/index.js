@@ -15,7 +15,7 @@ import { LayoutOne, Text, Steps, Table, Button, Responsive } from "upkit";
 import { createOrder } from "../../api/orders";
 import { useSelector, useDispatch } from "react-redux";
 import { clearItems } from "../../features/Cart/actions";
-import { Link, useHistory, Redirect } from "react-router-dom";
+import { Link, useHistory, useLocation, Redirect } from "react-router-dom";
 
 const IconWrapper = ({ children }) => {
   return <div className="text-3xl flex justify-center">{children}</div>;
@@ -99,6 +99,7 @@ const addressColumns = [
 ];
 
 export default function Checkout() {
+  let location = useLocation();
   let [activeStep, setActiveStep] = React.useState(0);
 
   let cart = useSelector((state) => state.cart);
@@ -110,6 +111,13 @@ export default function Checkout() {
   let history = useHistory();
 
   let dispatch = useDispatch();
+
+  React.useEffect(() => {
+    let params = new URLSearchParams(location.search);
+    let currentStep = params.get("step");
+
+    setActiveStep(currentStep === "2" ? 1 : 0);
+  }, [location.search]);
 
   async function handleCreateOrder() {
     let payload = {
@@ -166,6 +174,13 @@ export default function Checkout() {
       {activeStep === 1 ? (
         <div>
           <br /> <br />
+          {data.length ? (
+            <div className="flex justify-end mb-4">
+              <Link to="/alamat-pengiriman/tambah?from=checkout&step=2">
+                <Button>Tambah alamat</Button>
+              </Link>
+            </div>
+          ) : null}
           <Table
             items={data}
             columns={addressColumns}
@@ -181,7 +196,7 @@ export default function Checkout() {
           />
           {!data.length && status === "success" ? (
             <div className="text-center my-10">
-              <Link to="/alamat-pengiriman/tambah">
+              <Link to="/alamat-pengiriman/tambah?from=checkout&step=2">
                 Kamu belum memiliki alamat pengiriman <br /> <br />
                 <Button> Tambah alamat </Button>
               </Link>

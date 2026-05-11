@@ -1,19 +1,22 @@
 import * as React from 'react';
 import TopBar from '../../component/Topbar';
 import SelectWilayah from '../../component/SelectWilayah';
+import FaArrowLeft from "@meronex/icons/fa/FaArrowLeft";
 
 import { LayoutOne, InputText, FormControl, Textarea, Button } from 'upkit';
 import { useForm } from 'react-hook-form';
-import { useHistory } from 'react-router-dom';
+import { Link, useHistory, useLocation } from 'react-router-dom';
 import { createAddress } from '../../api/address';
-import { rules } from './validations';
 
 export default function UserAddressAdd() {
 
     // (1) gunakan `useHistory` dan `useForm`
     let history = useHistory();
+    let location = useLocation();
+    let searchParams = new URLSearchParams(location.search);
+    let isFromCheckout = searchParams.get('from') === 'checkout';
 
-    let { handleSubmit, register, errors, setValue, watch, getValues } = useForm();
+    let { handleSubmit, register, setValue, watch, getValues } = useForm();
 
     // (1) dengarkan semua perubahan _field_ 
     let allFields = watch();
@@ -59,7 +62,7 @@ export default function UserAddressAdd() {
 
         if (data.error) return;
 
-        history.push('/alamat-pengiriman');
+        history.push(isFromCheckout ? '/alamat-pengiriman?from=checkout&step=2' : '/alamat-pengiriman');
 
     }
 
@@ -68,6 +71,15 @@ export default function UserAddressAdd() {
             <TopBar />
             <br />
             <div>
+                {isFromCheckout ? (
+                    <div style={{ marginBottom: '16px' }}>
+                        <Link to="/checkout?step=2">
+                            <Button color="gray" iconBefore={<FaArrowLeft />}>
+                                Kembali ke step 2
+                            </Button>
+                        </Link>
+                    </div>
+                ) : null}
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <FormControl label="Nama alamat" color="black">
                         <InputText

@@ -1,8 +1,9 @@
 import * as React from "react";
 import TopBar from "../../component/Topbar";
+import FaArrowLeft from "@meronex/icons/fa/FaArrowLeft";
 
 import { LayoutOne, Text, Table, Button } from "upkit";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAddressData } from "../../hooks/address";
 
 const columns = [
@@ -22,6 +23,9 @@ const columns = [
 ];
 
 export default function UserAddress() {
+  let location = useLocation();
+  let searchParams = new URLSearchParams(location.search);
+  let isFromCheckout = searchParams.get("from") === "checkout";
   let { data, limit, page, status, count, setPage } = useAddressData();
 
   return (
@@ -32,7 +36,24 @@ export default function UserAddress() {
         <br />
 
         <div>
-          <Link to="alamat-pengiriman/tambah">
+          {isFromCheckout ? (
+            <div className="mb-4">
+              <Link to="/checkout?step=2">
+                <Button color="gray" iconBefore={<FaArrowLeft />}>
+                  Kembali ke step 2
+                </Button>
+              </Link>
+              <br />
+              <br />
+            </div>
+          ) : null}
+          <Link
+            to={
+              isFromCheckout
+                ? "/alamat-pengiriman/tambah?from=checkout&step=2"
+                : "/alamat-pengiriman/tambah"
+            }
+          >
             <Button>Tambah baru</Button>
           </Link>
           <br />
@@ -52,7 +73,13 @@ export default function UserAddress() {
         {status === "success" && !data.length ? (
           <div className="text-center p-10">
             Kamu belum menambahkan alamat pengiriman. <br />
-            <Link to="/alamat-pengiriman/tambah">
+            <Link
+              to={
+                isFromCheckout
+                  ? "/alamat-pengiriman/tambah?from=checkout&step=2"
+                  : "/alamat-pengiriman/tambah"
+              }
+            >
               <Button> Tambah Baru </Button>
             </Link>
           </div>

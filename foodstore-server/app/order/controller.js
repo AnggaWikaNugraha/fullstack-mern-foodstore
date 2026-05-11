@@ -3,6 +3,7 @@ const Order = require("./model");
 const OrderItem = require("../order-item/model");
 const CartItem = require("../cart-item/model");
 const DeliveryAddress = require("../delivery-address/model");
+const Invoice = require("../invoice/model");
 const { policyFor } = require("../policy");
 const { subject } = require("@casl/ability");
 
@@ -27,14 +28,6 @@ async function store(req, res, next) {
       .find()
       .populate("product");
 
-    // (2) cek apakah keranjang belanja kosong?
-    if (!items.length) {
-      return res.json({
-        error: 1,
-        message: `Can not create order because you have no items in cart`,
-      });
-    }
-
     let address = await DeliveryAddress.findOne({ _id: delivery_address });
 
     // create order but don't save it yet.
@@ -53,21 +46,36 @@ async function store(req, res, next) {
       user: req.user._id,
     });
 
-    // create order items too
-    let orderItems = await OrderItem.insertMany(
-      items.map((item) => ({
-        ...item,
-        name: item.product.name,
-        qty: parseInt(item.qty),
-        price: parseInt(item.product.price),
-        order: order._id,
-        product: item.product._id,
-      }))
-    );
+    // Simpan snapshot item order langsung ke collection agar checkout
+    // tidak gagal karena validasi schema item yang tidak relevan saat order dibuat.
+    let orderItems = items.map((item) => {
+      let product = item.product || {};
 
-    orderItems.forEach((item) => order.order_items.push(item));
+      return {
+        _id: new mongoose.Types.ObjectId(),
+        name: product.name || item.name,
+        qty: parseInt(item.qty),
+        price: parseInt(product.price || item.price),
+        order: order._id,
+        product: product._id || item.product,
+      };
+    });
+
+    await OrderItem.collection.insertMany(orderItems);
+
+    orderItems.forEach((item) => order.order_items.push(item._id));
 
     await order.save();
+
+    const sub_total = orderItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    await new Invoice({
+        user: req.user._id,
+        order: order._id,
+        sub_total,
+        delivery_fee: parseInt(delivery_fee) || 0,
+        total: sub_total + (parseInt(delivery_fee) || 0),
+        delivery_address: order.delivery_address,
+    }).save();
 
     // clear cart items
     await CartItem.deleteMany({ user: req.user._id });
