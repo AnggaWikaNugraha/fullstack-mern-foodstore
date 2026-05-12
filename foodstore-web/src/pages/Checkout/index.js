@@ -16,6 +16,7 @@ import { createOrder } from "../../api/orders";
 import { useSelector, useDispatch } from "react-redux";
 import { clearItems } from "../../features/Cart/actions";
 import { Link, useHistory, useLocation, Redirect } from "react-router-dom";
+import styled from "@emotion/styled";
 
 const IconWrapper = ({ children }) => {
   return <div className="text-3xl flex justify-center">{children}</div>;
@@ -157,17 +158,19 @@ export default function Checkout() {
             perPage={cart.length}
             showPagination={false}
           />
-          <div className="text-right">
-            <Text as="h4">Subtotal: {formatRupiah(sumPrice(cart))}</Text>
+          <SubtotalBar>
+            <span>Subtotal</span>
+            <SubtotalValue>{formatRupiah(sumPrice(cart))}</SubtotalValue>
+          </SubtotalBar>
+          <div style={{ marginTop: 16 }}>
+            <Button
+              onClick={(_) => setActiveStep(activeStep + 1)}
+              color="red"
+              iconAfter={<FaArrowRight />}
+            >
+              Selanjutnya
+            </Button>
           </div>
-          <Button
-            onClick={(_) => setActiveStep(activeStep + 1)}
-            color="red"
-            iconAfter={<FaArrowRight />}
-          >
-            {" "}
-            Selanjutnya{" "}
-          </Button>
         </div>
       ) : null}
 
@@ -296,3 +299,23 @@ export default function Checkout() {
     </LayoutOne>
   );
 }
+
+const SubtotalBar = styled('div')({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  backgroundColor: '#fef9f9',
+  border: '1px solid #f5c6c6',
+  borderRadius: 8,
+  padding: '12px 20px',
+  marginTop: 16,
+  fontSize: 15,
+  color: '#555',
+  fontWeight: 600,
+});
+
+const SubtotalValue = styled('span')({
+  fontSize: 18,
+  fontWeight: 700,
+  color: '#c0392b',
+});

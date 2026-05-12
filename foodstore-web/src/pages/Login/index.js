@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { InputText, Button, FormControl, Card, LayoutOne } from 'upkit';
+import { InputText, Button, FormControl, Card, LayoutSidebar } from 'upkit';
 import { useForm } from 'react-hook-form';
 import { useHistory, Link } from 'react-router-dom';
+import AppSidebar from '../../component/AppSidebar';
 
 import { useDispatch } from 'react-redux';
 import { userLogin } from '../../features/Auth/actions';
@@ -53,42 +54,42 @@ export default function Login() {
     }
 
     return (
-        <LayoutOne size="small">
-            <br />
-            <Card color="white">
-
-
-                <form onSubmit={handleSubmit(onSubmit)}>
-                    {/* gunakan ref={register} */}
-                    <FormControl>
-                        <InputText
-                            name="email"
-                            placeholder="email"
-                            fitContainer
-                            {...register('email')}
-                        />
-                    </FormControl>
-
-                    {/* gunakan ref={register} */}
-                    <FormControl>
-                        <InputText
-                            name="password"
-                            placeholder="password"
-                            fitContainer
-                            {...register('password')}
-                        />
-                    </FormControl>
-
-                    <Button fitContainer size="large" disabled={status === 'process'}>
-                        Login
-              </Button>
-                </form>
-
-                <div className="text-center mt-2">
-                    Belum punya akun? <Link to="/register"><b>Daftar sekarang.</b></Link>
+        <LayoutSidebar
+            sidebar={<AppSidebar />}
+            sidebarSize={80}
+            content={
+                <div className="flex justify-center items-start pt-16 min-h-screen bg-gray-50">
+                    <div className="w-full max-w-sm px-4">
+                        <Card color="white">
+                            <form onSubmit={handleSubmit(onSubmit)}>
+                                <FormControl>
+                                    <InputText
+                                        name="email"
+                                        placeholder="Email"
+                                        fitContainer
+                                        {...register('email')}
+                                    />
+                                </FormControl>
+                                <FormControl>
+                                    <InputText
+                                        name="password"
+                                        placeholder="Password"
+                                        fitContainer
+                                        {...register('password')}
+                                    />
+                                </FormControl>
+                                <Button fitContainer size="large" disabled={status === 'process'}>
+                                    Login
+                                </Button>
+                            </form>
+                            <div className="text-center mt-2">
+                                Belum punya akun? <Link to="/register"><b>Daftar sekarang.</b></Link>
+                            </div>
+                        </Card>
+                    </div>
                 </div>
-            </Card>
-        </LayoutOne>
+            }
+        />
     )
 
 }

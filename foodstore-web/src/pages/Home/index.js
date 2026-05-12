@@ -90,6 +90,14 @@ const Home = () => {
                             ))}
                         </Responsive>
 
+                        {products.status === 'success' && !products.data.length ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                                <img src="/images/menus/semua.png" alt="empty" style={{ width: 64, opacity: 0.3, marginBottom: 16 }} />
+                                <p style={{ fontSize: 16, fontWeight: 600 }}>Produk tidak ditemukan</p>
+                                <p style={{ fontSize: 13, marginTop: 4 }}>Coba kata kunci atau filter lain</p>
+                            </div>
+                        ) : null}
+
                         <div className="text-center my-10">
                             <Pagination
                                 totalItems={products.totalItems}

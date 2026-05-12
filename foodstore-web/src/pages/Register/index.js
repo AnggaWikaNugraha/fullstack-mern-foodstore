@@ -1,11 +1,11 @@
 import * as React from 'react';
 
 // (1) import InputPassword & Button
-import { LayoutOne, Card, FormControl, InputText, InputPassword, Button } from 'upkit';
-// (1) import useForm
+import { LayoutSidebar, Card, FormControl, InputText, InputPassword, Button } from 'upkit';
 import { useForm } from 'react-hook-form';
 import { registerUser } from '../../api/auth';
 import { useHistory } from "react-router-dom";
+import AppSidebar from '../../component/AppSidebar';
 const statuslist = {
     idle: 'idle',
     process: 'process',
@@ -32,62 +32,52 @@ export default function Register() {
     }
 
     return (
-
-        <LayoutOne size="small">
-
-            <Card color="white">
-                {/* (4) gunakan onSubmit dengan terlebih dahulu dimasukan dalam handleSubmit */}
-                <form onSubmit={handleSubmit(onSubmit)}>
-
-                    {/* gunakan ref={register} */}
-                    <FormControl>
-                        <InputText
-                            name="full_name"
-                            placeholder="Nama Lengkap"
-                            fitContainer
-                            {...register('full_name')}
-                        />
-                    </FormControl>
-
-                    {/* gunakan ref={register} */}
-                    <FormControl>
-                        <InputText
-                            name="email"
-                            placeholder="Email"
-                            fitContainer
-                            {...register('email')}
-                        />
-                    </FormControl>
-
-                    {/* gunakan ref={register} */}
-                    <FormControl>
-                        <InputPassword
-                            name="password"
-                            placeholder="Password"
-                            fitContainer
-                            {...register('password')}
-                        />
-                    </FormControl>
-
-                    {/* gunakan ref={register} */}
-                    <FormControl>
-                        <InputPassword
-                            name="password_confirmation"
-                            placeholder="Konfirmasi Password"
-                            fitContainer
-                            {...register('password_confirmation')}
-
-                        />
-                    </FormControl>
-
-                    <Button
-                        size="large"
-                        fitContainer
-                    > Mendaftar </Button>
-
-                </form>
-            </Card>
-
-        </LayoutOne>
+        <LayoutSidebar
+            sidebar={<AppSidebar />}
+            sidebarSize={80}
+            content={
+                <div className="flex justify-center items-start pt-16 min-h-screen bg-gray-50">
+                    <div className="w-full max-w-sm px-4">
+                        <Card color="white">
+                            <form onSubmit={handleSubmit(onSubmit)}>
+                                <FormControl>
+                                    <InputText
+                                        name="full_name"
+                                        placeholder="Nama Lengkap"
+                                        fitContainer
+                                        {...register('full_name')}
+                                    />
+                                </FormControl>
+                                <FormControl>
+                                    <InputText
+                                        name="email"
+                                        placeholder="Email"
+                                        fitContainer
+                                        {...register('email')}
+                                    />
+                                </FormControl>
+                                <FormControl>
+                                    <InputPassword
+                                        name="password"
+                                        placeholder="Password"
+                                        fitContainer
+                                        {...register('password')}
+                                    />
+                                </FormControl>
+                                <FormControl>
+                                    <InputPassword
+                                        name="password_confirmation"
+                                        placeholder="Konfirmasi Password"
+                                        fitContainer
+                                        {...register('password_confirmation')}
+                                    />
+                                </FormControl>
+                                <Button size="large" fitContainer>Mendaftar</Button>
+                            </form>
+                        </Card>
+                    </div>
+                </div>
+            }
+        />
     )
 }

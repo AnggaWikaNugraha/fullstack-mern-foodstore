@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="32" fill="#c0392b"/>
+  <!-- Fork -->
+  <rect x="18" y="12" width="3" height="12" rx="1.5" fill="white"/>
+  <rect x="24" y="12" width="3" height="12" rx="1.5" fill="white"/>
+  <rect x="30" y="12" width="3" height="12" rx="1.5" fill="white"/>
+  <path d="M18 24 Q24.5 30 33 24" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <rect x="22" y="26" width="3" height="20" rx="1.5" fill="white"/>
+  <!-- Spoon -->
+  <ellipse cx="46" cy="18" rx="4" ry="6" fill="white"/>
+  <rect x="44.5" y="23" width="3" height="19" rx="1.5" fill="white"/>
+</svg>

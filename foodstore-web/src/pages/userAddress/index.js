@@ -71,8 +71,10 @@ export default function UserAddress() {
         </div>
 
         {status === "success" && !data.length ? (
-          <div className="text-center p-10">
-            Kamu belum menambahkan alamat pengiriman. <br />
+          <div style={{ textAlign: 'center', padding: '48px 24px', color: '#aaa' }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>📍</div>
+            <p style={{ fontSize: 15, fontWeight: 600, color: '#bbb', margin: 0 }}>Belum ada alamat pengiriman</p>
+            <p style={{ fontSize: 13, color: '#ccc', marginTop: 6, marginBottom: 20 }}>Tambah alamat untuk melanjutkan checkout</p>
             <Link
               to={
                 isFromCheckout
@@ -80,7 +82,7 @@ export default function UserAddress() {
                   : "/alamat-pengiriman/tambah"
               }
             >
-              <Button> Tambah Baru </Button>
+              <Button>+ Tambah Alamat</Button>
             </Link>
           </div>
         ) : null}

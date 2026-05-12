@@ -59,10 +59,17 @@ export default function AppSidebar({ onCategoryChange }) {
     };
 
     return (
-        <SideNav
-            items={items}
-            verticalAlign="top"
-            onChange={handleChange}
-        />
+        <div style={{
+            position: 'sticky',
+            top: 0,
+            height: '100vh',
+            overflowY: 'auto',
+        }}>
+            <SideNav
+                items={items}
+                verticalAlign="top"
+                onChange={handleChange}
+            />
+        </div>
     );
 }
