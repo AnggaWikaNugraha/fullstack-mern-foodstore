@@ -11,6 +11,7 @@ import { sumPrice } from "../../utils/sum-price";
 import { formatRupiah } from "../../utils/format-rupiah";
 import { config } from "../../config";
 import { LayoutOne, Text, Steps, Table, Button, Responsive } from "upkit";
+import { getImageUrl } from "../../utils/image-url";
 import { createOrder } from "../../api/orders";
 import { useSelector, useDispatch } from "react-redux";
 import { clearItems } from "../../features/Cart/actions";
@@ -54,7 +55,7 @@ const columns = [
     accessor: (item) => (
       <div className="flex items-center">
         <img
-          src={`${config.api_host}/upload/${item.image_url}`}
+          src={getImageUrl(item.image_url)}
           width={48}
           alt={item.name}
         />

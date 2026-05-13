@@ -3,12 +3,12 @@ import BounceLoader from 'react-spinners/BounceLoader';
 import Cart from '../../component/Cart';
 import AppSidebar from '../../component/AppSidebar';
 import StarRating from '../../component/StarRating';
+import { getImageUrl } from '../../utils/image-url';
 
 import { useHistory } from 'react-router-dom';
 import { addItem, removeItem } from '../../features/Cart/actions';
 import { LayoutSidebar, Responsive, CardProduct, Pagination, InputText, Pill } from 'upkit';
 import { useDispatch, useSelector } from 'react-redux';
-import { config } from '../../config';
 import { fetchProducts, setPage, goToNextPage, goToPrevPage, setKeyword, setCategory, toggleTag } from '../../features/products/actions';
 import { getTags } from '../../api/tag';
 
@@ -83,7 +83,7 @@ const Home = () => {
                                     <div key={index} className="p-2" style={{ position: 'relative' }}>
                                         <CardProduct
                                             title={product.name}
-                                            imgUrl={`${config.api_host}/upload/${product.image_url}`}
+                                            imgUrl={getImageUrl(product.image_url)}
                                             price={product.price}
                                             onAddToCart={outOfStock ? () => {} : () => dispatch(addItem(product))}
                                         />

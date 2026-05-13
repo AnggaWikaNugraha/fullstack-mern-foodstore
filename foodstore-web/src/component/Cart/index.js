@@ -5,9 +5,9 @@ import FaShoppingBasket from '@meronex/icons/fa/FaShoppingBasket';
 
 import { formatRupiah } from '../../utils/format-rupiah';
 import { sumPrice } from '../../utils/sum-price';
+import { getImageUrl } from '../../utils/image-url';
 import { arrayOf, string, shape, oneOfType, number, func } from 'prop-types';
 import { CardItem } from 'upkit';
-import { config } from '../../config';
 import styled from '@emotion/styled';
 
 export default function Cart({ items, onItemInc, onItemDec, onCheckout }) {
@@ -34,7 +34,7 @@ export default function Cart({ items, onItemInc, onItemDec, onCheckout }) {
                         {items.map((item, index) => (
                             <ItemRow key={index}>
                                 <CardItem
-                                    imgUrl={`${config.api_host}/upload/${item.image_url}`}
+                                    imgUrl={getImageUrl(item.image_url)}
                                     name={item.name}
                                     qty={item.qty}
                                     color="orange"

@@ -8,6 +8,7 @@ import StarRating from "../../component/StarRating";
 import BounceLoader from "react-spinners/BounceLoader";
 import { formatRupiah } from "../../utils/format-rupiah";
 import { config } from "../../config";
+import { getImageUrl } from "../../utils/image-url";
 import StatusLabel from "../../component/StatusLabel";
 import styled from "@emotion/styled";
 
@@ -178,7 +179,7 @@ export default function Invoice() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           {item.product?.image_url && (
                             <img
-                              src={`${config.api_host}/upload/${item.product.image_url}`}
+                              src={getImageUrl(item.product.image_url)}
                               alt={item.name}
                               style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }}
                             />

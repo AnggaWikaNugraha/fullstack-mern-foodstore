@@ -5,8 +5,8 @@ import styled from 'styled-components';
 import BounceLoader from 'react-spinners/BounceLoader';
 import AppSidebar from '../../component/AppSidebar';
 
-import { config } from '../../config';
 import { formatRupiah } from '../../utils/format-rupiah';
+import { getImageUrl } from '../../utils/image-url';
 import { getProducts, createProduct, updateProduct, deleteProduct } from '../../api/products';
 import { get as getCategories } from '../../api/category';
 import { getTags } from '../../api/tag';
@@ -68,7 +68,7 @@ const AdminProduct = () => {
             image: null,
             stock: product.stock ?? 0,
         });
-        setPreview(product.image_url ? `${config.api_host}/upload/${product.image_url}` : null);
+        setPreview(product.image_url ? getImageUrl(product.image_url) : null);
         setError('');
         setShowModal(true);
     };
@@ -132,7 +132,7 @@ const AdminProduct = () => {
             name: 'Image',
             cell: row => (
                 <img
-                    src={`${config.api_host}/upload/${row.image_url}`}
+                    src={getImageUrl(row.image_url)}
                     alt={row.name}
                     style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6 }}
                 />
