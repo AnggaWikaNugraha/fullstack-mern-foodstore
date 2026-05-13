@@ -7,6 +7,7 @@ const Invoice = require("../invoice/model");
 const Product = require("../product/model");
 const { policyFor } = require("../policy");
 const { subject } = require("@casl/ability");
+const { sendOrderConfirmation } = require("../utils/mailer");
 
 async function store(req, res, next) {
   // (1) dapatkan policy untuk user yang sedang login
@@ -89,6 +90,19 @@ async function store(req, res, next) {
 
     // clear cart items
     await CartItem.deleteMany({ user: req.user._id });
+
+    // Kirim email konfirmasi — fire-and-forget, tidak blok response
+    if (req.user?.email) {
+      sendOrderConfirmation({
+        to: req.user.email,
+        order_number: order.order_number,
+        full_name: req.user.full_name || req.user.email,
+        items: orderItems.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+        sub_total,
+        delivery_fee: parseInt(delivery_fee) || 0,
+        total: sub_total + (parseInt(delivery_fee) || 0),
+      });
+    }
 
     return res.json(order);
   } catch (err) {
