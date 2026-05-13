@@ -11,6 +11,23 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 
 ---
 
+## New Features:
+- Product Rating & Review
+- Stock Management
+
+### FE New Feature
+- Star rating component (interactive & read-only)
+- Rating modal on invoice page — pick 1–5 stars + optional comment
+- Average rating displayed on product cards on home page
+- Stock field in admin product form (add & edit)
+- Stock column in admin product table with badge: **Habis** (0) / **⚠ Menipis** (≤5)
+- "Stok Habis" overlay on product card when stock is 0, add-to-cart disabled
+
+### BE New API
+- `POST /api/reviews` — submit a review (login required)
+- `GET /api/reviews?product_id=&order_id=` — get reviews by product or order
+- Stock decremented automatically via `$inc` on each ordered product when order is created
+
 ## Project Structure
 
 ```

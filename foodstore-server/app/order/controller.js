@@ -4,6 +4,7 @@ const OrderItem = require("../order-item/model");
 const CartItem = require("../cart-item/model");
 const DeliveryAddress = require("../delivery-address/model");
 const Invoice = require("../invoice/model");
+const Product = require("../product/model");
 const { policyFor } = require("../policy");
 const { subject } = require("@casl/ability");
 
@@ -76,6 +77,15 @@ async function store(req, res, next) {
         total: sub_total + (parseInt(delivery_fee) || 0),
         delivery_address: order.delivery_address,
     }).save();
+
+    // Kurangi stok untuk setiap produk yang dipesan
+    for (const item of orderItems) {
+      if (item.product) {
+        await Product.findByIdAndUpdate(item.product, {
+          $inc: { stock: -item.qty }
+        });
+      }
+    }
 
     // clear cart items
     await CartItem.deleteMany({ user: req.user._id });

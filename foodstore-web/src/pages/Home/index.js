@@ -77,24 +77,55 @@ const Home = () => {
                         </div>
 
                         <Responsive desktop={3} items="stretch">
-                            {products.data.map((product, index) => (
-                                <div key={index} className="p-2">
-                                    <CardProduct
-                                        title={product.name}
-                                        imgUrl={`${config.api_host}/upload/${product.image_url}`}
-                                        price={product.price}
-                                        onAddToCart={() => dispatch(addItem(product))}
-                                    />
-                                    {product.review_count > 0 && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 6px 2px' }}>
-                                            <StarRating value={Math.round(product.avg_rating)} readonly size={14} />
-                                            <span style={{ fontSize: 12, color: '#888' }}>
-                                                {product.avg_rating} ({product.review_count})
-                                            </span>
+                            {products.data.map((product, index) => {
+                                const outOfStock = product.stock === 0;
+                                return (
+                                    <div key={index} className="p-2" style={{ position: 'relative' }}>
+                                        <CardProduct
+                                            title={product.name}
+                                            imgUrl={`${config.api_host}/upload/${product.image_url}`}
+                                            price={product.price}
+                                            onAddToCart={outOfStock ? () => {} : () => dispatch(addItem(product))}
+                                        />
+                                        {outOfStock && (
+                                            <div style={{
+                                                position: 'absolute', inset: 0,
+                                                backgroundColor: 'rgba(255,255,255,0.78)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                borderRadius: 8, zIndex: 1,
+                                            }}>
+                                                <span style={{
+                                                    backgroundColor: '#c0392b', color: 'white',
+                                                    borderRadius: 6, padding: '6px 16px',
+                                                    fontWeight: 700, fontSize: 14,
+                                                }}>Stok Habis</span>
+                                            </div>
+                                        )}
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 6px 2px' }}>
+                                            {product.review_count > 0 ? (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                    <StarRating value={Math.round(product.avg_rating)} readonly size={13} />
+                                                    <span style={{ fontSize: 12, color: '#888' }}>
+                                                        {product.avg_rating} ({product.review_count})
+                                                    </span>
+                                                </div>
+                                            ) : <span />}
+                                            {product.stock > 0 && product.stock <= 5 && (
+                                                <span style={{
+                                                    fontSize: 11, fontWeight: 700,
+                                                    color: '#e67e22',
+                                                    backgroundColor: '#fff8e1',
+                                                    border: '1px solid #f0c040',
+                                                    borderRadius: 4,
+                                                    padding: '2px 7px',
+                                                }}>
+                                                    Sisa {product.stock}
+                                                </span>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                            ))}
+                                    </div>
+                                );
+                            })}
                         </Responsive>
 
                         {products.status === 'success' && !products.data.length ? (

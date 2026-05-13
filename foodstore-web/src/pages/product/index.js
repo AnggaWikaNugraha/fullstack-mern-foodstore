@@ -24,7 +24,7 @@ const AdminProduct = () => {
     const [error, setError] = useState('');
 
     const [form, setForm] = useState({
-        name: '', description: '', price: '', category: '', tags: [], image: null,
+        name: '', description: '', price: '', category: '', tags: [], image: null, stock: 0,
     });
     const [preview, setPreview] = useState(null);
     const [categoryOptions, setCategoryOptions] = useState([]);
@@ -51,7 +51,7 @@ const AdminProduct = () => {
 
     const openAdd = () => {
         setSelectedProduct(null);
-        setForm({ name: '', description: '', price: '', category: '', tags: [], image: null });
+        setForm({ name: '', description: '', price: '', category: '', tags: [], image: null, stock: 0 });
         setPreview(null);
         setError('');
         setShowModal(true);
@@ -66,6 +66,7 @@ const AdminProduct = () => {
             category: product.category?.name || '',
             tags: product.tags?.map(t => t.name) || [],
             image: null,
+            stock: product.stock ?? 0,
         });
         setPreview(product.image_url ? `${config.api_host}/upload/${product.image_url}` : null);
         setError('');
@@ -94,6 +95,7 @@ const AdminProduct = () => {
         formData.append('name', form.name);
         formData.append('description', form.description);
         formData.append('price', form.price);
+        formData.append('stock', form.stock);
         formData.append('category', form.category);
         form.tags.forEach(tag => formData.append('tags', tag));
         if (form.image) formData.append('image', form.image);
@@ -141,6 +143,16 @@ const AdminProduct = () => {
         { name: 'Price', cell: row => formatRupiah(row.price), sortable: true },
         { name: 'Category', cell: row => row.category?.name || '-' },
         { name: 'Tags', cell: row => row.tags?.map(t => t.name).join(', ') || '-', grow: 2 },
+        {
+            name: 'Stock',
+            cell: row => {
+                const s = row.stock ?? 0;
+                if (s === 0) return <StockBadge color="#c0392b">Habis</StockBadge>;
+                if (s <= 5) return <StockBadge color="#e67e22">⚠ {s}</StockBadge>;
+                return <span style={{ fontWeight: 600 }}>{s}</span>;
+            },
+            width: '90px',
+        },
         {
             name: 'Actions',
             cell: row => (
@@ -215,15 +227,20 @@ const AdminProduct = () => {
                                     <Input type="number" name="price" value={form.price} onChange={handleChange} required min={0} placeholder="0" />
                                 </FormGroup>
                                 <FormGroup style={{ flex: 1 }}>
-                                    <Label>Category</Label>
-                                    <Select name="category" value={form.category} onChange={handleChange}>
-                                        <option value="">-- Pilih kategori --</option>
-                                        {categoryOptions.map(cat => (
-                                            <option key={cat._id} value={cat.name}>{cat.name}</option>
-                                        ))}
-                                    </Select>
+                                    <Label>Stock *</Label>
+                                    <Input type="number" name="stock" value={form.stock} onChange={handleChange} required min={0} placeholder="0" />
                                 </FormGroup>
                             </FormRow>
+
+                            <FormGroup>
+                                <Label>Category</Label>
+                                <Select name="category" value={form.category} onChange={handleChange}>
+                                    <option value="">-- Pilih kategori --</option>
+                                    {categoryOptions.map(cat => (
+                                        <option key={cat._id} value={cat.name}>{cat.name}</option>
+                                    ))}
+                                </Select>
+                            </FormGroup>
 
                             <FormGroup>
                                 <Label>Tags</Label>
@@ -281,6 +298,15 @@ const TopBar = styled('div')({
     justifyContent: 'space-between',
     marginBottom: 24,
 });
+
+const StockBadge = styled('span')(props => ({
+    backgroundColor: props.color || '#888',
+    color: 'white',
+    borderRadius: 5,
+    padding: '3px 8px',
+    fontSize: 12,
+    fontWeight: 700,
+}));
 
 const Heading = styled('p')({
     fontSize: 23,

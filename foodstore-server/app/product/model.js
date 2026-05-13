@@ -35,7 +35,8 @@ const productSchema = Schema({
     ],
 
     avg_rating: { type: Number, default: 0 },
-    review_count: { type: Number, default: 0 }
+    review_count: { type: Number, default: 0 },
+    stock: { type: Number, default: 0 }
 
 }, { timestamps: true });
 
