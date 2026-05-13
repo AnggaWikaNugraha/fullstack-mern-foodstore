@@ -1,5 +1,4 @@
 import * as React from "react";
-import TopBar from "../../component/Topbar";
 import FaCartPlus from "@meronex/icons/fa/FaCartPlus";
 import FaAddressCard from "@meronex/icons/fa/FaAddressCard";
 import FaInfoCircle from "@meronex/icons/fa/FaInfoCircle";
@@ -144,7 +143,6 @@ export default function Checkout() {
 
   return (
     <LayoutOne>
-      <TopBar />
       <div style={{ marginBottom: '20px' }}>
         <Text as="h3"> Checkout </Text>
       </div>

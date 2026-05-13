@@ -25,6 +25,7 @@ import "./App.css";
 import OnlyLogin from "./component/OnlyLogin";
 import OnlyGuest from "./component/OnlyGuest";
 import OnlyAdmin from "./component/OnlyAdmin";
+import TopBar from "./component/Topbar";
 
 function App() {
   React.useEffect(() => {
@@ -35,6 +36,7 @@ function App() {
   return (
     <Provider store={store}>
       <Router>
+        <TopBar />
         <Switch>
 
           <OnlyLogin path="/logout">

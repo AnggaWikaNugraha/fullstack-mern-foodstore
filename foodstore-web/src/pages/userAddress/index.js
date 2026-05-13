@@ -1,5 +1,4 @@
 import * as React from "react";
-import TopBar from "../../component/Topbar";
 import FaArrowLeft from "@meronex/icons/fa/FaArrowLeft";
 
 import { LayoutOne, Text, Table, Button } from "upkit";
@@ -31,7 +30,6 @@ export default function UserAddress() {
   return (
     <LayoutOne size="large">
       <div>
-        <TopBar />
         <Text as="h3"> Alamat pengiriman </Text>
         <br />
 

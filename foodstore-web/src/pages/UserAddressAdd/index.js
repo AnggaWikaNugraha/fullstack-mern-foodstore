@@ -1,5 +1,4 @@
 import * as React from 'react';
-import TopBar from '../../component/Topbar';
 import SelectWilayah from '../../component/SelectWilayah';
 import FaArrowLeft from "@meronex/icons/fa/FaArrowLeft";
 
@@ -68,7 +67,6 @@ export default function UserAddressAdd() {
 
     return (
         <LayoutOne>
-            <TopBar />
             <br />
             <div>
                 {isFromCheckout ? (

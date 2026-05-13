@@ -59,10 +59,10 @@ export default function AppSidebar({ onCategoryChange }) {
     };
 
     return (
-        <div style={{
+        <div className="app-sidebar" style={{
             position: 'sticky',
-            top: 0,
-            height: '100vh',
+            top: 56,
+            height: 'calc(100vh - 56px)',
             overflowY: 'auto',
         }}>
             <SideNav

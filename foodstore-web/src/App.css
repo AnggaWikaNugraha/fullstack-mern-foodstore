@@ -1,3 +1,18 @@
+.app-sidebar img {
+  width: 30px !important;
+  height: 30px !important;
+  object-fit: contain;
+}
+
+.app-sidebar::-webkit-scrollbar {
+  display: none;
+}
+
+.app-sidebar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 .container__category {
   display: flex;
   flex-direction: column;

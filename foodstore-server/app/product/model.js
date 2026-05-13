@@ -32,8 +32,10 @@ const productSchema = Schema({
             type: Schema.Types.ObjectId,
             ref: 'Tag'
         }
-    ]
+    ],
 
+    avg_rating: { type: Number, default: 0 },
+    review_count: { type: Number, default: 0 }
 
 }, { timestamps: true });
 

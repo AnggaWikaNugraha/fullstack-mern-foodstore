@@ -10,7 +10,13 @@ async function show(req, res, next) {
         // (2) dapatkan data `invoice` berdasarkan `order_id`
         let invoice = await Invoice
             .findOne({ order: order_id })
-            .populate('order')
+            .populate({
+                path: 'order',
+                populate: {
+                    path: 'order_items',
+                    populate: { path: 'product', select: 'name image_url avg_rating' }
+                }
+            })
             .populate('user');
 
         // (1) deklarasikan `policy` untuk `user`

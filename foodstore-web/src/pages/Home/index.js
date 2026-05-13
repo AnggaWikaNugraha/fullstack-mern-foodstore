@@ -1,8 +1,8 @@
 import React from 'react'
-import TopBar from '../../component/Topbar';
 import BounceLoader from 'react-spinners/BounceLoader';
 import Cart from '../../component/Cart';
 import AppSidebar from '../../component/AppSidebar';
+import StarRating from '../../component/StarRating';
 
 import { useHistory } from 'react-router-dom';
 import { addItem, removeItem } from '../../features/Cart/actions';
@@ -42,10 +42,9 @@ const Home = () => {
         <div>
             <LayoutSidebar
                 sidebar={<AppSidebar onCategoryChange={category => dispatch(setCategory(category))} />}
-                content={<div className="md:flex md:flex-row-reverse w-full mr-5 h-full min-h-screen">
+                content={<div className="md:flex md:flex-row-reverse w-full mr-5 h-full">
 
                     <div className="w-full md:w-3/4 pl-5 pb-10">
-                        <TopBar />
 
                         <div className="mb-5 mt-5 pl-2 flex w-3/3 overflow-auto pb-5">
                             {availableTags.map((tag, index) => (
@@ -86,6 +85,14 @@ const Home = () => {
                                         price={product.price}
                                         onAddToCart={() => dispatch(addItem(product))}
                                     />
+                                    {product.review_count > 0 && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 6px 2px' }}>
+                                            <StarRating value={Math.round(product.avg_rating)} readonly size={14} />
+                                            <span style={{ fontSize: 12, color: '#888' }}>
+                                                {product.avg_rating} ({product.review_count})
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </Responsive>

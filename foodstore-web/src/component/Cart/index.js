@@ -76,7 +76,7 @@ const Wrapper = styled('div')({
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-    minHeight: '100vh',
+    minHeight: 'calc(100vh - 56px)',
     backgroundColor: '#fff',
 });
 
