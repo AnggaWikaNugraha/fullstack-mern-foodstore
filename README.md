@@ -12,11 +12,11 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 ---
 
 ## Soon Feature
-- Midtrans / Xendit — payment gateway Indonesia, bikin invoice jadi beneran dibayar, bukan hanya dicatat
 - Socket.io — real-time notif order status (customer lihat pesanan diproses → dikirim → selesai live)
 - Redis + Bull queue — upgrade email job ke proper queue system untuk production
 
 ## New Features:
+- **Midtrans Payment Gateway** — integrasi Snap popup, invoice bisa dibayar langsung (sandbox mode)
 - Product Rating & Review
 - Stock Management
 - Cloudinary Image Upload
@@ -25,6 +25,9 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 ### BE New API
 - `POST /api/reviews` — submit a review (login required)
 - `GET /api/reviews?product_id=&order_id=` — get reviews by product or order
+- `GET /api/payments/token/:order_id` — get Midtrans Snap token for an invoice
+- `GET /api/payments/verify/:order_id` — verify & sync payment status from Midtrans API to DB
+- `POST /api/payments/notification` — Midtrans webhook handler (update invoice & order status)
 - Stock decremented automatically via `$inc` on each ordered product when order is created
 - Product images uploaded to Cloudinary (multer memoryStorage → Cloudinary upload_stream), old image auto-deleted on update
 - Email konfirmasi order dikirim otomatis via Nodemailer (fire-and-forget, tidak blok response checkout)
@@ -83,6 +86,9 @@ fullstack-mern-foodstore/
 - csvtojson — reads regional data from CSV files
 - mongoose-sequence — auto-increments customer_id
 - dotenv — environment variable configuration
+- cloudinary — cloud image storage
+- nodemailer — transactional email (order confirmation)
+- midtrans-client — Midtrans payment gateway (Snap)
 
 ## Entity Diagram
 ![image](https://user-images.githubusercontent.com/37723902/120694299-3bc7e900-c4d4-11eb-8d92-cb9344f272c2.png)
@@ -351,12 +357,17 @@ Request :
 - Filter products by category
 - Filter products by tags
 - User login & registration
-- Shopping cart
+- Shopping cart (per-user, isolated)
 - Checkout
 - Order history
 - Manage delivery addresses
 - Admin page for managing products and categories
 - Indonesian regional data (province, city, district, village)
+- Product rating & review (after payment)
+- Stock management (auto-decrement on order)
+- Cloudinary image upload (product images)
+- Email konfirmasi order otomatis
+- Midtrans Snap payment (popup, sandbox mode)
 
 ---
 
@@ -365,25 +376,33 @@ Request :
 ##### add .env to foodstore-server
 
 ```
-PORT = 3000
-SERVICE_NAME=foodstore-service
-DB_HOST=localhost
-DB_PORT=27017
+PORT=3000
+MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/foodstore
+SECRET_KEY=your_secret_key
 
-# Set to your MongoDB username
-DB_USER=
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 
-# Set to your MongoDB user password
-DB_PASS=
+# Nodemailer (Gmail App Password)
+MAIL_USER=
+MAIL_PASS=
 
-# Set to your database name
-DB_NAME=foodstore
-
-SECRET_KEY=
+# Midtrans (Sandbox)
+MIDTRANS_SERVER_KEY=
+MIDTRANS_CLIENT_KEY=
+MIDTRANS_IS_PRODUCTION=false
 ```
 
 ##### add .env to foodstore-web
 
 ```
 REACT_APP_API_HOST=http://localhost:3000
+REACT_APP_SITE_TITLE=FoodStore
+REACT_APP_GLOBAL_ONGKIR=20000
+REACT_APP_OWNER=YourName
+REACT_APP_CONTACT=your@email.com
+REACT_APP_BILLING_NO=1234567890
+REACT_APP_BILLING_BANK=BCA
 ```
