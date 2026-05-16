@@ -1,4 +1,5 @@
 const midtransClient = require('midtrans-client');
+const mongoose = require('mongoose');
 const Invoice = require('../invoice/model');
 const Order = require('../order/model');
 
@@ -46,8 +47,8 @@ async function handleNotification(req, res, next) {
     try {
         const { order_id, transaction_status, fraud_status } = req.body;
 
-        // Abaikan payload kosong/tidak valid (misal test dari dashboard Midtrans)
-        if (!order_id || !transaction_status) {
+        // Abaikan payload kosong/order_id bukan valid ObjectId (misal test dari dashboard)
+        if (!order_id || !transaction_status || !mongoose.Types.ObjectId.isValid(order_id)) {
             return res.json({ status: 'ok' });
         }
 
