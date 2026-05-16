@@ -13,6 +13,7 @@ const invoiceSchema = Schema({
     },
     total: { type: Number },
     payment_status: { type: String, default: 'waiting_payment' },
+    snap_token: { type: String, default: '' },
     user: {
         type: Schema.Types.ObjectId,
         ref: 'User'

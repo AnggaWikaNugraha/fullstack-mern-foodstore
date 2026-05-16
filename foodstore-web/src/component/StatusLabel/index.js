@@ -8,7 +8,14 @@ export default function StatusLabel({ status }) {
       return <Badge color="orange">Menunggu pembayaran</Badge>;
 
     case "paid":
+    case "settlement":
       return <Badge color="green">Sudah dibayar</Badge>;
+
+    case "pending":
+      return <Badge color="orange">Menunggu pembayaran</Badge>;
+
+    case "failed":
+      return <Badge color="red">Pembayaran gagal</Badge>;
 
     case "processing":
       return <Badge color="yellow">Sedang diproses</Badge>;

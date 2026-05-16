@@ -2,7 +2,8 @@ import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import { getInvoiceByOrderId } from "../../api/invoice";
 import { createReview, getMyOrderReviews } from "../../api/review";
-import { LayoutSidebar, Text, Table } from "upkit";
+import { getSnapToken } from "../../api/payment";
+import { LayoutSidebar, Text } from "upkit";
 import AppSidebar from "../../component/AppSidebar";
 import StarRating from "../../component/StarRating";
 import BounceLoader from "react-spinners/BounceLoader";
@@ -27,7 +28,31 @@ export default function Invoice() {
   // Menyimpan product_id yang sudah dirating user di order ini
   let [reviewedIds, setReviewedIds] = React.useState([]);
 
+  let [payLoading, setPayLoading] = React.useState(false);
+
   let { params } = useRouteMatch();
+
+  const handlePayment = async () => {
+    setPayLoading(true);
+    try {
+      const { data } = await getSnapToken(params?.order_id);
+      if (data?.error) { alert(data.message); setPayLoading(false); return; }
+
+      window.snap.pay(data.snap_token, {
+        onSuccess: () => {
+          setInvoice(prev => ({ ...prev, payment_status: 'settlement' }));
+        },
+        onPending: () => {
+          setInvoice(prev => ({ ...prev, payment_status: 'pending' }));
+        },
+        onError: () => alert('Pembayaran gagal, coba lagi.'),
+        onClose: () => {},
+      });
+    } catch {
+      alert('Gagal memuat payment, coba lagi.');
+    }
+    setPayLoading(false);
+  };
 
   React.useEffect(() => {
     getInvoiceByOrderId(params?.order_id)
@@ -118,42 +143,50 @@ export default function Invoice() {
         <br />
 
         {/* Tabel info pembayaran */}
-        <Table
-          showPagination={false}
-          items={[
-            { label: "Status", value: <StatusLabel status={invoice?.payment_status} /> },
-            { label: "Order ID", value: "#" + invoice?.order?.order_number },
-            { label: "Total amount", value: formatRupiah(invoice?.total) },
-            {
-              label: "Billed to",
-              value: (
-                <div>
-                  <b>{invoice?.user?.full_name}</b> <br />
-                  {invoice?.user?.email} <br /><br />
-                  {invoice?.delivery_address?.detail} <br />
-                  {invoice?.delivery_address?.kelurahan}, {invoice?.delivery_address?.kecamatan} <br />
-                  {invoice?.delivery_address?.kabupaten} <br />
-                  {invoice?.delivery_address?.provinsi}
-                </div>
-              ),
-            },
-            {
-              label: "Payment to",
-              value: (
-                <div>
-                  {config.owner} <br />
-                  {config.contact} <br />
-                  {config.billing.account_no} <br />
-                  {config.billing.bank_name}
-                </div>
-              ),
-            },
-          ]}
-          columns={[
-            { Header: "Invoice", accessor: "label" },
-            { Header: "", accessor: "value" },
-          ]}
-        />
+        <BillingTable>
+          <tbody>
+            <tr>
+              <BillingTh>Status</BillingTh>
+              <BillingTd><StatusLabel status={invoice?.payment_status} /></BillingTd>
+            </tr>
+            <tr>
+              <BillingTh>Order ID</BillingTh>
+              <BillingTd>{"#" + invoice?.order?.order_number}</BillingTd>
+            </tr>
+            <tr>
+              <BillingTh>Total amount</BillingTh>
+              <BillingTd>{formatRupiah(invoice?.total)}</BillingTd>
+            </tr>
+            <tr>
+              <BillingTh>Billed to</BillingTh>
+              <BillingTd>
+                <b>{invoice?.user?.full_name}</b><br />
+                {invoice?.user?.email}<br /><br />
+                {invoice?.delivery_address?.detail}<br />
+                {invoice?.delivery_address?.kelurahan}, {invoice?.delivery_address?.kecamatan}<br />
+                {invoice?.delivery_address?.kabupaten}<br />
+                {invoice?.delivery_address?.provinsi}
+              </BillingTd>
+            </tr>
+            <tr>
+              <BillingTh>Payment to</BillingTh>
+              <BillingTd>
+                {config.owner}<br />
+                {config.contact}<br />
+                {config.billing.account_no}<br />
+                {config.billing.bank_name}
+              </BillingTd>
+            </tr>
+          </tbody>
+        </BillingTable>
+
+        {invoice?.payment_status === 'waiting_payment' && (
+          <div style={{ marginTop: 20 }}>
+            <PayBtn onClick={handlePayment} disabled={payLoading}>
+              {payLoading ? "Memuat..." : "Bayar Sekarang"}
+            </PayBtn>
+          </div>
+        )}
 
         {/* Tabel produk yang dibeli + tombol rating */}
         {orderItems.length > 0 && (
@@ -260,6 +293,40 @@ export default function Invoice() {
 }
 
 /* ─── Styled components ─── */
+
+const BillingTable = styled('table')({
+  width: '100%',
+  borderCollapse: 'collapse',
+  fontSize: 14,
+  marginTop: 8,
+});
+
+const BillingTh = styled('td')({
+  padding: '10px 12px',
+  borderBottom: '1px solid #f0f0f0',
+  color: '#666',
+  fontWeight: 600,
+  width: '30%',
+  verticalAlign: 'top',
+});
+
+const BillingTd = styled('td')({
+  padding: '10px 12px',
+  borderBottom: '1px solid #f0f0f0',
+  verticalAlign: 'top',
+});
+
+const PayBtn = styled('button')(props => ({
+  backgroundColor: props.disabled ? '#e0e0e0' : '#c0392b',
+  color: props.disabled ? '#aaa' : 'white',
+  border: 'none',
+  borderRadius: 8,
+  padding: '12px 28px',
+  fontSize: 15,
+  fontWeight: 700,
+  cursor: props.disabled ? 'not-allowed' : 'pointer',
+  '&:hover': { backgroundColor: props.disabled ? '#e0e0e0' : '#a93226' },
+}));
 
 const ItemsTable = styled('table')({
   width: '100%',
