@@ -41,6 +41,18 @@ export default function Invoice() {
       window.snap.pay(data.snap_token, {
         onSuccess: () => {
           setInvoice(prev => ({ ...prev, payment_status: 'settlement' }));
+          // Poll sampai webhook Midtrans update DB
+          let attempts = 0;
+          const poll = setInterval(async () => {
+            attempts++;
+            try {
+              const { data: fresh } = await getInvoiceByOrderId(params?.order_id);
+              if (fresh?.payment_status === 'settlement' || attempts >= 10) {
+                clearInterval(poll);
+                setInvoice(fresh);
+              }
+            } catch { clearInterval(poll); }
+          }, 2000);
         },
         onPending: () => {
           setInvoice(prev => ({ ...prev, payment_status: 'pending' }));
@@ -223,12 +235,16 @@ export default function Invoice() {
                       <Td style={{ textAlign: 'center' }}>{item.qty}</Td>
                       <Td style={{ textAlign: 'right' }}>{formatRupiah(item.price)}</Td>
                       <Td style={{ textAlign: 'center' }}>
-                        {alreadyReviewed ? (
-                          <RatedBadge>✓ Sudah dinilai</RatedBadge>
+                        {invoice?.payment_status === 'settlement' ? (
+                          alreadyReviewed ? (
+                            <RatedBadge>✓ Sudah dinilai</RatedBadge>
+                          ) : (
+                            <RateBtn onClick={() => openModal(item)}>
+                              ⭐ Beri Rating
+                            </RateBtn>
+                          )
                         ) : (
-                          <RateBtn onClick={() => openModal(item)}>
-                            ⭐ Beri Rating
-                          </RateBtn>
+                          <span style={{ color: '#ccc', fontSize: 12 }}>—</span>
                         )}
                       </Td>
                     </tr>
