@@ -14,7 +14,6 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 ## Soon Feature
 - Midtrans / Xendit — payment gateway Indonesia, bikin invoice jadi beneran dibayar, bukan hanya dicatat
 - Socket.io — real-time notif order status (customer lihat pesanan diproses → dikirim → selesai live)
-- Voucher / promo code — diskon persentase atau nominal, ada expiry date
 - Redis + Bull queue — upgrade email job ke proper queue system untuk production
 
 ## New Features:
@@ -22,14 +21,6 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - Stock Management
 - Cloudinary Image Upload
 - Email Konfirmasi Order (Nodemailer)
-
-### FE New Feature
-- Star rating component (interactive & read-only)
-- Rating modal on invoice page — pick 1–5 stars + optional comment
-- Average rating displayed on product cards on home page
-- Stock field in admin product form (add & edit)
-- Stock column in admin product table with badge: **Habis** (0) / **⚠ Menipis** (≤5)
-- "Stok Habis" overlay on product card when stock is 0, add-to-cart disabled
 
 ### BE New API
 - `POST /api/reviews` — submit a review (login required)
