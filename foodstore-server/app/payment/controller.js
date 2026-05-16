@@ -79,4 +79,34 @@ async function handleNotification(req, res, next) {
     }
 }
 
-module.exports = { getSnapToken, handleNotification };
+async function verifyPayment(req, res, next) {
+    try {
+        const invoice = await Invoice.findOne({ order: req.params.order_id });
+        if (!invoice) return res.json({ error: 1, message: 'Invoice tidak ditemukan' });
+
+        const statusResponse = await snap.transaction.status(String(invoice._id));
+        const { transaction_status, fraud_status } = statusResponse;
+
+        let paymentStatus = invoice.payment_status;
+        if (transaction_status === 'capture') {
+            paymentStatus = fraud_status === 'accept' ? 'settlement' : 'failed';
+        } else if (transaction_status === 'settlement') {
+            paymentStatus = 'settlement';
+        } else if (['cancel', 'deny', 'expire'].includes(transaction_status)) {
+            paymentStatus = 'failed';
+        } else if (transaction_status === 'pending') {
+            paymentStatus = 'pending';
+        }
+
+        await Invoice.findByIdAndUpdate(invoice._id, { payment_status: paymentStatus });
+        if (paymentStatus === 'settlement') {
+            await Order.findByIdAndUpdate(invoice.order, { status: 'processing' });
+        }
+
+        return res.json({ payment_status: paymentStatus });
+    } catch (err) {
+        next(err);
+    }
+}
+
+module.exports = { getSnapToken, handleNotification, verifyPayment };

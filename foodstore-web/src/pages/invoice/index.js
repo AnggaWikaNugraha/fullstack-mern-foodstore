@@ -2,7 +2,7 @@ import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import { getInvoiceByOrderId } from "../../api/invoice";
 import { createReview, getMyOrderReviews } from "../../api/review";
-import { getSnapToken } from "../../api/payment";
+import { getSnapToken, verifyPayment } from "../../api/payment";
 import { LayoutSidebar, Text } from "upkit";
 import AppSidebar from "../../component/AppSidebar";
 import StarRating from "../../component/StarRating";
@@ -39,20 +39,14 @@ export default function Invoice() {
       if (data?.error) { alert(data.message); setPayLoading(false); return; }
 
       window.snap.pay(data.snap_token, {
-        onSuccess: () => {
+        onSuccess: async () => {
           setInvoice(prev => ({ ...prev, payment_status: 'settlement' }));
-          // Poll sampai webhook Midtrans update DB
-          let attempts = 0;
-          const poll = setInterval(async () => {
-            attempts++;
-            try {
-              const { data: fresh } = await getInvoiceByOrderId(params?.order_id);
-              if (fresh?.payment_status === 'settlement' || attempts >= 10) {
-                clearInterval(poll);
-                setInvoice(fresh);
-              }
-            } catch { clearInterval(poll); }
-          }, 2000);
+          try {
+            const { data } = await verifyPayment(params?.order_id);
+            if (data?.payment_status) {
+              setInvoice(prev => ({ ...prev, payment_status: data.payment_status }));
+            }
+          } catch {}
         },
         onPending: () => {
           setInvoice(prev => ({ ...prev, payment_status: 'pending' }));
