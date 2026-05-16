@@ -4,7 +4,13 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 
 ## Soon Feature
 - Socket.io — real-time notif order status (customer lihat pesanan diproses → dikirim → selesai live)
+- Web Push Notification	Service Worker + Push notif firebase
 - Redis + Bull queue — upgrade email job ke proper queue system untuk production
+- Wishlist — simpan produk favorit
+- Admin dashboard — grafik revenue, produk terlaris, total order per hari
+- AI product recommendation	OpenAI API	AI integration, trending banget
+- Full-text search	Elasticsearch / Meilisearch	Fuzzy search, typo tolerance
+- Admin order management — admin bisa update status order (processing → in_delivery → delivered), sekarang status tidak bisa diubah dari UI sama sekali
 
 ## New Features:
 - **Midtrans Payment Gateway** — integrasi Snap popup, invoice bisa dibayar langsung (sandbox mode)
@@ -22,6 +28,41 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - Stock decremented automatically via `$inc` on each ordered product when order is created
 - Product images uploaded to Cloudinary (multer memoryStorage → Cloudinary upload_stream), old image auto-deleted on update
 - Email konfirmasi order dikirim otomatis via Nodemailer (fire-and-forget, tidak blok response checkout)
+
+## Features
+- Product listing
+- Search products by keyword
+- Filter products by category
+- Filter products by tags
+- User login & registration
+- Shopping cart (per-user, isolated)
+- Checkout
+- Order history
+- Manage delivery addresses
+- Admin page for managing products and categories
+- Indonesian regional data (province, city, district, village)
+
+---
+
+# Server Side
+- Node.js
+- passport-local
+- passport
+- mongoose
+- MongoDB database
+- jsonwebtoken — JWT authentication and authorization
+- Express framework
+- cors
+- cookie-parser
+- bcrypt
+- multer — reads multipart/form-data from client
+- @casl/ability — role-based access control
+- csvtojson — reads regional data from CSV files
+- mongoose-sequence — auto-increments customer_id
+- dotenv — environment variable configuration
+- cloudinary — cloud image storage
+- nodemailer — transactional email (order confirmation)
+- midtrans-client — Midtrans payment gateway (Snap)
 
 ## Project Structure
 
@@ -60,26 +101,6 @@ fullstack-mern-foodstore/
 ```
 
 ---
-
-# Server Side
-- Node.js
-- passport-local
-- passport
-- mongoose
-- MongoDB database
-- jsonwebtoken — JWT authentication and authorization
-- Express framework
-- cors
-- cookie-parser
-- bcrypt
-- multer — reads multipart/form-data from client
-- @casl/ability — role-based access control
-- csvtojson — reads regional data from CSV files
-- mongoose-sequence — auto-increments customer_id
-- dotenv — environment variable configuration
-- cloudinary — cloud image storage
-- nodemailer — transactional email (order confirmation)
-- midtrans-client — Midtrans payment gateway (Snap)
 
 ## Entity Diagram
 ![image](https://user-images.githubusercontent.com/37723902/120694299-3bc7e900-c4d4-11eb-8d92-cb9344f272c2.png)
@@ -326,7 +347,6 @@ Request :
 - @emotion/react & @emotion/styled — styling
 
 ## Pages
-
 | Path                        | Page                       | Access       |
 |-----------------------------|----------------------------|--------------|
 | `/`                         | Home (product listing)     | Everyone     |
@@ -342,25 +362,6 @@ Request :
 | `/admin/categories`         | Manage categories (admin)  | Admin only   |
 | `/error`                    | 404 page                   | Everyone     |
 
-## Features
-- Product listing
-- Search products by keyword
-- Filter products by category
-- Filter products by tags
-- User login & registration
-- Shopping cart (per-user, isolated)
-- Checkout
-- Order history
-- Manage delivery addresses
-- Admin page for managing products and categories
-- Indonesian regional data (province, city, district, village)
-- Product rating & review (after payment)
-- Stock management (auto-decrement on order)
-- Cloudinary image upload (product images)
-- Email konfirmasi order otomatis
-- Midtrans Snap payment (popup, sandbox mode)
-
----
 
 ## Environment Variables
 
