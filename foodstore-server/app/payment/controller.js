@@ -44,8 +44,12 @@ async function getSnapToken(req, res, next) {
 
 async function handleNotification(req, res, next) {
     try {
-        const notification = await snap.transaction.notification(req.body);
-        const { order_id, transaction_status, fraud_status } = notification;
+        const { order_id, transaction_status, fraud_status } = req.body;
+
+        // Abaikan payload kosong/tidak valid (misal test dari dashboard Midtrans)
+        if (!order_id || !transaction_status) {
+            return res.json({ status: 'ok' });
+        }
 
         let paymentStatus = 'waiting_payment';
         if (transaction_status === 'capture') {
