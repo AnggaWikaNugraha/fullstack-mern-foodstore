@@ -1,5 +1,6 @@
 import store from './store';
-import { saveCart } from '../api/cart';
+import { saveCart, getCart } from '../api/cart';
+import { clearItems } from '../features/Cart/actions';
 
 // (1) definisikan variabel tanpa nilai awal 
 let currentAuth;
@@ -20,11 +21,19 @@ function listener() {
 
     let { token } = currentAuth;
 
-    // (3) cek apakah nilai state `auth` berubah dari nilai sebelumnya 
+    // (3) cek apakah nilai state `auth` berubah dari nilai sebelumnya
     if (currentAuth !== previousAuth) {
 
-        // (4) jika berubah simpan ke localStorage 
+        // (4) jika berubah simpan ke localStorage
         localStorage.setItem('auth', JSON.stringify(currentAuth));
+
+        if (currentAuth.token) {
+            // user baru login — muat cart milik user ini dari server
+            getCart();
+        } else {
+            // user logout — bersihkan cart agar tidak bocor ke user lain
+            store.dispatch(clearItems());
+        }
     }
 
     if (currentCart !== previousCart) {

@@ -26,8 +26,7 @@ async function store(req, res, next) {
 
     // (1) Dapatkan `items` di keranjang belanja
     let items = await CartItem
-      // .find({ user: req.user._id })
-      .find()
+      .find({ user: req.user._id })
       .populate("product");
 
     let address = await DeliveryAddress.findOne({ _id: delivery_address });
