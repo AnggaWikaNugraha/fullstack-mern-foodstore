@@ -8,6 +8,7 @@ import FaShoppingBag from '@meronex/icons/fa/FaShoppingBag';
 import FaSignOutAlt from '@meronex/icons/fa/FaSignOutAlt';
 import FaShieldAlt from '@meronex/icons/fa/FaShieldAlt';
 import FaReceipt from '@meronex/icons/fa/FaReceipt';
+import FaHeart from '@meronex/icons/fa/FaHeart';
 import BounceLoader from 'react-spinners/BounceLoader';
 import AppSidebar from '../../component/AppSidebar';
 import { getInvoices } from '../../api/invoice';
@@ -71,6 +72,12 @@ export default function Account() {
                             <MenuIcon color="#27ae60"><FaShoppingBag /></MenuIcon>
                             <MenuLabel>Belanja</MenuLabel>
                             <MenuDesc>Kembali ke halaman utama</MenuDesc>
+                        </MenuCard>
+
+                        <MenuCard as={Link} to="/wishlist">
+                            <MenuIcon color="#e74c3c"><FaHeart /></MenuIcon>
+                            <MenuLabel>Wishlist</MenuLabel>
+                            <MenuDesc>Produk favoritmu</MenuDesc>
                         </MenuCard>
 
                         <MenuCard as="div" onClick={() => document.getElementById('history-section').scrollIntoView({ behavior: 'smooth' })} style={{ cursor: 'pointer' }}>

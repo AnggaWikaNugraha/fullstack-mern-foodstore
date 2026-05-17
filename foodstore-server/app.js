@@ -16,6 +16,7 @@ const orderRouter = require('./app/order/router');
 const invoiceRouter = require('./app/invoice/router');
 const reviewRouter = require('./app/review/router');
 const paymentRouter = require('./app/payment/router');
+const wishlistRouter = require('./app/wishlist/router');
 const { decodeToken } = require('./app/auth/middleware');
 const cors = require('cors');
 
@@ -44,6 +45,7 @@ app.use('/api', orderRouter);
 app.use('/api', invoiceRouter);
 app.use('/api', reviewRouter);
 app.use('/api', paymentRouter);
+app.use('/api', wishlistRouter);
 
 
 // catch 404 and forward to error handler

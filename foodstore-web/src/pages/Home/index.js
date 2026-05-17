@@ -11,6 +11,7 @@ import { LayoutSidebar, Responsive, CardProduct, Pagination, InputText, Pill } f
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts, setPage, goToNextPage, goToPrevPage, setKeyword, setCategory, toggleTag } from '../../features/products/actions';
 import { getTags } from '../../api/tag';
+import { getWishlist, addToWishlist, removeFromWishlist } from '../../api/wishlist';
 
 const Home = () => {
 
@@ -19,14 +20,39 @@ const Home = () => {
 
     let products = useSelector(state => state.products);
     let cart = useSelector(state => state.cart);
+    let auth = useSelector(state => state.auth);
 
     const [availableTags, setAvailableTags] = React.useState([]);
+    const [wishlistIds, setWishlistIds] = React.useState([]);
 
     React.useEffect(() => {
         getTags({ limit: 100 })
             .then(res => setAvailableTags(res.data))
             .catch(() => setAvailableTags([]));
     }, []);
+
+    React.useEffect(() => {
+        if (!auth?.token) return;
+        getWishlist()
+            .then(res => {
+                const ids = (res.data.data || []).map(i => String(i.product?._id));
+                setWishlistIds(ids);
+            })
+            .catch(() => {});
+    }, [auth]);
+
+    const toggleWishlist = async (product) => {
+        if (!auth?.token) { history.push('/login'); return; }
+        const pid = String(product._id);
+        const isWishlisted = wishlistIds.includes(pid);
+        setWishlistIds(prev => isWishlisted ? prev.filter(id => id !== pid) : [...prev, pid]);
+        try {
+            if (isWishlisted) await removeFromWishlist(pid);
+            else await addToWishlist(pid);
+        } catch {
+            setWishlistIds(prev => isWishlisted ? [...prev, pid] : prev.filter(id => id !== pid));
+        }
+    };
 
     React.useEffect(() => {
         dispatch(fetchProducts());
@@ -87,6 +113,20 @@ const Home = () => {
                                             price={product.price}
                                             onAddToCart={outOfStock ? () => {} : () => dispatch(addItem(product))}
                                         />
+                                        <button
+                                            onClick={() => toggleWishlist(product)}
+                                            title={wishlistIds.includes(String(product._id)) ? 'Hapus dari wishlist' : 'Tambah ke wishlist'}
+                                            style={{
+                                                position: 'absolute', top: 14, right: 14,
+                                                background: 'white', border: 'none',
+                                                borderRadius: '50%', width: 30, height: 30,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
+                                                fontSize: 16, zIndex: 2,
+                                            }}
+                                        >
+                                            {wishlistIds.includes(String(product._id)) ? '❤️' : '🤍'}
+                                        </button>
                                         {outOfStock && (
                                             <div style={{
                                                 position: 'absolute', inset: 0,

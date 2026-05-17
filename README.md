@@ -6,7 +6,6 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - Socket.io — real-time notif order status (customer lihat pesanan diproses → dikirim → selesai live)
 - Web Push Notification	Service Worker + Push notif firebase
 - Redis + Bull queue — upgrade email job ke proper queue system untuk production
-- Wishlist — simpan produk favorit
 - Admin dashboard — grafik revenue, produk terlaris, total order per hari
 - AI product recommendation	OpenAI API	AI integration, trending banget
 - Full-text search	Elasticsearch / Meilisearch	Fuzzy search, typo tolerance
@@ -14,6 +13,7 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 
 ## New Features:
 - **Midtrans Payment Gateway** — integrasi Snap popup, invoice bisa dibayar langsung (sandbox mode)
+- **Wishlist** — simpan produk favorit, toggle ❤️ di product card, halaman `/wishlist`
 - Product Rating & Review
 - Stock Management
 - Cloudinary Image Upload
@@ -25,6 +25,9 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - `GET /api/payments/token/:order_id` — get Midtrans Snap token for an invoice
 - `GET /api/payments/verify/:order_id` — verify & sync payment status from Midtrans API to DB
 - `POST /api/payments/notification` — Midtrans webhook handler (update invoice & order status)
+- `GET /api/wishlists` — get user's wishlist (login required)
+- `POST /api/wishlists` — add product to wishlist — body: `product_id` (login required)
+- `DELETE /api/wishlists/:product_id` — remove product from wishlist (login required)
 - Stock decremented automatically via `$inc` on each ordered product when order is created
 - Product images uploaded to Cloudinary (multer memoryStorage → Cloudinary upload_stream), old image auto-deleted on update
 - Email konfirmasi order dikirim otomatis via Nodemailer (fire-and-forget, tidak blok response checkout)
@@ -41,6 +44,8 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - Manage delivery addresses
 - Admin page for managing products and categories
 - Indonesian regional data (province, city, district, village)
+- Product rating & review (after payment settlement)
+- Wishlist — save & manage favourite products
 
 ---
 
@@ -78,11 +83,14 @@ fullstack-mern-foodstore/
 │   │   ├── invoice/           # Order invoices
 │   │   ├── order/             # Orders
 │   │   ├── order-item/        # Order items
+│   │   ├── payment/           # Midtrans payment gateway
 │   │   ├── policy/            # Role-based access control (CASL)
 │   │   ├── product/           # Food products
+│   │   ├── review/            # Product reviews & ratings
 │   │   ├── tag/               # Product tags
 │   │   ├── user/              # User model
 │   │   ├── wilayah/           # Indonesian regional data (province, city, district, village)
+│   │   ├── wishlist/          # Wishlist
 │   │   ├── config.js
 │   │   └── utils/
 │   ├── database/              # MongoDB connection
@@ -306,6 +314,59 @@ Request :
 
 ---
 
+# Payment (Midtrans)
+## Get Snap Token:
+Request :
+- Method : GET
+- Endpoint : `/api/payments/token/:order_id`
+- Auth : Login required
+## Verify Payment Status:
+Request :
+- Method : GET
+- Endpoint : `/api/payments/verify/:order_id`
+- Auth : Login required
+## Payment Notification (Webhook):
+Request :
+- Method : POST
+- Endpoint : `/api/payments/notification`
+
+---
+
+# Review
+## Submit Review:
+Request :
+- Method : POST
+- Endpoint : `/api/reviews`
+- Auth : Login required
+- Body : `product_id`, `order_id`, `rating`, `comment`
+## Get Reviews:
+Request :
+- Method : GET
+- Endpoint : `/api/reviews`
+- Query params : `product_id`, `order_id`
+
+---
+
+# Wishlist
+## Get Wishlist:
+Request :
+- Method : GET
+- Endpoint : `/api/wishlists`
+- Auth : Login required
+## Add to Wishlist:
+Request :
+- Method : POST
+- Endpoint : `/api/wishlists`
+- Auth : Login required
+- Body : `product_id`
+## Remove from Wishlist:
+Request :
+- Method : DELETE
+- Endpoint : `/api/wishlists/:product_id`
+- Auth : Login required
+
+---
+
 # Wilayah (Indonesian Regional Data)
 ## Get Provinces:
 Request :
@@ -347,6 +408,7 @@ Request :
 - @emotion/react & @emotion/styled — styling
 
 ## Pages
+
 | Path                        | Page                       | Access       |
 |-----------------------------|----------------------------|--------------|
 | `/`                         | Home (product listing)     | Everyone     |
@@ -354,14 +416,16 @@ Request :
 | `/register`                 | Register new account       | Guest only   |
 | `/register/berhasil`        | Registration success       | Guest only   |
 | `/logout`                   | Logout                     | Login only   |
+| `/account`                  | Account profile & history  | Login only   |
+| `/wishlist`                 | Wishlist                   | Login only   |
 | `/alamat-pengiriman/`       | Delivery address list      | Login only   |
 | `/alamat-pengiriman/tambah` | Add delivery address       | Login only   |
 | `/checkout`                 | Checkout                   | Login only   |
-| `/invoice/:order_id`        | Invoice detail             | Login only   |
+| `/invoice/:order_id`        | Invoice detail + payment   | Login only   |
 | `/admin/product`            | Manage products (admin)    | Admin only   |
 | `/admin/categories`         | Manage categories (admin)  | Admin only   |
+| `/admin/tag`                | Manage tags (admin)        | Admin only   |
 | `/error`                    | 404 page                   | Everyone     |
-
 
 ## Environment Variables
 
