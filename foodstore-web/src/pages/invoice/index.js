@@ -186,7 +186,7 @@ export default function Invoice() {
           </tbody>
         </BillingTable>
 
-        {invoice?.payment_status === 'waiting_payment' && (
+        {['waiting_payment', 'pending'].includes(invoice?.payment_status) && (
           <div style={{ marginTop: 20 }}>
             <PayBtn onClick={handlePayment} disabled={payLoading}>
               {payLoading ? "Memuat..." : "Bayar Sekarang"}

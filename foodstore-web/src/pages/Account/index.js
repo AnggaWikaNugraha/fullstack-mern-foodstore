@@ -137,7 +137,13 @@ export default function Account() {
                                     <HistoryRight>
                                         <HistoryTotal>{formatRupiah(inv.total)}</HistoryTotal>
                                         <StatusChip status={inv.payment_status}>
-                                            {inv.payment_status === 'paid' ? 'Lunas' : 'Belum Bayar'}
+                                            {['paid', 'settlement', 'capture'].includes(inv.payment_status)
+                                                ? 'Lunas'
+                                                : inv.payment_status === 'pending'
+                                                ? 'Menunggu'
+                                                : ['deny', 'cancel', 'expire', 'failed'].includes(inv.payment_status)
+                                                ? 'Gagal'
+                                                : 'Belum Bayar'}
                                         </StatusChip>
                                     </HistoryRight>
                                 </HistoryRow>
@@ -345,8 +351,16 @@ const StatusChip = styled('span')(props => ({
     fontWeight: 600,
     padding: '2px 8px',
     borderRadius: 999,
-    backgroundColor: props.status === 'paid' ? '#e8f8f0' : '#fff5f5',
-    color: props.status === 'paid' ? '#27ae60' : '#e74c3c',
+    backgroundColor: ['paid', 'settlement', 'capture'].includes(props.status)
+        ? '#e8f8f0'
+        : props.status === 'pending'
+        ? '#fff8e1'
+        : '#fff5f5',
+    color: ['paid', 'settlement', 'capture'].includes(props.status)
+        ? '#27ae60'
+        : props.status === 'pending'
+        ? '#e67e22'
+        : '#e74c3c',
 }));
 
 const EmptyHistory = styled('div')({
