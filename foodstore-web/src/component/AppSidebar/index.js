@@ -17,6 +17,7 @@ const adminIcon = '/images/menus/admin.svg';
 
 const adminMenus = [
     { icon: adminIcon, label: 'Dashboard', id: 'admin/dashboard' },
+    { icon: adminIcon, label: 'Orders', id: 'admin/orders' },
     { icon: adminIcon, label: 'Produk', id: 'admin/product' },
     { icon: adminIcon, label: 'Kategori', id: 'admin/categories' },
     { icon: adminIcon, label: 'Tag', id: 'admin/tag' },

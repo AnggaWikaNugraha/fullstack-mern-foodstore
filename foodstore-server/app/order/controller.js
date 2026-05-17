@@ -153,7 +153,34 @@ async function index(req, res, next) {
   }
 }
 
+async function updateStatus(req, res, next) {
+  try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.json({ error: 1, message: 'Admin only' });
+    }
+
+    const { status } = req.body;
+    const allowed = ['processing', 'in_delivery', 'delivered'];
+    if (!allowed.includes(status)) {
+      return res.json({ error: 1, message: 'Status tidak valid' });
+    }
+
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    if (!order) return res.json({ error: 1, message: 'Order tidak ditemukan' });
+
+    return res.json(order);
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   store,
   index,
+  updateStatus,
 };

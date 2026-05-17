@@ -15,6 +15,7 @@ import Logout from './pages/logout/index';
 import Account from './pages/Account';
 import Wishlist from './pages/Wishlist';
 import Dashboard from './pages/Dashboard';
+import AdminOrders from './pages/AdminOrders';
 import ErrorPage from './pages/404'
 
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
@@ -75,6 +76,9 @@ function App() {
 
           <OnlyAdmin path="/admin/dashboard">
             <Dashboard />
+          </OnlyAdmin>
+          <OnlyAdmin path="/admin/orders">
+            <AdminOrders />
           </OnlyAdmin>
           <OnlyAdmin path="/admin/product">
             <Product />

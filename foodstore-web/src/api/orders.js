@@ -31,3 +31,15 @@ export async function createOrder(payload) {
     },
   });
 }
+
+export async function updateOrderStatus(id, status) {
+  let { token } = localStorage.getItem("auth")
+    ? JSON.parse(localStorage.getItem("auth"))
+    : {};
+
+  return await axios.put(`${config.api_host}/api/orders/${id}/status`, { status }, {
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+  });
+}

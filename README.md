@@ -8,12 +8,13 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - Redis + Bull queue — upgrade email job ke proper queue system untuk production
 - AI product recommendation	OpenAI API	AI integration, trending banget
 - Full-text search	Elasticsearch / Meilisearch	Fuzzy search, typo tolerance
-- Admin order management — admin bisa update status order (processing → in_delivery → delivered), sekarang status tidak bisa diubah dari UI sama sekali
+- ~~Admin order management — admin bisa update status order (processing → in_delivery → delivered)~~ ✅ Done
 
 ## New Features:
 - **Midtrans Payment Gateway** — integrasi Snap popup, invoice bisa dibayar langsung (sandbox mode)
 - **Wishlist** — simpan produk favorit, toggle ❤️ di product card, halaman `/wishlist`
 - **Admin Dashboard** — grafik revenue 30 hari, orders per hari, top 5 produk terlaris, summary cards
+- **Admin Order Management** — admin update status order dari UI (processing → in_delivery → delivered)
 - Product Rating & Review
 - Stock Management
 - Cloudinary Image Upload
@@ -31,6 +32,7 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - `GET /api/dashboard/summary` — total revenue, orders, products, users (admin only)
 - `GET /api/dashboard/revenue` — revenue & orders per day, last 30 days (admin only)
 - `GET /api/dashboard/top-products` — top 5 best-selling products (admin only)
+- `PUT /api/orders/:id/status` — update order status: `processing` | `in_delivery` | `delivered` (admin only)
 - Stock decremented automatically via `$inc` on each ordered product when order is created
 - Product images uploaded to Cloudinary (multer memoryStorage → Cloudinary upload_stream), old image auto-deleted on update
 - Email konfirmasi order dikirim otomatis via Nodemailer (fire-and-forget, tidak blok response checkout)
@@ -50,6 +52,7 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - Product rating & review (after payment settlement)
 - Wishlist — save & manage favourite products
 - Admin dashboard — revenue chart, orders per day, top 5 products, summary stats
+- Admin order management — update status order dari UI (processing → in_delivery → delivered)
 
 ---
 
@@ -427,6 +430,7 @@ Request :
 | `/checkout`                 | Checkout                   | Login only   |
 | `/invoice/:order_id`        | Invoice detail + payment   | Login only   |
 | `/admin/dashboard`          | Admin dashboard            | Admin only   |
+| `/admin/orders`             | Manage orders & status     | Admin only   |
 | `/admin/product`            | Manage products (admin)    | Admin only   |
 | `/admin/categories`         | Manage categories (admin)  | Admin only   |
 | `/admin/tag`                | Manage tags (admin)        | Admin only   |
