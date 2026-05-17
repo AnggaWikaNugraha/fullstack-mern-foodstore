@@ -6,7 +6,6 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - Socket.io — real-time notif order status (customer lihat pesanan diproses → dikirim → selesai live)
 - Web Push Notification	Service Worker + Push notif firebase
 - Redis + Bull queue — upgrade email job ke proper queue system untuk production
-- Admin dashboard — grafik revenue, produk terlaris, total order per hari
 - AI product recommendation	OpenAI API	AI integration, trending banget
 - Full-text search	Elasticsearch / Meilisearch	Fuzzy search, typo tolerance
 - Admin order management — admin bisa update status order (processing → in_delivery → delivered), sekarang status tidak bisa diubah dari UI sama sekali
@@ -14,6 +13,7 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 ## New Features:
 - **Midtrans Payment Gateway** — integrasi Snap popup, invoice bisa dibayar langsung (sandbox mode)
 - **Wishlist** — simpan produk favorit, toggle ❤️ di product card, halaman `/wishlist`
+- **Admin Dashboard** — grafik revenue 30 hari, orders per hari, top 5 produk terlaris, summary cards
 - Product Rating & Review
 - Stock Management
 - Cloudinary Image Upload
@@ -28,6 +28,9 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - `GET /api/wishlists` — get user's wishlist (login required)
 - `POST /api/wishlists` — add product to wishlist — body: `product_id` (login required)
 - `DELETE /api/wishlists/:product_id` — remove product from wishlist (login required)
+- `GET /api/dashboard/summary` — total revenue, orders, products, users (admin only)
+- `GET /api/dashboard/revenue` — revenue & orders per day, last 30 days (admin only)
+- `GET /api/dashboard/top-products` — top 5 best-selling products (admin only)
 - Stock decremented automatically via `$inc` on each ordered product when order is created
 - Product images uploaded to Cloudinary (multer memoryStorage → Cloudinary upload_stream), old image auto-deleted on update
 - Email konfirmasi order dikirim otomatis via Nodemailer (fire-and-forget, tidak blok response checkout)
@@ -46,6 +49,7 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - Indonesian regional data (province, city, district, village)
 - Product rating & review (after payment settlement)
 - Wishlist — save & manage favourite products
+- Admin dashboard — revenue chart, orders per day, top 5 products, summary stats
 
 ---
 
@@ -422,6 +426,7 @@ Request :
 | `/alamat-pengiriman/tambah` | Add delivery address       | Login only   |
 | `/checkout`                 | Checkout                   | Login only   |
 | `/invoice/:order_id`        | Invoice detail + payment   | Login only   |
+| `/admin/dashboard`          | Admin dashboard            | Admin only   |
 | `/admin/product`            | Manage products (admin)    | Admin only   |
 | `/admin/categories`         | Manage categories (admin)  | Admin only   |
 | `/admin/tag`                | Manage tags (admin)        | Admin only   |

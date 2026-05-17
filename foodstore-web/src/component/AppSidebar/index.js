@@ -16,6 +16,7 @@ const defaultIcon = '/images/menus/semua.png';
 const adminIcon = '/images/menus/admin.svg';
 
 const adminMenus = [
+    { icon: adminIcon, label: 'Dashboard', id: 'admin/dashboard' },
     { icon: adminIcon, label: 'Produk', id: 'admin/product' },
     { icon: adminIcon, label: 'Kategori', id: 'admin/categories' },
     { icon: adminIcon, label: 'Tag', id: 'admin/tag' },
@@ -46,7 +47,7 @@ export default function AppSidebar({ onCategoryChange }) {
     }, []);
 
     const isAdmin = auth?.user?.role === 'admin';
-    const items = isAdmin ? [...categoryMenus, ...adminMenus] : categoryMenus;
+    const items = isAdmin ? [...adminMenus, ...categoryMenus] : categoryMenus;
 
     const handleChange = (id) => {
         if (String(id).startsWith('admin/')) {
