@@ -6,9 +6,16 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 
 ## Coming soon
 
-- Redis + Bull queue — sistem antrian email yang proper untuk production
+- Google OAuth — login dengan akun Google (passport-google-oauth20)
+- OTP email verification — verifikasi email saat register
 - Rekomendasi produk AI — integrasi OpenAI API
-- Full-text search — Elasticsearch / Meilisearch, fuzzy search, toleransi typo
+- Export laporan — admin export orders/revenue ke Excel atau PDF (SheetJS / jsPDF)
+- Low stock alert — notif Pusher ke admin kalau stok produk hampir habi
+- PWA (Progressive Web App) — bisa di-install di HP, offline mode, push notif native
+- Jest + React Testing Library — unit test komponen React
+- TanStack Query (React Query) — gantikan manual loading/error state, auto cache, refetch. Jauh lebih clean dari Redux untuk server state
+- Swagger / OpenAPI — auto-generate dokumentasi API dari kode. Profesional banget untuk portfolio
+- monitoring Sentry — error tracking production, tau kalau ada crash di user
 
 ## New Features
 
