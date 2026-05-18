@@ -6,8 +6,6 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 
 ## Coming soon
 
-- Socket.io — notifikasi status order real-time (customer lihat pesanan diproses → dikirim → selesai live)
-- Web Push Notification — Service Worker + Firebase Push
 - Redis + Bull queue — sistem antrian email yang proper untuk production
 - Rekomendasi produk AI — integrasi OpenAI API
 - Full-text search — Elasticsearch / Meilisearch, fuzzy search, toleransi typo
@@ -22,6 +20,7 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - **Cloudinary Image Upload** — product images stored in cloud, old image auto-deleted on update
 - **Order Confirmation Email** — sent automatically via Nodemailer on checkout (fire-and-forget)
 - **Stock Management** — stock decremented automatically via `$inc` when order is created
+- **Pusher Real-time Notifications** — admin gets instant toast when payment settles, customer sees order status update live (Pusher used instead of Socket.io for Vercel serverless compatibility)
 
 ---
 
@@ -179,6 +178,7 @@ fullstack-mern-foodstore/
 | @casl/ability | Role-based access control |
 | nodemailer | Transactional email (order confirmation) |
 | midtrans-client | Midtrans Snap payment gateway |
+| pusher | Trigger real-time events to clients via Pusher API |
 | csvtojson | Parse Indonesian regional data from CSV |
 | mongoose-sequence | Auto-increment customer_id |
 | dotenv | Environment variable configuration |
@@ -203,6 +203,7 @@ fullstack-mern-foodstore/
 | recharts | Chart library (dashboard revenue & orders) |
 | react-data-table-component | Admin data tables with pagination |
 | react-spinners | Loading indicators |
+| pusher-js | Pusher client — subscribe to real-time events from Pusher |
 
 ---
 

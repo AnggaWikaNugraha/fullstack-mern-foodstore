@@ -16,6 +16,7 @@ import Account from './pages/Account';
 import Wishlist from './pages/Wishlist';
 import Dashboard from './pages/Dashboard';
 import AdminOrders from './pages/AdminOrders';
+import AdminOrderDetail from './pages/AdminOrderDetail';
 import ErrorPage from './pages/404'
 
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
@@ -29,6 +30,7 @@ import OnlyLogin from "./component/OnlyLogin";
 import OnlyGuest from "./component/OnlyGuest";
 import OnlyAdmin from "./component/OnlyAdmin";
 import TopBar from "./component/Topbar";
+import SocketNotification from "./component/SocketNotification";
 
 function App() {
   React.useEffect(() => {
@@ -40,6 +42,7 @@ function App() {
     <Provider store={store}>
       <Router>
         <TopBar />
+        <SocketNotification />
         <Switch>
 
           <OnlyLogin path="/logout">
@@ -76,6 +79,9 @@ function App() {
 
           <OnlyAdmin path="/admin/dashboard">
             <Dashboard />
+          </OnlyAdmin>
+          <OnlyAdmin path="/admin/orders/:id">
+            <AdminOrderDetail />
           </OnlyAdmin>
           <OnlyAdmin path="/admin/orders">
             <AdminOrders />

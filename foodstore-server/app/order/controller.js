@@ -8,6 +8,7 @@ const Product = require("../product/model");
 const { policyFor } = require("../policy");
 const { subject } = require("@casl/ability");
 const { sendOrderConfirmation } = require("../utils/mailer");
+const pusher = require("../pusher");
 
 async function store(req, res, next) {
   // (1) dapatkan policy untuk user yang sedang login
@@ -153,6 +154,29 @@ async function index(req, res, next) {
   }
 }
 
+async function show(req, res, next) {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('order_items')
+      .populate('user', 'full_name email');
+
+    if (!order) return res.json({ error: 1, message: 'Order tidak ditemukan' });
+
+    const invoice = await Invoice.findOne({ order: order._id });
+
+    return res.json({
+      ...order.toJSON({ virtuals: true }),
+      invoice: invoice ? {
+        payment_status: invoice.payment_status,
+        total: invoice.total,
+        sub_total: invoice.sub_total,
+      } : null,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function updateStatus(req, res, next) {
   try {
     if (!req.user || req.user.role !== 'admin') {
@@ -173,6 +197,11 @@ async function updateStatus(req, res, next) {
 
     if (!order) return res.json({ error: 1, message: 'Order tidak ditemukan' });
 
+    pusher.trigger(`private-order-${order._id}`, 'order:status_updated', {
+        order_id: String(order._id),
+        status: order.status,
+    }).catch(() => {});
+
     return res.json(order);
   } catch (err) {
     next(err);
@@ -182,5 +211,6 @@ async function updateStatus(req, res, next) {
 module.exports = {
   store,
   index,
+  show,
   updateStatus,
 };

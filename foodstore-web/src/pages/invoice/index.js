@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
+import { getPusher } from "../../pusher";
 import { getInvoiceByOrderId } from "../../api/invoice";
 import { createReview, getMyOrderReviews } from "../../api/review";
 import { getSnapToken, verifyPayment } from "../../api/payment";
@@ -77,6 +78,23 @@ export default function Invoice() {
       .catch(() => {})
       .finally(() => setStatus("idle"));
   }, [params]);
+
+  React.useEffect(() => {
+    if (!params?.order_id) return;
+
+    const pusher = getPusher();
+    if (!pusher) return;
+
+    const channel = pusher.subscribe(`private-order-${params.order_id}`);
+    channel.bind('order:status_updated', ({ status }) => {
+      setInvoice(prev => prev ? { ...prev, order: { ...prev.order, status } } : prev);
+    });
+
+    return () => {
+      channel.unbind_all();
+      pusher.unsubscribe(`private-order-${params.order_id}`);
+    };
+  }, [params?.order_id]);
 
   const openModal = (item) => {
     setRatingTarget({ product_id: String(item.product._id), name: item.name });

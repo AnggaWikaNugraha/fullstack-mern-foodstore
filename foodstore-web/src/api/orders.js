@@ -32,6 +32,16 @@ export async function createOrder(payload) {
   });
 }
 
+export async function getOrderById(id) {
+  let { token } = localStorage.getItem("auth")
+    ? JSON.parse(localStorage.getItem("auth"))
+    : {};
+
+  return await axios.get(`${config.api_host}/api/orders/${id}`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+}
+
 export async function updateOrderStatus(id, status) {
   let { token } = localStorage.getItem("auth")
     ? JSON.parse(localStorage.getItem("auth"))

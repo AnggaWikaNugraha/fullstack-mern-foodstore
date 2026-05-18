@@ -10,7 +10,9 @@ const config = {
     billing: {
         account_no: process.env.REACT_APP_BILLING_NO,
         bank_name: process.env.REACT_APP_BILLING_BANK
-    }
+    },
+    pusher_key: process.env.REACT_APP_PUSHER_KEY,
+    pusher_cluster: process.env.REACT_APP_PUSHER_CLUSTER,
 }
 
 export { config };

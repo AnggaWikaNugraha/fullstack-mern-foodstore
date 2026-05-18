@@ -3,6 +3,7 @@ import DataTable from 'react-data-table-component';
 import { LayoutSidebar } from 'upkit';
 import styled from 'styled-components';
 import BounceLoader from 'react-spinners/BounceLoader';
+import { useHistory } from 'react-router-dom';
 import AppSidebar from '../../component/AppSidebar';
 import { getOrders, updateOrderStatus } from '../../api/orders';
 import { formatRupiah } from '../../utils/format-rupiah';
@@ -29,6 +30,7 @@ export default function AdminOrders() {
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(false);
     const [updatingId, setUpdatingId] = useState(null);
+    const history = useHistory();
     const perPage = 10;
 
     const fetchData = useCallback(async () => {
@@ -131,6 +133,9 @@ export default function AdminOrders() {
                         paginationPerPage={perPage}
                         paginationComponentOptions={{ noRowsPerPage: true }}
                         onChangePage={p => setPage(p)}
+                        onRowClicked={row => history.push(`/admin/orders/${row._id}`)}
+                        pointerOnHover
+                        highlightOnHover
                         noDataComponent={<Empty>Belum ada order</Empty>}
                     />
                 </Page>

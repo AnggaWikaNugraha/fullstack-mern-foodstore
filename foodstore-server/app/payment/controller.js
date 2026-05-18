@@ -2,6 +2,7 @@ const midtransClient = require('midtrans-client');
 const mongoose = require('mongoose');
 const Invoice = require('../invoice/model');
 const Order = require('../order/model');
+const pusher = require('../pusher');
 
 const snap = new midtransClient.Snap({
     isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
@@ -70,7 +71,12 @@ async function handleNotification(req, res, next) {
         );
 
         if (invoice && paymentStatus === 'settlement') {
-            await Order.findByIdAndUpdate(invoice.order, { status: 'processing' });
+            const order = await Order.findByIdAndUpdate(invoice.order, { status: 'processing' }, { new: true });
+            pusher.trigger('private-admin', 'payment:settlement', {
+                order_id: String(order._id),
+                order_number: order.order_number,
+                amount: invoice.total,
+            }).catch(() => {});
         }
 
         return res.json({ status: 'ok' });
@@ -100,7 +106,17 @@ async function verifyPayment(req, res, next) {
 
         await Invoice.findByIdAndUpdate(invoice._id, { payment_status: paymentStatus });
         if (paymentStatus === 'settlement') {
-            await Order.findByIdAndUpdate(invoice.order, { status: 'processing' });
+            const order = await Order.findByIdAndUpdate(invoice.order, { status: 'processing' }, { new: true });
+            if (order) {
+                console.log('[Pusher] triggering payment:settlement for order', order.order_number);
+                pusher.trigger('private-admin', 'payment:settlement', {
+                    order_id: String(order._id),
+                    order_number: order.order_number,
+                    amount: invoice.total,
+                })
+                .then(() => console.log('[Pusher] trigger success'))
+                .catch((err) => console.error('[Pusher] trigger error:', err));
+            }
         }
 
         return res.json({ payment_status: paymentStatus });

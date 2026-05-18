@@ -1,6 +1,7 @@
 import store from './store';
 import { saveCart, getCart } from '../api/cart';
 import { clearItems } from '../features/Cart/actions';
+import { getPusher, disconnectPusher } from '../pusher';
 
 // (1) definisikan variabel tanpa nilai awal 
 let currentAuth;
@@ -28,11 +29,11 @@ function listener() {
         localStorage.setItem('auth', JSON.stringify(currentAuth));
 
         if (currentAuth.token) {
-            // user baru login — muat cart milik user ini dari server
             getCart();
+            getPusher(currentAuth.token);
         } else {
-            // user logout — bersihkan cart agar tidak bocor ke user lain
             store.dispatch(clearItems());
+            disconnectPusher();
         }
     }
 
@@ -40,7 +41,9 @@ function listener() {
 
         localStorage.setItem('cart', JSON.stringify(currentCart));
 
-        saveCart(token, currentCart);
+        if (token) {
+            saveCart(token, currentCart).catch(() => {});
+        }
     }
 }
 

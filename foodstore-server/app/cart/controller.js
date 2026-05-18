@@ -37,15 +37,17 @@ async function update(req, res, next) {
             }
         });
 
-        await CartItem.bulkWrite(cartItems.map(item => {
-            return {
+        await CartItem.deleteMany({ user: req.user._id });
+
+        if (cartItems.length > 0) {
+            await CartItem.bulkWrite(cartItems.map(item => ({
                 updateOne: {
                     filter: { user: req.user._id, product: item.product },
                     update: item,
                     upsert: true
                 }
-            }
-        }));
+            })));
+        }
 
         return res.json(cartItems);
 
