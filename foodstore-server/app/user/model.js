@@ -24,8 +24,12 @@ let userSchema = Schema(
     },
     password: {
       type: String,
-      required: [true, "Password harus diisi"],
+      required: false,
       maxlength: [255, "Panjang password maksimal 255 karakter"],
+    },
+    google_id: {
+      type: String,
+      default: null,
     },
     role: {
       type: String,
@@ -71,8 +75,10 @@ userSchema.path("email").validate(
 
 // dieksekusi sebelum simpan ke DB
 userSchema.pre("save", function (next) {
-  this.password = bcrypt.hashSync(this.password, HASH_ROUND);
-  next(); // <---
+  if (this.password) {
+    this.password = bcrypt.hashSync(this.password, HASH_ROUND);
+  }
+  next();
 });
 
 // auto increments

@@ -1,8 +1,10 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useHistory, Link } from 'react-router-dom';
 import { LayoutSidebar } from 'upkit';
 import styled from '@emotion/styled';
+import { setPassword } from '../../api/auth';
+import { userLogin } from '../../features/Auth/actions';
 import FaMapMarkerAlt from '@meronex/icons/fa/FaMapMarkerAlt';
 import FaShoppingBag from '@meronex/icons/fa/FaShoppingBag';
 import FaSignOutAlt from '@meronex/icons/fa/FaSignOutAlt';
@@ -16,11 +18,38 @@ import { formatRupiah } from '../../utils/format-rupiah';
 
 export default function Account() {
     const auth = useSelector(state => state.auth);
+    const dispatch = useDispatch();
     const history = useHistory();
     const user = auth?.user;
 
     const [invoices, setInvoices] = React.useState([]);
     const [invoiceLoading, setInvoiceLoading] = React.useState(false);
+
+    const [pwForm, setPwForm] = React.useState({ password: '', password_confirmation: '' });
+    const [pwStatus, setPwStatus] = React.useState('idle'); // idle | loading | success | error
+    const [pwMsg, setPwMsg] = React.useState('');
+
+    const handleSetPassword = async (e) => {
+        e.preventDefault();
+        setPwStatus('loading');
+        setPwMsg('');
+        try {
+            const { data } = await setPassword(pwForm);
+            if (data?.error) {
+                setPwMsg(data.message);
+                setPwStatus('error');
+            } else {
+                setPwMsg('Password berhasil disimpan!');
+                setPwStatus('success');
+                setPwForm({ password: '', password_confirmation: '' });
+                // update has_password di Redux agar label berubah
+                dispatch(userLogin({ ...user, has_password: true }, auth.token));
+            }
+        } catch {
+            setPwMsg('Terjadi kesalahan, coba lagi.');
+            setPwStatus('error');
+        }
+    };
 
     React.useEffect(() => {
         if (!user) return;
@@ -122,6 +151,40 @@ export default function Account() {
                             </InfoRow>
                         )}
                     </InfoSection>
+
+                    <PasswordSection>
+                        <InfoTitle>
+                            {user.has_password ? 'Ganti Password' : 'Buat Password'}
+                        </InfoTitle>
+                        {!user.has_password && (
+                            <PwHint>
+                                Akun ini login via Google dan belum punya password.
+                                Buat password agar bisa login dengan email & password juga.
+                            </PwHint>
+                        )}
+                        <form onSubmit={handleSetPassword}>
+                            <PwField
+                                type="password"
+                                placeholder="Password baru"
+                                value={pwForm.password}
+                                onChange={e => setPwForm(prev => ({ ...prev, password: e.target.value }))}
+                                required
+                            />
+                            <PwField
+                                type="password"
+                                placeholder="Konfirmasi password baru"
+                                value={pwForm.password_confirmation}
+                                onChange={e => setPwForm(prev => ({ ...prev, password_confirmation: e.target.value }))}
+                                required
+                            />
+                            {pwMsg && (
+                                <PwMsg success={pwStatus === 'success'}>{pwMsg}</PwMsg>
+                            )}
+                            <PwBtn type="submit" disabled={pwStatus === 'loading'}>
+                                {pwStatus === 'loading' ? 'Menyimpan...' : 'Simpan Password'}
+                            </PwBtn>
+                        </form>
+                    </PasswordSection>
 
                     <HistorySection id="history-section">
                         <InfoTitle>Riwayat Belanja</InfoTitle>
@@ -379,3 +442,48 @@ const EmptyHistory = styled('div')({
     gap: 8,
     '& p': { margin: 0, fontSize: 14 },
 });
+
+const PasswordSection = styled('div')({
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: '20px 24px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    marginTop: 24,
+});
+
+const PwHint = styled('p')({
+    fontSize: 13,
+    color: '#888',
+    margin: '0 0 16px',
+    lineHeight: 1.6,
+});
+
+const PwField = styled('input')({
+    width: '100%',
+    border: '1px solid #ddd',
+    borderRadius: 8,
+    padding: '10px 12px',
+    fontSize: 14,
+    marginBottom: 10,
+    outline: 'none',
+    boxSizing: 'border-box',
+    '&:focus': { borderColor: '#c0392b' },
+});
+
+const PwMsg = styled('p')(props => ({
+    fontSize: 13,
+    color: props.success ? '#27ae60' : '#c0392b',
+    margin: '0 0 10px',
+}));
+
+const PwBtn = styled('button')(props => ({
+    width: '100%',
+    backgroundColor: props.disabled ? '#e0e0e0' : '#c0392b',
+    color: props.disabled ? '#aaa' : '#fff',
+    border: 'none',
+    borderRadius: 8,
+    padding: '11px 0',
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: props.disabled ? 'not-allowed' : 'pointer',
+}));

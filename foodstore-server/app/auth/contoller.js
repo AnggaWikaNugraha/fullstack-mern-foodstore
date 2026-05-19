@@ -49,9 +49,7 @@ async function localStrategy(email, password, done) {
     // jika password sama
     if (bcrypt.compareSync(password, user.password)) {
       ({ password, ...userWithoutPassword } = user.toJSON());
-
-      // retutn password cocok true, tidak cocok false
-      return done(null, userWithoutPassword);
+      return done(null, { ...userWithoutPassword, has_password: true });
     }
   } catch (err) {
     done(err, null);
@@ -123,10 +121,58 @@ async function logout(req, res, next) {
   });
 }
 
+async function googleStrategy(accessToken, refreshToken, profile, done) {
+  try {
+    const email = profile.emails[0].value;
+    const google_id = profile.id;
+
+    // cari user by google_id dulu (sudah pernah login Google)
+    let user = await User.findOne({ google_id });
+
+    if (!user) {
+      // cari by email (akun sudah ada tapi belum pernah login Google)
+      user = await User.findOne({ email });
+
+      if (user) {
+        // merge — tambahkan google_id ke akun yang sudah ada
+        await User.findByIdAndUpdate(user._id, { google_id });
+      } else {
+        // belum punya akun sama sekali — buat baru
+        user = await User.create({
+          full_name: profile.displayName,
+          email,
+          google_id,
+          password: null,
+        });
+      }
+    }
+
+    const { password, token: tokenArr, __v, createdAt, updatedAt, ...userWithoutPassword } = user.toJSON();
+    return done(null, { ...userWithoutPassword, has_password: !!password });
+  } catch (err) {
+    return done(err, null);
+  }
+}
+
+function googleCallback(req, res) {
+  const user = req.user;
+  const signed = jwt.sign(user, config.secretKey);
+
+  User.findOneAndUpdate(
+    { _id: user._id },
+    { $addToSet: { token: signed } }
+  ).catch(() => {});
+
+  // redirect ke frontend dengan token di query param
+  res.redirect(`${process.env.CLIENT_URL}/#/auth/callback?token=${signed}`);
+}
+
 module.exports = {
   register,
-  localStrategy, // <---
+  localStrategy,
+  googleStrategy,
+  googleCallback,
   login,
   me,
-  logout, // <--- logout
+  logout,
 };

@@ -6,16 +6,16 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 
 ## Coming soon
 
-- Google OAuth — login dengan akun Google (passport-google-oauth20)
 - OTP email verification — verifikasi email saat register
 - Rekomendasi produk AI — integrasi OpenAI API
 - Export laporan — admin export orders/revenue ke Excel atau PDF (SheetJS / jsPDF)
-- Low stock alert — notif Pusher ke admin kalau stok produk hampir habi
+- Low stock alert — notif Pusher ke admin kalau stok produk hampir habis
 - PWA (Progressive Web App) — bisa di-install di HP, offline mode, push notif native
 - Jest + React Testing Library — unit test komponen React
 - TanStack Query (React Query) — gantikan manual loading/error state, auto cache, refetch. Jauh lebih clean dari Redux untuk server state
 - Swagger / OpenAPI — auto-generate dokumentasi API dari kode. Profesional banget untuk portfolio
 - monitoring Sentry — error tracking production, tau kalau ada crash di user
+- revamps ui FE
 
 ## New Features
 
@@ -28,6 +28,7 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - **Order Confirmation Email** — sent automatically via Nodemailer on checkout (fire-and-forget)
 - **Stock Management** — stock decremented automatically via `$inc` when order is created
 - **Pusher Real-time Notifications** — admin gets instant toast when payment settles, customer sees order status update live (Pusher used instead of Socket.io for Vercel serverless compatibility)
+- **Google OAuth** — login with Google account via `passport-google-oauth20`. Smart account merge: if the Google email already exists in DB (registered via email/password), `google_id` is linked to the existing account — no duplicate accounts. New Google users are auto-registered without a password. Users can optionally set a password later from the Account page to enable both login methods on the same account.
 
 ---
 
@@ -60,7 +61,7 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 fullstack-mern-foodstore/
 ├── foodstore-server/                  # Backend (Node.js + Express)
 │   ├── app/
-│   │   ├── auth/                      # Register, login, logout, me
+│   │   ├── auth/                      # Register, login, logout, me, Google OAuth
 │   │   ├── cart/                      # Shopping cart
 │   │   ├── cart-item/                 # Cart item model
 │   │   ├── category/                  # Product categories
@@ -74,7 +75,8 @@ fullstack-mern-foodstore/
 │   │   ├── product/                   # Food products
 │   │   ├── review/                    # Product reviews & ratings
 │   │   ├── tag/                       # Product tags
-│   │   ├── user/                      # User model
+│   │   ├── user/                      # User model + set-password endpoint
+│   │   ├── pusher-auth/               # Pusher private channel auth endpoint
 │   │   ├── wilayah/                   # Indonesian regional data (CSV-based)
 │   │   ├── wishlist/                  # Wishlist
 │   │   ├── utils/
@@ -88,7 +90,7 @@ fullstack-mern-foodstore/
 └── foodstore-web/                     # Frontend (React)
     └── src/
         ├── api/                       # Axios API call layer
-        │   ├── auth.js
+        │   ├── auth.js                # login, register, logout, getMe, setPassword
         │   ├── cart.js
         │   ├── category.js
         │   ├── dashboard.js
@@ -107,6 +109,7 @@ fullstack-mern-foodstore/
         │   ├── OnlyGuest/             # Guest route guard
         │   ├── OnlyLogin/             # Auth route guard
         │   ├── SelectWilayah/         # Indonesian region selector
+        │   ├── SocketNotification/    # Pusher real-time notification panel (admin)
         │   ├── StarRating/            # Star rating display
         │   ├── StatusLabel/           # Payment status badge
         │   └── Topbar/                # Top navigation bar
@@ -118,12 +121,14 @@ fullstack-mern-foodstore/
         ├── hooks/                     # Custom React hooks
         ├── pages/                     # Application pages
         │   ├── 404/
-        │   ├── Account/
+        │   ├── Account/               # Profile, order history, set password
+        │   ├── AdminOrderDetail/      # Admin order detail page
         │   ├── AdminOrders/
+        │   ├── AuthCallback/          # Google OAuth callback — reads token from URL
         │   ├── Checkout/
         │   ├── Dashboard/
         │   ├── Home/
-        │   ├── Login/
+        │   ├── Login/                 # Email/password + Google login button
         │   ├── Register/
         │   ├── RegisterSucces/
         │   ├── UserAddressAdd/
@@ -145,7 +150,7 @@ fullstack-mern-foodstore/
 | Path | Page | Access |
 |------|------|--------|
 | `/` | Home — product listing | Everyone |
-| `/login` | Login | Guest only |
+| `/login` | Login — email/password + Google OAuth button | Guest only |
 | `/register` | Register new account | Guest only |
 | `/register/berhasil` | Registration success | Guest only |
 | `/logout` | Logout | Login only |
@@ -159,7 +164,9 @@ fullstack-mern-foodstore/
 | `/admin/orders` | Manage orders & status | Admin only |
 | `/admin/product` | Manage products | Admin only |
 | `/admin/categories` | Manage categories | Admin only |
+| `/admin/orders/:id` | Admin order detail | Admin only |
 | `/admin/tag` | Manage tags | Admin only |
+| `/auth/callback` | Google OAuth callback — process token from URL | Everyone |
 | `/error` | 404 page | Everyone |
 
 ---
@@ -177,6 +184,7 @@ fullstack-mern-foodstore/
 | jsonwebtoken | JWT authentication & authorization |
 | passport | Authentication middleware |
 | passport-local | Local email/password strategy |
+| passport-google-oauth20 | Google OAuth 2.0 strategy |
 | bcrypt | Password hashing |
 | cors | Cross-origin resource sharing |
 | cookie-parser | Cookie parsing middleware |
@@ -262,6 +270,18 @@ MAIL_PASS=
 MIDTRANS_SERVER_KEY=
 MIDTRANS_CLIENT_KEY=
 MIDTRANS_IS_PRODUCTION=false
+
+# Pusher
+PUSHER_APP_ID=
+PUSHER_KEY=
+PUSHER_SECRET=
+PUSHER_CLUSTER=
+
+# Google OAuth
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+CLIENT_URL=http://localhost:3001
 ```
 
 ### `foodstore-web/.env`
@@ -274,6 +294,8 @@ REACT_APP_OWNER=YourName
 REACT_APP_CONTACT=your@email.com
 REACT_APP_BILLING_NO=1234567890
 REACT_APP_BILLING_BANK=BCA
+REACT_APP_PUSHER_KEY=
+REACT_APP_PUSHER_CLUSTER=
 ```
 
 ---
@@ -319,6 +341,34 @@ Requires `Authorization: Bearer <token>`. Returns current logged-in user.
 
 #### `POST /auth/logout`
 Requires `Authorization: Bearer <token>`.
+
+#### `GET /auth/google`
+Redirect browser to Google consent screen. No body needed — open directly in browser (not via axios).
+
+#### `GET /auth/google/callback`
+Google redirects here after user approves. Handled automatically by `passport-google-oauth20`.
+Redirects to `CLIENT_URL/#/auth/callback?token=<jwt>` on success.
+
+**Merge logic:**
+- `google_id` found in DB → existing Google user, login directly
+- Email found but no `google_id` → existing email/password account, link `google_id` to it
+- Neither found → auto-register new user (no password)
+
+---
+
+### User
+
+#### `PUT /api/users/set-password` — Login required
+Set or change password. Used by Google users who want to enable email/password login.
+
+**Body**
+```json
+{ "password": "string", "password_confirmation": "string" }
+```
+**Response**
+```json
+{ "message": "Password berhasil disimpan" }
+```
 
 ---
 

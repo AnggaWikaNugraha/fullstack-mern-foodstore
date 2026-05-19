@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { registerUser } from '../../api/auth';
 import { useHistory } from "react-router-dom";
 import AppSidebar from '../../component/AppSidebar';
+import { config } from '../../config';
 const statuslist = {
     idle: 'idle',
     process: 'process',
@@ -74,6 +75,39 @@ export default function Register() {
                                 </FormControl>
                                 <Button size="large" fitContainer>Mendaftar</Button>
                             </form>
+
+                            <div style={{ margin: '16px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <div style={{ flex: 1, height: 1, background: '#e0e0e0' }} />
+                                <span style={{ color: '#aaa', fontSize: 13 }}>atau</span>
+                                <div style={{ flex: 1, height: 1, background: '#e0e0e0' }} />
+                            </div>
+
+                            <a
+                                href={`${config.api_host}/auth/google`}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 10,
+                                    width: '100%',
+                                    padding: '10px 0',
+                                    border: '1px solid #ddd',
+                                    borderRadius: 8,
+                                    background: '#fff',
+                                    color: '#333',
+                                    fontSize: 14,
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    textDecoration: 'none',
+                                }}
+                            >
+                                <img
+                                    src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                                    alt="Google"
+                                    style={{ width: 20, height: 20 }}
+                                />
+                                Daftar dengan Google
+                            </a>
                         </Card>
                     </div>
                 </div>

@@ -17,6 +17,7 @@ import Wishlist from './pages/Wishlist';
 import Dashboard from './pages/Dashboard';
 import AdminOrders from './pages/AdminOrders';
 import AdminOrderDetail from './pages/AdminOrderDetail';
+import AuthCallback from './pages/AuthCallback';
 import ErrorPage from './pages/404'
 
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
@@ -66,6 +67,10 @@ function App() {
           <OnlyLogin path="/invoice/:order_id">
             <Invoice />
           </OnlyLogin>
+
+          <Route path="/auth/callback">
+            <AuthCallback />
+          </Route>
 
           <OnlyGuest path="/register">
             <Register />

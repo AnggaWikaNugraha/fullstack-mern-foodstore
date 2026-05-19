@@ -19,6 +19,7 @@ const paymentRouter = require('./app/payment/router');
 const wishlistRouter = require('./app/wishlist/router');
 const dashboardRouter = require('./app/dashboard/router');
 const pusherAuthRouter = require('./app/pusher-auth/router');
+const userRouter = require('./app/user/router');
 const { decodeToken } = require('./app/auth/middleware');
 const cors = require('cors');
 
@@ -50,6 +51,7 @@ app.use('/api', paymentRouter);
 app.use('/api', wishlistRouter);
 app.use('/api', dashboardRouter);
 app.use('/api', pusherAuthRouter);
+app.use('/api', userRouter);
 
 
 // catch 404 and forward to error handler

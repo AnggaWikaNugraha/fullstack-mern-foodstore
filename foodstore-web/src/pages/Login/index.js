@@ -3,6 +3,7 @@ import { InputText, Button, FormControl, Card, LayoutSidebar } from 'upkit';
 import { useForm } from 'react-hook-form';
 import { useHistory, Link } from 'react-router-dom';
 import AppSidebar from '../../component/AppSidebar';
+import { config } from '../../config';
 
 import { useDispatch } from 'react-redux';
 import { userLogin } from '../../features/Auth/actions';
@@ -82,6 +83,39 @@ export default function Login() {
                                     Login
                                 </Button>
                             </form>
+                            <div style={{ margin: '16px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <div style={{ flex: 1, height: 1, background: '#e0e0e0' }} />
+                                <span style={{ color: '#aaa', fontSize: 13 }}>atau</span>
+                                <div style={{ flex: 1, height: 1, background: '#e0e0e0' }} />
+                            </div>
+
+                            <a
+                                href={`${config.api_host}/auth/google`}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 10,
+                                    width: '100%',
+                                    padding: '10px 0',
+                                    border: '1px solid #ddd',
+                                    borderRadius: 8,
+                                    background: '#fff',
+                                    color: '#333',
+                                    fontSize: 14,
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    textDecoration: 'none',
+                                }}
+                            >
+                                <img
+                                    src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                                    alt="Google"
+                                    style={{ width: 20, height: 20 }}
+                                />
+                                Login dengan Google
+                            </a>
+
                             <div className="text-center mt-2">
                                 Belum punya akun? <Link to="/register"><b>Daftar sekarang.</b></Link>
                             </div>
