@@ -19,6 +19,11 @@ export const ADD_ITEM_CART = "features/Cart/ADD_ITEM";
 export const REMOVE_ITEM_CART = "features/Cart/REMOVE_ITEM";
 export const CLEAR_ITEMS_CART = "features/Cart/CLEAR_ITEMS";
 export const SET_ITEMS_CART = "features/Cart/SET_ITEMS";
+export const TOGGLE_CHECK_CART = "features/Cart/TOGGLE_CHECK";
+export const CART_LOADED = "features/Cart/LOADED";
+export const CART_RESET = "features/Cart/RESET_LOADED";
+export const CART_SAVING = "features/Cart/SAVING";
+export const CART_SAVED  = "features/Cart/SAVED";
 
 export const getCategories = "admin/categories";
 export const addCategory = "admin/addCategory";

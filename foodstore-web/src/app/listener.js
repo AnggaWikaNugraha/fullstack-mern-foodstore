@@ -1,7 +1,8 @@
 import store from './store';
-import { saveCart, getCart } from '../api/cart';
+import { saveCart, getCart, cartState } from '../api/cart';
 import { clearItems } from '../features/Cart/actions';
 import { getPusher, disconnectPusher } from '../pusher';
+import { CART_SAVING, CART_SAVED } from '../app/constants';
 
 // (1) definisikan variabel tanpa nilai awal 
 let currentAuth;
@@ -39,18 +40,26 @@ function listener() {
 
     if (currentCart !== previousCart) {
 
-        localStorage.setItem('cart', JSON.stringify(currentCart));
-
         if (token) {
-            saveCart(token, currentCart).catch(() => {});
+            if (cartState.skipNextSave) {
+                cartState.skipNextSave = false;
+            } else {
+                store.dispatch({ type: CART_SAVING });
+                saveCart(token, currentCart)
+                    .catch(() => {})
+                    .finally(() => store.dispatch({ type: CART_SAVED }));
+            }
         }
     }
 }
 
-function listen() {
+let unsubscribe = null;
 
-    // (1) dengarkan perubahan store
-    store.subscribe(listener);
+function listen() {
+    if (unsubscribe) return;
+    currentAuth = store.getState().auth;
+    currentCart = store.getState().cart;
+    unsubscribe = store.subscribe(listener);
 }
 
 // (2) export fungsi listen supaya bisa digunakan di file lain 

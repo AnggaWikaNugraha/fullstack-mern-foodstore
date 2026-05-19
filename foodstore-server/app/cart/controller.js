@@ -33,7 +33,8 @@ async function update(req, res, next) {
                 image_url: relatedProduct.image_url,
                 name: relatedProduct.name,
                 user: req.user._id,
-                qty: item.qty
+                qty: item.qty,
+                checked: item.checked !== false
             }
         });
 
@@ -85,7 +86,16 @@ async function index(req, res, next) {
 
         let items = await CartItem.find({ user: req.user._id }).populate('product');
 
-        return res.json(items);
+        let cartItems = items.map(item => ({
+            _id: item.product?._id || item._id,
+            name: item.product?.name || item.name,
+            price: item.price,
+            image_url: item.image_url,
+            qty: item.qty,
+            checked: item.checked !== undefined ? item.checked : true
+        }));
+
+        return res.json(cartItems);
     } catch (err) {
 
         if (err && err.name == 'ValidationError') {

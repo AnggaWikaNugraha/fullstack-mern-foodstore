@@ -11,7 +11,12 @@ const cartItemSchema = Schema({
         type: Number,
         default: 0
     },
+    name: String,
     image_url: String,
+    checked: {
+        type: Boolean,
+        default: true
+    },
     user: {
         type: Schema.Types.ObjectId,
         ref: 'User'

@@ -1,3 +1,7 @@
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .app-sidebar img {
   width: 30px !important;
   height: 30px !important;

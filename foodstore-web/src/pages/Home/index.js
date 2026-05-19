@@ -1,17 +1,18 @@
 import React from 'react'
 import BounceLoader from 'react-spinners/BounceLoader';
-import Cart from '../../component/Cart';
 import AppSidebar from '../../component/AppSidebar';
 import StarRating from '../../component/StarRating';
 import { getImageUrl } from '../../utils/image-url';
 
 import { useHistory } from 'react-router-dom';
-import { addItem, removeItem } from '../../features/Cart/actions';
+import { addItem } from '../../features/Cart/actions';
 import { LayoutSidebar, Responsive, CardProduct, Pagination, InputText, Pill } from 'upkit';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts, setPage, goToNextPage, goToPrevPage, setKeyword, setCategory, toggleTag } from '../../features/products/actions';
 import { getTags } from '../../api/tag';
 import { getWishlist, addToWishlist, removeFromWishlist } from '../../api/wishlist';
+import { saveCart, cartState } from '../../api/cart';
+import store from '../../app/store';
 
 const Home = () => {
 
@@ -19,11 +20,12 @@ const Home = () => {
     let history = useHistory();
 
     let products = useSelector(state => state.products);
-    let cart = useSelector(state => state.cart);
     let auth = useSelector(state => state.auth);
 
     const [availableTags, setAvailableTags] = React.useState([]);
     const [wishlistIds, setWishlistIds] = React.useState([]);
+    const [addingId, setAddingId] = React.useState(null);
+    const [successId, setSuccessId] = React.useState(null);
 
     React.useEffect(() => {
         getTags({ limit: 100 })
@@ -40,6 +42,23 @@ const Home = () => {
             })
             .catch(() => {});
     }, [auth]);
+
+    const handleAddToCart = async (product) => {
+        if (addingId) return;
+        setAddingId(product._id);
+        cartState.skipNextSave = true;
+        dispatch(addItem(product));
+        try {
+            const { token } = localStorage.getItem('auth') ? JSON.parse(localStorage.getItem('auth')) : {};
+            await saveCart(token, store.getState().cart);
+            setSuccessId(product._id);
+            setTimeout(() => setSuccessId(null), 1500);
+        } catch {
+            // listener akan retry
+        } finally {
+            setAddingId(null);
+        }
+    };
 
     const toggleWishlist = async (product) => {
         if (!auth?.token) { history.push('/login'); return; }
@@ -68,9 +87,9 @@ const Home = () => {
         <div>
             <LayoutSidebar
                 sidebar={<AppSidebar onCategoryChange={category => dispatch(setCategory(category))} />}
-                content={<div className="md:flex md:flex-row-reverse w-full mr-5 h-full">
+                content={<div className="w-full">
 
-                    <div className="w-full md:w-3/4 pl-5 pb-10">
+                    <div className="w-full pl-5 pb-10">
 
                         <div className="mb-5 mt-5 pl-2 flex w-3/3 overflow-auto pb-5">
                             {availableTags.map((tag, index) => (
@@ -111,8 +130,38 @@ const Home = () => {
                                             title={product.name}
                                             imgUrl={getImageUrl(product.image_url)}
                                             price={product.price}
-                                            onAddToCart={outOfStock ? () => {} : () => dispatch(addItem(product))}
+                                            onAddToCart={outOfStock ? () => {} : () => handleAddToCart(product)}
                                         />
+                                        {addingId === product._id && (
+                                            <div style={{
+                                                position: 'absolute', bottom: 48, left: '50%',
+                                                transform: 'translateX(-50%)',
+                                                background: 'rgba(0,0,0,0.7)', color: '#fff',
+                                                borderRadius: 20, padding: '4px 14px',
+                                                fontSize: 12, fontWeight: 600,
+                                                display: 'flex', alignItems: 'center', gap: 6,
+                                                whiteSpace: 'nowrap', zIndex: 5,
+                                            }}>
+                                                <span style={{
+                                                    width: 12, height: 12, border: '2px solid #fff',
+                                                    borderTopColor: 'transparent', borderRadius: '50%',
+                                                    display: 'inline-block', animation: 'spin 0.6s linear infinite',
+                                                }} />
+                                                Menambahkan...
+                                            </div>
+                                        )}
+                                        {successId === product._id && (
+                                            <div style={{
+                                                position: 'absolute', bottom: 48, left: '50%',
+                                                transform: 'translateX(-50%)',
+                                                background: '#27ae60', color: '#fff',
+                                                borderRadius: 20, padding: '4px 14px',
+                                                fontSize: 12, fontWeight: 600,
+                                                whiteSpace: 'nowrap', zIndex: 5,
+                                            }}>
+                                                ✓ Ditambahkan
+                                            </div>
+                                        )}
                                         <button
                                             onClick={() => toggleWishlist(product)}
                                             title={wishlistIds.includes(String(product._id)) ? 'Hapus dari wishlist' : 'Tambah ke wishlist'}
@@ -187,15 +236,6 @@ const Home = () => {
                             />
                         </div>
 
-                    </div>
-
-                    <div className="w-full md:w-1/4 h-full shadow-lg border-r border-white bg-gray-100">
-                        <Cart
-                            items={cart}
-                            onItemInc={item => dispatch(addItem(item))}
-                            onItemDec={item => dispatch(removeItem(item))}
-                            onCheckout={() => history.push("/checkout")}
-                        />
                     </div>
 
                 </div>}

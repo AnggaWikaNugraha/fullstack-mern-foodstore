@@ -7,11 +7,13 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 ## Coming soon
 
 - Rekomendasi produk AI — integrasi OpenAI API
+- monitoring Sentry — error tracking production, tau kalau ada crash di user
+- revamp ui
+
 - PWA (Progressive Web App) — bisa di-install di HP, offline mode, push notif native
 - Jest + React Testing Library — unit test komponen React
 - TanStack Query (React Query) — gantikan manual loading/error state, auto cache, refetch. Jauh lebih clean dari Redux untuk server state
 - Swagger / OpenAPI — auto-generate dokumentasi API dari kode. Profesional banget untuk portfolio
-- monitoring Sentry — error tracking production, tau kalau ada crash di user
 
 ## New Features
 

@@ -1,8 +1,6 @@
-import { ADD_ITEM_CART, REMOVE_ITEM_CART, CLEAR_ITEMS_CART, SET_ITEMS_CART } from '../../app/constants'
+import { ADD_ITEM_CART, REMOVE_ITEM_CART, CLEAR_ITEMS_CART, SET_ITEMS_CART, TOGGLE_CHECK_CART } from '../../app/constants'
 
-const initialState = localStorage.getItem('cart')
-    ? JSON.parse(localStorage.getItem('cart'))
-    : [];
+const initialState = [];
 
 export default function reducer(state = initialState, action) {
 
@@ -18,7 +16,7 @@ export default function reducer(state = initialState, action) {
 
             } else {
 
-                return [...state, { ...action.item, qty: 1 }];
+                return [...state, { ...action.item, qty: 1, checked: true }];
 
             }
 
@@ -35,6 +33,12 @@ export default function reducer(state = initialState, action) {
 
         case SET_ITEMS_CART:
             return action.items
+
+        case TOGGLE_CHECK_CART:
+            return state.map(item => ({
+                ...item,
+                checked: item._id === action.id ? !item.checked : item.checked
+            }));
 
         default:
             return state;

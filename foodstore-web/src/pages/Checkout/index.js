@@ -14,7 +14,8 @@ import { LayoutOne, Text, Steps, Table, Button, Responsive } from "upkit";
 import { getImageUrl } from "../../utils/image-url";
 import { createOrder } from "../../api/orders";
 import { useSelector, useDispatch } from "react-redux";
-import { clearItems } from "../../features/Cart/actions";
+import { setItems } from "../../features/Cart/actions";
+import { saveCart } from "../../api/cart";
 import { Link, useHistory, useLocation, Redirect } from "react-router-dom";
 import styled from "@emotion/styled";
 
@@ -105,6 +106,8 @@ export default function Checkout() {
 
   let cart = useSelector((state) => state.cart);
 
+  const checkoutItems = cart.filter(i => i.checked !== false);
+
   let { data, status, limit, page, count, setPage } = useAddressData();
 
   let [selectedAddress, setSelectedAddress] = React.useState(null);
@@ -121,24 +124,27 @@ export default function Checkout() {
   }, [location.search]);
 
   async function handleCreateOrder() {
+    const { token } = localStorage.getItem('auth')
+      ? JSON.parse(localStorage.getItem('auth'))
+      : {};
+
+    await saveCart(token, checkoutItems);
+
     let payload = {
       delivery_fee: config.global_ongkir,
       delivery_address: selectedAddress._id,
     };
 
-    // (1) kirimkan `payload` ke Web API untuk membuat order baru
     let { data } = await createOrder(payload);
 
-    // (1) hentikan operasi jika terjadi error
     if (data?.error) return;
 
+    const orderedIds = new Set(checkoutItems.map((i) => i._id));
+    dispatch(setItems(cart.filter((i) => !orderedIds.has(i._id))));
     history.push(`/invoice/${data._id}`);
-
-    // (1) hapus semua item di keranjang belanja
-    dispatch(clearItems());
   }
 
-  if (!cart.length) {
+  if (!checkoutItems.length) {
     return <Redirect to="/" />;
   }
 
@@ -152,14 +158,14 @@ export default function Checkout() {
         <div>
           <br /> <br />
           <Table
-            items={cart}
+            items={checkoutItems}
             columns={columns}
-            perPage={cart.length}
+            perPage={checkoutItems.length}
             showPagination={false}
           />
           <SubtotalBar>
             <span>Subtotal</span>
-            <SubtotalValue>{formatRupiah(sumPrice(cart))}</SubtotalValue>
+            <SubtotalValue>{formatRupiah(sumPrice(checkoutItems))}</SubtotalValue>
           </SubtotalBar>
           <div style={{ marginTop: 16 }}>
             <Button
@@ -256,14 +262,14 @@ export default function Checkout() {
                   </div>
                 ),
               },
-              { label: "Subtotal", value: formatRupiah(sumPrice(cart)) },
+              { label: "Subtotal", value: formatRupiah(sumPrice(checkoutItems)) },
               { label: "Ongkir", value: formatRupiah(config.global_ongkir) },
               {
                 label: "Total",
                 value: (
                   <b>
                     {formatRupiah(
-                      sumPrice(cart) + parseInt(config.global_ongkir)
+                      sumPrice(checkoutItems) + parseInt(config.global_ongkir)
                     )}
                   </b>
                 ),

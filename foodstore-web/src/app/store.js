@@ -3,6 +3,8 @@ import { combineReducers, createStore, applyMiddleware, compose } from "redux";
 import authReducer from "../features/Auth/reducer";
 import productReducer from "../features/products/reducer";
 import cartReducer from "../features/Cart/reducer";
+import cartLoadedReducer from "../features/Cart/cartLoadedReducer";
+import cartSavingReducer from "../features/Cart/cartSavingReducer";
 import categories from "../features/categories/reducer";
 
 // (2) import redux-thunk middleware
@@ -15,6 +17,8 @@ const composerEnhancer = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 const rootReducers = combineReducers({
   auth: authReducer,
   cart: cartReducer,
+  cartLoaded: cartLoadedReducer,
+  cartSaving: cartSavingReducer,
   products: productReducer,
   category: categories,
 });

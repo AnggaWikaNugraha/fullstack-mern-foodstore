@@ -17,6 +17,7 @@ import Wishlist from './pages/Wishlist';
 import Dashboard from './pages/Dashboard';
 import AdminOrders from './pages/AdminOrders';
 import AdminOrderDetail from './pages/AdminOrderDetail';
+import Keranjang from './pages/Keranjang';
 import AuthCallback from './pages/AuthCallback';
 import VerifyEmail from './pages/VerifyEmail';
 import CekEmail from './pages/CekEmail';
@@ -62,6 +63,9 @@ function App() {
           </OnlyLogin>
           <OnlyLogin path="/alamat-pengiriman/">
             <UserAddress />
+          </OnlyLogin>
+          <OnlyLogin path="/keranjang">
+            <Keranjang />
           </OnlyLogin>
           <OnlyLogin path="/checkout">
             <Checkout />
