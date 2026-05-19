@@ -7,7 +7,6 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 ## Coming soon
 
 - Rekomendasi produk AI — integrasi OpenAI API
-- Low stock alert — notif Pusher ke admin kalau stok produk hampir habis
 - PWA (Progressive Web App) — bisa di-install di HP, offline mode, push notif native
 - Jest + React Testing Library — unit test komponen React
 - TanStack Query (React Query) — gantikan manual loading/error state, auto cache, refetch. Jauh lebih clean dari Redux untuk server state
@@ -28,6 +27,7 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - **Google OAuth** — login with Google account via `passport-google-oauth20`. Smart account merge: if the Google email already exists in DB (registered via email/password), `google_id` is linked to the existing account — no duplicate accounts. New Google users are auto-registered without a password. Users can optionally set a password later from the Account page to enable both login methods on the same account.
 - **Email Verification** — all new accounts (email/password or Google) must verify their email before logging in. A verification link is sent via Nodemailer and expires in 24 hours. If the link expires or login is attempted before verifying, a new link is automatically re-sent and the user is redirected to `/cek-email`.
 - **Export Laporan Excel** — admin can export all orders to `.xlsx` with 2 sheets: "Ringkasan Order" (per-order summary with customer, address, total, status) and "Detail Items" (per-product-line with qty, price, subtotal). Generated client-side via SheetJS (`xlsx`), no server file generation needed.
+- **Low Stock Alert** — when an order causes a product's stock to drop to ≤ 5, a Pusher `product:low_stock` event is fired on `private-admin`. Admin sees an orange toast panel (separate from payment toasts) showing the product name and remaining stock. Clicking navigates to the product management page. Toasts auto-dismiss after 8 seconds.
 
   | Condition                    | Email/Password                                       | Google OAuth                                         |
   |------------------------------|------------------------------------------------------|------------------------------------------------------|

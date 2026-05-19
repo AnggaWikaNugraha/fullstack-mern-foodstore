@@ -79,12 +79,23 @@ async function store(req, res, next) {
         delivery_address: order.delivery_address,
     }).save();
 
+    const LOW_STOCK_THRESHOLD = 5;
+
     // Kurangi stok untuk setiap produk yang dipesan
     for (const item of orderItems) {
       if (item.product) {
-        await Product.findByIdAndUpdate(item.product, {
-          $inc: { stock: -item.qty }
-        });
+        const updated = await Product.findByIdAndUpdate(
+          item.product,
+          { $inc: { stock: -item.qty } },
+          { new: true }
+        );
+        if (updated && updated.stock <= LOW_STOCK_THRESHOLD) {
+          pusher.trigger('private-admin', 'product:low_stock', {
+            product_id: String(updated._id),
+            product_name: updated.name,
+            stock: updated.stock,
+          }).catch(() => {});
+        }
       }
     }
 
