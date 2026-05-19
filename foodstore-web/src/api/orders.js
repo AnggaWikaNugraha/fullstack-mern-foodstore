@@ -6,17 +6,30 @@ export async function getOrders(params) {
     ? JSON.parse(localStorage.getItem("auth"))
     : {};
 
-  let { limit, page } = params;
+  let { limit, page, status } = params;
   let skip = page * limit - limit;
 
   return await axios.get(`${config.api_host}/api/orders`, {
-    params: {
-      skip,
-      limit,
-    },
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
+    params: { skip, limit, ...(status ? { status } : {}) },
+    headers: { authorization: `Bearer ${token}` },
+  });
+}
+
+export async function getOrderStats() {
+  let { token } = localStorage.getItem("auth")
+    ? JSON.parse(localStorage.getItem("auth"))
+    : {};
+  return await axios.get(`${config.api_host}/api/orders/stats`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+}
+
+export async function exportAllOrders() {
+  let { token } = localStorage.getItem("auth")
+    ? JSON.parse(localStorage.getItem("auth"))
+    : {};
+  return await axios.get(`${config.api_host}/api/orders/export`, {
+    headers: { authorization: `Bearer ${token}` },
   });
 }
 

@@ -138,6 +138,29 @@ async function logout(req, res, next) {
   });
 }
 
+async function resendVerification(req, res, next) {
+  try {
+    const { email } = req.body;
+    if (!email) return res.json({ error: 1, message: 'Email harus diisi' });
+
+    const user = await User.findOne({ email });
+
+    if (!user) return res.json({ error: 1, message: 'Email tidak ditemukan' });
+    if (user.verified === true) return res.json({ error: 1, message: 'Akun sudah terverifikasi, silakan login' });
+
+    const verification_token = crypto.randomBytes(32).toString('hex');
+    const verification_token_expired = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await User.findByIdAndUpdate(user._id, { verification_token, verification_token_expired });
+
+    const verification_link = `${process.env.CLIENT_URL}/#/verify-email?token=${verification_token}`;
+    sendVerificationEmail({ to: user.email, full_name: user.full_name, verification_link });
+
+    return res.json({ message: 'Link verifikasi sudah dikirim ulang' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function verifyEmail(req, res, next) {
   try {
     const { token } = req.params;
@@ -236,6 +259,7 @@ module.exports = {
   googleStrategy,
   googleCallback,
   verifyEmail,
+  resendVerification,
   login,
   me,
   logout,

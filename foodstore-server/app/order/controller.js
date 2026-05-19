@@ -118,24 +118,17 @@ async function store(req, res, next) {
 }
 
 async function index(req, res, next) {
-  let policy = policyFor(req.user);
-  // if (!policy.can("view", "Order")) {
-  //   return res.json({
-  //     error: 1,
-  //     message: `You're not allowed to perform this action`,
-  //   });
-  // }
   try {
-    let { limit = 10, skip = 0 } = req.query;
+    let { limit = 10, skip = 0, status } = req.query;
+    let query = {};
+    if (status) query.status = status;
 
-    // let count = await Order.find({ user: req.user._id }).countDocuments();
-    let count = await Order.find().countDocuments();
-
-    // let orders = await Order.find({ user: req.user._id })
-    let orders = await Order.find()
+    let count = await Order.find(query).countDocuments();
+    let orders = await Order.find(query)
       .limit(parseInt(limit))
       .skip(parseInt(skip))
       .populate("order_items")
+      .populate("user", "full_name email")
       .sort("-createdAt");
 
     return res.json({
@@ -150,6 +143,38 @@ async function index(req, res, next) {
         fields: err.errors,
       });
     }
+    next(err);
+  }
+}
+
+async function stats(req, res, next) {
+  try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.json({ error: 1, message: 'Admin only' });
+    }
+    const result = await Order.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+    const by_status = {};
+    let total = 0;
+    result.forEach(({ _id, count }) => { by_status[_id] = count; total += count; });
+    return res.json({ total, by_status });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function exportAll(req, res, next) {
+  try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.json({ error: 1, message: 'Admin only' });
+    }
+    const orders = await Order.find()
+      .populate('order_items')
+      .populate('user', 'full_name email')
+      .sort('-createdAt');
+    return res.json({ data: orders.map(o => o.toJSON({ virtuals: true })) });
+  } catch (err) {
     next(err);
   }
 }
@@ -211,6 +236,8 @@ async function updateStatus(req, res, next) {
 module.exports = {
   store,
   index,
+  stats,
+  exportAll,
   show,
   updateStatus,
 };

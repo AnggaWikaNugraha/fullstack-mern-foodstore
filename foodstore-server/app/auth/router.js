@@ -27,6 +27,7 @@ router.get("/me", controller.me);
 router.post("/logout", controller.logout);
 
 router.get("/verify-email/:token", controller.verifyEmail);
+router.post("/resend-verification", controller.resendVerification);
 
 // Google OAuth routes
 router.get("/google", passport.authenticate("google", { scope: ["profile", "email"], session: false }));

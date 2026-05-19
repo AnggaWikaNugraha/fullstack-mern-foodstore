@@ -5,6 +5,8 @@ const multer = require('multer');
 const orderController = require('./controller');
 // (3) _route_ untuk membuat `order`
 router.post('/orders', multer().none(), orderController.store);
+router.get('/orders/stats', orderController.stats);
+router.get('/orders/export', orderController.exportAll);
 router.get('/orders', orderController.index);
 router.get('/orders/:id', orderController.show);
 router.put('/orders/:id/status', multer().none(), orderController.updateStatus);

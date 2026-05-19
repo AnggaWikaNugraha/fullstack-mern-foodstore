@@ -6,16 +6,13 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 
 ## Coming soon
 
-- Resend verification email page — tombol kirim ulang link dari halaman /cek-email jika tidak menerima email
 - Rekomendasi produk AI — integrasi OpenAI API
-- Export laporan — admin export orders/revenue ke Excel atau PDF (SheetJS / jsPDF)
 - Low stock alert — notif Pusher ke admin kalau stok produk hampir habis
 - PWA (Progressive Web App) — bisa di-install di HP, offline mode, push notif native
 - Jest + React Testing Library — unit test komponen React
 - TanStack Query (React Query) — gantikan manual loading/error state, auto cache, refetch. Jauh lebih clean dari Redux untuk server state
 - Swagger / OpenAPI — auto-generate dokumentasi API dari kode. Profesional banget untuk portfolio
 - monitoring Sentry — error tracking production, tau kalau ada crash di user
-- revamps ui FE
 
 ## New Features
 
@@ -30,6 +27,7 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - **Pusher Real-time Notifications** — admin gets instant toast when payment settles, customer sees order status update live (Pusher used instead of Socket.io for Vercel serverless compatibility)
 - **Google OAuth** — login with Google account via `passport-google-oauth20`. Smart account merge: if the Google email already exists in DB (registered via email/password), `google_id` is linked to the existing account — no duplicate accounts. New Google users are auto-registered without a password. Users can optionally set a password later from the Account page to enable both login methods on the same account.
 - **Email Verification** — all new accounts (email/password or Google) must verify their email before logging in. A verification link is sent via Nodemailer and expires in 24 hours. If the link expires or login is attempted before verifying, a new link is automatically re-sent and the user is redirected to `/cek-email`.
+- **Export Laporan Excel** — admin can export all orders to `.xlsx` with 2 sheets: "Ringkasan Order" (per-order summary with customer, address, total, status) and "Detail Items" (per-product-line with qty, price, subtotal). Generated client-side via SheetJS (`xlsx`), no server file generation needed.
 
   | Condition                    | Email/Password                                       | Google OAuth                                         |
   |------------------------------|------------------------------------------------------|------------------------------------------------------|
@@ -171,7 +169,7 @@ fullstack-mern-foodstore/
 | `/checkout` | Checkout | Login only |
 | `/invoice/:order_id` | Invoice detail + Midtrans payment | Login only |
 | `/admin/dashboard` | Admin dashboard | Admin only |
-| `/admin/orders` | Manage orders & status | Admin only |
+| `/admin/orders` | Manage orders — stat cards, status filter tabs, export Excel | Admin only |
 | `/admin/product` | Manage products | Admin only |
 | `/admin/categories` | Manage categories | Admin only |
 | `/admin/orders/:id` | Admin order detail | Admin only |
@@ -231,6 +229,7 @@ fullstack-mern-foodstore/
 | react-data-table-component | Admin data tables with pagination |
 | react-spinners | Loading indicators |
 | pusher-js | Pusher client — subscribe to real-time events from Pusher |
+| xlsx (SheetJS) | Client-side Excel file generation for order export |
 
 ---
 
@@ -489,11 +488,27 @@ Same fields as POST, all optional. Old image auto-deleted from Cloudinary on upd
 ### Order — Login required
 
 #### `GET /api/orders`
-**Query params:** `limit`, `skip`
+**Query params:** `limit`, `skip`, `status` (optional — filter by order status)
 
 **Response**
 ```json
-{ "data": [ { "_id": "", "status": "processing", "delivery_fee": 20000, "createdAt": "" } ], "count": 0 }
+{ "data": [ { "_id": "", "status": "processing", "delivery_fee": 20000, "user": { "full_name": "", "email": "" }, "order_items": [], "createdAt": "" } ], "count": 0 }
+```
+
+#### `GET /api/orders/stats` — Admin only
+Returns order counts grouped by status.
+
+**Response**
+```json
+{ "total": 42, "by_status": { "waiting_payment": 5, "processing": 3, "in_delivery": 2, "delivered": 30, "pending": 2 } }
+```
+
+#### `GET /api/orders/export` — Admin only
+Returns all orders (no pagination) with `user` and `order_items` populated. Used for client-side Excel generation.
+
+**Response**
+```json
+{ "data": [ { "_id": "", "order_number": 1, "status": "", "delivery_fee": 0, "delivery_address": {}, "user": { "full_name": "", "email": "" }, "order_items": [ { "name": "", "qty": 1, "price": 0 } ], "createdAt": "" } ] }
 ```
 
 #### `POST /api/orders`
@@ -505,12 +520,15 @@ Creates order from current cart. Decrements product stock automatically. Sends o
 ```
 **Response:** created order object
 
+#### `GET /api/orders/:id`
+**Response:** single order object with `order_items`, `user`, and linked `invoice` (payment_status, total, sub_total).
+
 #### `PUT /api/orders/:id/status` — Admin only
 **Body**
 ```json
 { "status": "processing | in_delivery | delivered" }
 ```
-**Response:** updated order object
+**Response:** updated order object. Also triggers a Pusher event `order:status_updated` on `private-order-<id>`.
 
 ---
 
