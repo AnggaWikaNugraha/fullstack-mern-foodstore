@@ -25,9 +25,8 @@ async function register(req, res, next) {
 
     await user.save();
 
-    // kirim email verifikasi (fire-and-forget)
     const verification_link = `${process.env.CLIENT_URL}/#/verify-email?token=${verification_token}`;
-    sendVerificationEmail({ to: user.email, full_name: user.full_name, verification_link });
+    await sendVerificationEmail({ to: user.email, full_name: user.full_name, verification_link });
 
     return res.json({ message: 'Register success' });
   } catch (err) {
@@ -57,7 +56,7 @@ async function localStrategy(email, password, done) {
       const verification_token_expired = new Date(Date.now() + 24 * 60 * 60 * 1000);
       await User.findByIdAndUpdate(user._id, { verification_token, verification_token_expired });
       const verification_link = `${process.env.CLIENT_URL}/#/verify-email?token=${verification_token}`;
-      sendVerificationEmail({ to: user.email, full_name: user.full_name, verification_link });
+      await sendVerificationEmail({ to: user.email, full_name: user.full_name, verification_link });
       return done(null, false, { message: 'email_not_verified' });
     }
 
@@ -153,7 +152,7 @@ async function resendVerification(req, res, next) {
     await User.findByIdAndUpdate(user._id, { verification_token, verification_token_expired });
 
     const verification_link = `${process.env.CLIENT_URL}/#/verify-email?token=${verification_token}`;
-    sendVerificationEmail({ to: user.email, full_name: user.full_name, verification_link });
+    await sendVerificationEmail({ to: user.email, full_name: user.full_name, verification_link });
 
     return res.json({ message: 'Link verifikasi sudah dikirim ulang' });
   } catch (err) {
@@ -222,7 +221,7 @@ async function googleStrategy(accessToken, refreshToken, profile, done) {
       await User.findByIdAndUpdate(user._id, { verification_token, verification_token_expired });
 
       const verification_link = `${process.env.CLIENT_URL}/#/verify-email?token=${verification_token}`;
-      sendVerificationEmail({ to: user.email, full_name: user.full_name, verification_link });
+      await sendVerificationEmail({ to: user.email, full_name: user.full_name, verification_link });
 
       // kirim marker ke googleCallback bahwa user belum verified
       return done(null, { _not_verified: true, email: user.email });

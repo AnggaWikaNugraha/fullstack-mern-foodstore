@@ -102,7 +102,7 @@ function sendVerificationEmail({ to, full_name, verification_link }) {
         </div>
     </div>`;
 
-    transporter.sendMail({
+    return transporter.sendMail({
         from: `"FoodStore" <${process.env.MAIL_USER}>`,
         to,
         subject: '✅ Verifikasi Akun FoodStore',
