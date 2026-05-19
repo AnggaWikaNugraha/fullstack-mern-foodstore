@@ -31,7 +31,7 @@ export default function AuthCallback() {
             })
             .catch(() => history.replace('/login?error=google_failed'));
 
-    }, []);
+    }, [dispatch, history, location.search]);
 
     return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>

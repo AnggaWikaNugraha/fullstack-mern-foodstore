@@ -33,7 +33,7 @@ export default function VerifyEmail() {
                 setStatus('error');
                 setMessage('Terjadi kesalahan, coba lagi.');
             });
-    }, []);
+    }, [location.search]);
 
     return (
         <LayoutOne size="small">
