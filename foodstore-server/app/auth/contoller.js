@@ -2,27 +2,35 @@ const User = require("../user/model");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const config = require("../config");
 
 const { getToken } = require("../utils/get-token");
+const { sendVerificationEmail } = require("../utils/mailer");
 
 async function register(req, res, next) {
   try {
-    // (1) tangkap payload dari request
     const payload = req.body;
 
-    // (2) buat objek user baru
-    let user = new User(payload);
+    // generate token unik untuk verifikasi
+    const verification_token = crypto.randomBytes(32).toString('hex');
+    const verification_token_expired = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 jam
 
-    // (3) simpan user baru ke MongoDB
+    let user = new User({
+      ...payload,
+      verified: false,
+      verification_token,
+      verification_token_expired,
+    });
+
     await user.save();
 
-    // (4) berikan response ke client
-    return res.json({
-      data: user,
-    });
+    // kirim email verifikasi (fire-and-forget)
+    const verification_link = `${process.env.CLIENT_URL}/#/verify-email?token=${verification_token}`;
+    sendVerificationEmail({ to: user.email, full_name: user.full_name, verification_link });
+
+    return res.json({ message: 'Register success' });
   } catch (err) {
-    // (1) cek kemungkinan kesalahan terkait validasi
     if (err && err.name === "ValidationError") {
       return res.json({
         error: 1,
@@ -30,7 +38,6 @@ async function register(req, res, next) {
         fields: err.errors,
       });
     }
-    // (2) error lainnya
     next(err);
   }
 }
@@ -45,8 +52,15 @@ async function localStrategy(email, password, done) {
 
     if (!user) return done();
 
-    // user sudah d temukan kemudian cocokkan password
-    // jika password sama
+    if (user.verified !== true) {
+      const verification_token = crypto.randomBytes(32).toString('hex');
+      const verification_token_expired = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await User.findByIdAndUpdate(user._id, { verification_token, verification_token_expired });
+      const verification_link = `${process.env.CLIENT_URL}/#/verify-email?token=${verification_token}`;
+      sendVerificationEmail({ to: user.email, full_name: user.full_name, verification_link });
+      return done(null, false, { message: 'email_not_verified' });
+    }
+
     if (bcrypt.compareSync(password, user.password)) {
       ({ password, ...userWithoutPassword } = user.toJSON());
       return done(null, { ...userWithoutPassword, has_password: true });
@@ -58,12 +72,15 @@ async function localStrategy(email, password, done) {
 }
 
 async function login(req, res, next) {
-  passport.authenticate("local", async function (err, user) {
-    // jika error dari localstrategy
+  passport.authenticate("local", async function (err, user, info) {
     if (err) return next(err);
 
-    if (!user)
-      return res.json({ error: 1, message: "email or password incorrect" }); // <--
+    if (!user) {
+      const message = info?.message === 'email_not_verified'
+        ? 'email_not_verified'
+        : 'email or password incorrect';
+      return res.json({ error: 1, message });
+    }
 
     // (1) buat JSON Web Token dan menyimpannya ke atribut user
     // signed adalah berupa token
@@ -121,6 +138,31 @@ async function logout(req, res, next) {
   });
 }
 
+async function verifyEmail(req, res, next) {
+  try {
+    const { token } = req.params;
+
+    const user = await User.findOne({
+      verification_token: token,
+      verification_token_expired: { $gt: new Date() },
+    });
+
+    if (!user) {
+      return res.json({ error: 1, message: 'Link verifikasi tidak valid atau sudah expired' });
+    }
+
+    await User.findByIdAndUpdate(user._id, {
+      verified: true,
+      verification_token: null,
+      verification_token_expired: null,
+    });
+
+    return res.json({ message: 'Akun berhasil diverifikasi' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function googleStrategy(accessToken, refreshToken, profile, done) {
   try {
     const email = profile.emails[0].value;
@@ -130,21 +172,37 @@ async function googleStrategy(accessToken, refreshToken, profile, done) {
     let user = await User.findOne({ google_id });
 
     if (!user) {
-      // cari by email (akun sudah ada tapi belum pernah login Google)
+      // cari by email — akun sudah ada tapi belum pernah login Google
       user = await User.findOne({ email });
 
       if (user) {
         // merge — tambahkan google_id ke akun yang sudah ada
         await User.findByIdAndUpdate(user._id, { google_id });
+        user = await User.findById(user._id);
       } else {
-        // belum punya akun sama sekali — buat baru
+        // belum punya akun — buat baru, verified: false dulu
         user = await User.create({
           full_name: profile.displayName,
           email,
           google_id,
           password: null,
+          verified: false,
         });
       }
+    }
+
+    // cek verified — apapun cara masuknya
+    if (user.verified !== true) {
+      // kirim ulang verification email
+      const verification_token = crypto.randomBytes(32).toString('hex');
+      const verification_token_expired = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await User.findByIdAndUpdate(user._id, { verification_token, verification_token_expired });
+
+      const verification_link = `${process.env.CLIENT_URL}/#/verify-email?token=${verification_token}`;
+      sendVerificationEmail({ to: user.email, full_name: user.full_name, verification_link });
+
+      // kirim marker ke googleCallback bahwa user belum verified
+      return done(null, { _not_verified: true, email: user.email });
     }
 
     const { password, token: tokenArr, __v, createdAt, updatedAt, ...userWithoutPassword } = user.toJSON();
@@ -156,6 +214,12 @@ async function googleStrategy(accessToken, refreshToken, profile, done) {
 
 function googleCallback(req, res) {
   const user = req.user;
+
+  // user belum verified — redirect ke halaman cek email
+  if (user._not_verified) {
+    return res.redirect(`${process.env.CLIENT_URL}/#/cek-email`);
+  }
+
   const signed = jwt.sign(user, config.secretKey);
 
   User.findOneAndUpdate(
@@ -163,7 +227,6 @@ function googleCallback(req, res) {
     { $addToSet: { token: signed } }
   ).catch(() => {});
 
-  // redirect ke frontend dengan token di query param
   res.redirect(`${process.env.CLIENT_URL}/#/auth/callback?token=${signed}`);
 }
 
@@ -172,6 +235,7 @@ module.exports = {
   localStrategy,
   googleStrategy,
   googleCallback,
+  verifyEmail,
   login,
   me,
   logout,

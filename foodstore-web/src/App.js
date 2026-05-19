@@ -18,6 +18,8 @@ import Dashboard from './pages/Dashboard';
 import AdminOrders from './pages/AdminOrders';
 import AdminOrderDetail from './pages/AdminOrderDetail';
 import AuthCallback from './pages/AuthCallback';
+import VerifyEmail from './pages/VerifyEmail';
+import CekEmail from './pages/CekEmail';
 import ErrorPage from './pages/404'
 
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
@@ -70,6 +72,12 @@ function App() {
 
           <Route path="/auth/callback">
             <AuthCallback />
+          </Route>
+          <Route path="/verify-email">
+            <VerifyEmail />
+          </Route>
+          <Route path="/cek-email">
+            <CekEmail />
           </Route>
 
           <OnlyGuest path="/register">

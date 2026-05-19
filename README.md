@@ -6,7 +6,7 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 
 ## Coming soon
 
-- OTP email verification — verifikasi email saat register
+- Resend verification email page — tombol kirim ulang link dari halaman /cek-email jika tidak menerima email
 - Rekomendasi produk AI — integrasi OpenAI API
 - Export laporan — admin export orders/revenue ke Excel atau PDF (SheetJS / jsPDF)
 - Low stock alert — notif Pusher ke admin kalau stok produk hampir habis
@@ -29,6 +29,14 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 - **Stock Management** — stock decremented automatically via `$inc` when order is created
 - **Pusher Real-time Notifications** — admin gets instant toast when payment settles, customer sees order status update live (Pusher used instead of Socket.io for Vercel serverless compatibility)
 - **Google OAuth** — login with Google account via `passport-google-oauth20`. Smart account merge: if the Google email already exists in DB (registered via email/password), `google_id` is linked to the existing account — no duplicate accounts. New Google users are auto-registered without a password. Users can optionally set a password later from the Account page to enable both login methods on the same account.
+- **Email Verification** — all new accounts (email/password or Google) must verify their email before logging in. A verification link is sent via Nodemailer and expires in 24 hours. If the link expires or login is attempted before verifying, a new link is automatically re-sent and the user is redirected to `/cek-email`.
+
+  | Condition                    | Email/Password                                       | Google OAuth                                         |
+  |------------------------------|------------------------------------------------------|------------------------------------------------------|
+  | New user                     | `verified: false`, send email, redirect `/cek-email` | `verified: false`, send email, redirect `/cek-email` |
+  | Not verified yet             | Resend email, redirect `/cek-email`                  | Resend email, redirect `/cek-email`                  |
+  | Already verified             | Login success                                        | Login success                                        |
+  | Old user (no verified field) | Resend email, redirect `/cek-email`                  | Resend email, redirect `/cek-email`                  |
 
 ---
 
@@ -125,6 +133,8 @@ fullstack-mern-foodstore/
         │   ├── AdminOrderDetail/      # Admin order detail page
         │   ├── AdminOrders/
         │   ├── AuthCallback/          # Google OAuth callback — reads token from URL
+        │   ├── CekEmail/              # "Silakan cek email" prompt after register or unverified login
+        │   ├── VerifyEmail/           # Process verification token from email link
         │   ├── Checkout/
         │   ├── Dashboard/
         │   ├── Home/
@@ -167,6 +177,8 @@ fullstack-mern-foodstore/
 | `/admin/orders/:id` | Admin order detail | Admin only |
 | `/admin/tag` | Manage tags | Admin only |
 | `/auth/callback` | Google OAuth callback — process token from URL | Everyone |
+| `/cek-email` | Check email prompt — shown after register or unverified login attempt | Everyone |
+| `/verify-email` | Process verification link from email | Everyone |
 | `/error` | 404 page | Everyone |
 
 ---
@@ -341,6 +353,20 @@ Requires `Authorization: Bearer <token>`. Returns current logged-in user.
 
 #### `POST /auth/logout`
 Requires `Authorization: Bearer <token>`.
+
+#### `GET /auth/verify-email/:token`
+Verify email from link. Token must exist in DB and not be expired.
+
+**Response**
+```json
+{ "message": "Akun berhasil diverifikasi" }
+```
+On failure:
+```json
+{ "error": 1, "message": "Link verifikasi tidak valid atau sudah expired" }
+```
+
+---
 
 #### `GET /auth/google`
 Redirect browser to Google consent screen. No body needed — open directly in browser (not via axios).

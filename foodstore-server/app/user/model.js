@@ -31,6 +31,18 @@ let userSchema = Schema(
       type: String,
       default: null,
     },
+    verified: {
+      type: Boolean,
+      default: false,
+    },
+    verification_token: {
+      type: String,
+      default: null,
+    },
+    verification_token_expired: {
+      type: Date,
+      default: null,
+    },
     role: {
       type: String,
       enum: ["user", "admin"],

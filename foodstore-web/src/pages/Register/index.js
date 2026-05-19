@@ -22,13 +22,12 @@ export default function Register() {
     // (1) buat fungsi untuk menangani form submit 
     const onSubmit = async formData => {
         let respones = await registerUser(formData);
-        if (respones.status === 200) {
-            setStatus(statuslist.success)
-            // (1) redirect ke `register/berhasil`
+        if (respones.status === 200 && !respones.data?.error) {
+            setStatus(statuslist.success);
             history.push("/register/berhasil");
         } else {
-            setStatus(statuslist.error)
-            alert('error sandi or email wrong !')
+            setStatus(statuslist.error);
+            alert(respones.data?.message || 'Terjadi kesalahan, coba lagi.');
         }
     }
 

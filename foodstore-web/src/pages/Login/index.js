@@ -32,10 +32,12 @@ export default function Login() {
         console.log(response)
         // (4) cek apakah server mengembalikan error
         if (response.data.error) {
-
-            // (6) set status menjadi `error`
             setStatus(statuslist.error);
-            alert('error sandi or email wrong !')
+            if (response.data.message === 'email_not_verified') {
+                history.push('/cek-email');
+            } else {
+                alert('Email atau password salah.');
+            }
 
         } else {
 

@@ -82,4 +82,36 @@ function sendOrderConfirmation({ to, order_number, full_name, items, sub_total, 
     });
 }
 
-module.exports = { sendOrderConfirmation };
+function sendVerificationEmail({ to, full_name, verification_link }) {
+    const html = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#333">
+        <div style="background:#c0392b;padding:20px 24px;border-radius:8px 8px 0 0">
+            <h2 style="color:white;margin:0">🍽️ FoodStore</h2>
+        </div>
+        <div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
+            <p>Halo <b>${full_name}</b>,</p>
+            <p>Terima kasih sudah mendaftar di FoodStore! Klik tombol di bawah untuk verifikasi akun kamu.</p>
+            <div style="text-align:center;margin:28px 0">
+                <a href="${verification_link}"
+                   style="background:#c0392b;color:white;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px">
+                    Verifikasi Akun
+                </a>
+            </div>
+            <p style="font-size:13px;color:#888">Link berlaku selama 24 jam. Jika kamu tidak merasa mendaftar, abaikan email ini.</p>
+            <p style="font-size:12px;color:#bbb;word-break:break-all">Atau buka link ini: ${verification_link}</p>
+        </div>
+    </div>`;
+
+    transporter.sendMail({
+        from: `"FoodStore" <${process.env.MAIL_USER}>`,
+        to,
+        subject: '✅ Verifikasi Akun FoodStore',
+        html,
+    }).then(info => {
+        console.log(`[Mailer] Verifikasi email terkirim ke: ${to} — ${info.messageId}`);
+    }).catch(err => {
+        console.error('[Mailer] Gagal kirim verifikasi email:', err.message);
+    });
+}
+
+module.exports = { sendOrderConfirmation, sendVerificationEmail };

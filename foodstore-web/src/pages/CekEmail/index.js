@@ -3,19 +3,19 @@ import { Link } from 'react-router-dom';
 import { LayoutOne, Card } from 'upkit';
 import styled from '@emotion/styled';
 
-export default function RegisterSuccess() {
+export default function CekEmail() {
     return (
         <LayoutOne size="small">
             <Card color="white">
                 <div style={{ textAlign: 'center', padding: '8px 0' }}>
                     <div style={{ fontSize: 48, marginBottom: 16 }}>📧</div>
-                    <Title>Cek email kamu!</Title>
+                    <Title>Silakan cek email kamu</Title>
                     <Desc>
                         Link verifikasi sudah dikirim ke email kamu.
-                        Klik link tersebut untuk mengaktifkan akun.
+                        Klik link tersebut untuk mengaktifkan akun, lalu login kembali.
                     </Desc>
                     <Hint>Link berlaku selama 24 jam.</Hint>
-                    <LoginLink to="/login">Sudah verifikasi? Login sekarang</LoginLink>
+                    <LoginLink to="/login">Kembali ke Login</LoginLink>
                 </div>
             </Card>
         </LayoutOne>
