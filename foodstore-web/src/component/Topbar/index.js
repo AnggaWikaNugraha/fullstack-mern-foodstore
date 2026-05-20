@@ -126,6 +126,7 @@ const SearchWrap = styled('div')({
     position: 'relative',
     flex: 1,
     minWidth: 0,
+    '@media (max-width: 640px)': { display: 'none' },
 });
 
 const SearchIcon = styled('span')({

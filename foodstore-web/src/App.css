@@ -2,6 +2,19 @@
   to { transform: rotate(360deg); }
 }
 
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+@media (max-width: 640px) {
+  .banner-wrap { height: 12rem !important; border-radius: 0.875rem !important; }
+  .banner-slide { padding: 0 1.25rem !important; }
+  .banner-emoji-cluster { display: none !important; }
+  .banner-title { font-size: 1.25rem !important; margin-bottom: 0.375rem !important; }
+  .banner-subtitle { display: none !important; }
+  .banner-badge { margin-bottom: 0.375rem !important; }
+  .banner-btn { padding: 0.45rem 1.25rem !important; font-size: 0.75rem !important; }
+}
+
 .app-sidebar img {
   width: 30px !important;
   height: 30px !important;

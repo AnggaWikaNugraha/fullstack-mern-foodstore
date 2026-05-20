@@ -27,7 +27,6 @@ async function update(req, res, next) {
         let cartItems = items.map(item => {
             let relatedProduct = products.find(product => product._id.toString() === item._id);
             return {
-                _id: relatedProduct._id,
                 product: relatedProduct._id,
                 price: relatedProduct.price,
                 image_url: relatedProduct.image_url,
@@ -41,13 +40,7 @@ async function update(req, res, next) {
         await CartItem.deleteMany({ user: req.user._id });
 
         if (cartItems.length > 0) {
-            await CartItem.bulkWrite(cartItems.map(item => ({
-                updateOne: {
-                    filter: { user: req.user._id, product: item.product },
-                    update: item,
-                    upsert: true
-                }
-            })));
+            await CartItem.insertMany(cartItems);
         }
 
         return res.json(cartItems);
