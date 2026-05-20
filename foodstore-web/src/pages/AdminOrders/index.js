@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import DataTable from 'react-data-table-component';
-import { LayoutSidebar } from 'upkit';
-import styled from 'styled-components';
+import styled from '@emotion/styled';
 import BounceLoader from 'react-spinners/BounceLoader';
 import { useHistory } from 'react-router-dom';
 import * as XLSX from 'xlsx';
-import AppSidebar from '../../component/AppSidebar';
+import AdminLayout from '../../component/AdminLayout';
 import { getOrders, getOrderStats, exportAllOrders, updateOrderStatus } from '../../api/orders';
 import { formatRupiah } from '../../utils/format-rupiah';
 
@@ -66,7 +65,6 @@ function exportToExcel(orders) {
     const ws1 = XLSX.utils.json_to_sheet(orderRows);
     const ws2 = XLSX.utils.json_to_sheet(itemRows);
 
-    // Column widths
     ws1['!cols'] = [12,18,22,28,12,14,12,14,16,18,20,18,18,30].map(w => ({ wch: w }));
     ws2['!cols'] = [12,18,22,28,8,14,14].map(w => ({ wch: w }));
 
@@ -78,14 +76,14 @@ function exportToExcel(orders) {
 }
 
 export default function AdminOrders() {
-    const [orders, setOrders]       = useState([]);
-    const [count, setCount]         = useState(0);
-    const [page, setPage]           = useState(1);
-    const [loading, setLoading]     = useState(false);
+    const [orders, setOrders]         = useState([]);
+    const [count, setCount]           = useState(0);
+    const [page, setPage]             = useState(1);
+    const [loading, setLoading]       = useState(false);
     const [updatingId, setUpdatingId] = useState(null);
-    const [activeTab, setActiveTab] = useState('');
-    const [stats, setStats]         = useState({ total: 0, by_status: {} });
-    const [exporting, setExporting] = useState(false);
+    const [activeTab, setActiveTab]   = useState('');
+    const [stats, setStats]           = useState({ total: 0, by_status: {} });
+    const [exporting, setExporting]   = useState(false);
     const history = useHistory();
     const perPage = 10;
 
@@ -207,325 +205,280 @@ export default function AdminOrders() {
     ];
 
     const statCards = [
-        { label: 'Total Order',       value: stats.total,                                  color: '#2c3e50', icon: '📦' },
-        { label: 'Menunggu Bayar',    value: stats.by_status?.waiting_payment || 0,         color: '#e67e22', icon: '⏳' },
-        { label: 'Diproses / Dikirim', value: (stats.by_status?.processing || 0) + (stats.by_status?.in_delivery || 0), color: '#2980b9', icon: '🚚' },
-        { label: 'Diterima',          value: stats.by_status?.delivered || 0,               color: '#27ae60', icon: '✅' },
+        { label: 'Total Order',        value: stats.total,                                                                    color: '#2c3e50', icon: '📦' },
+        { label: 'Menunggu Bayar',     value: stats.by_status?.waiting_payment || 0,                                          color: '#e67e22', icon: '⏳' },
+        { label: 'Diproses / Dikirim', value: (stats.by_status?.processing || 0) + (stats.by_status?.in_delivery || 0),       color: '#2980b9', icon: '🚚' },
+        { label: 'Diterima',           value: stats.by_status?.delivered || 0,                                                color: '#27ae60', icon: '✅' },
     ];
 
     return (
-        <LayoutSidebar
-            sidebar={<AppSidebar />}
-            sidebarSize={80}
-            content={
-                <Page>
-                    <Header>
-                        <div>
-                            <Title>Manajemen Order</Title>
-                            <Subtitle>Kelola dan pantau semua pesanan pelanggan</Subtitle>
+        <AdminLayout>
+            <StickyTop>
+                <PageHeader>
+                    <div>
+                        <PageTitle>Manajemen Order</PageTitle>
+                        <PageSub>Kelola dan pantau semua pesanan pelanggan</PageSub>
+                    </div>
+                    <ExportBtn onClick={handleExport} disabled={exporting}>
+                        {exporting ? '⏳ Mengunduh...' : '⬇ Export Excel'}
+                    </ExportBtn>
+                </PageHeader>
+
+                <StatsRow>
+                    {statCards.map(card => (
+                        <StatCard key={card.label} color={card.color}>
+                            <StatIcon>{card.icon}</StatIcon>
+                            <StatValue>{card.value}</StatValue>
+                            <StatLabel>{card.label}</StatLabel>
+                        </StatCard>
+                    ))}
+                </StatsRow>
+            </StickyTop>
+
+            <TableCard>
+                <TabRow>
+                    {STATUS_TABS.map(tab => (
+                        <Tab
+                            key={tab.key}
+                            active={activeTab === tab.key ? 1 : 0}
+                            onClick={() => handleTabChange(tab.key)}
+                        >
+                            {tab.label}
+                            {tab.key && stats.by_status?.[tab.key] != null && (
+                                <TabCount active={activeTab === tab.key ? 1 : 0}>
+                                    {stats.by_status[tab.key] || 0}
+                                </TabCount>
+                            )}
+                            {!tab.key && (
+                                <TabCount active={activeTab === tab.key ? 1 : 0}>{stats.total}</TabCount>
+                            )}
+                        </Tab>
+                    ))}
+                </TabRow>
+
+                <DataTable
+                    columns={columns}
+                    data={orders}
+                    progressPending={loading}
+                    progressComponent={
+                        <div style={{ padding: '48px 0', display: 'flex', justifyContent: 'center' }}>
+                            <BounceLoader color="#c0392b" size={32} />
                         </div>
-                        <ExportBtn onClick={handleExport} disabled={exporting}>
-                            {exporting ? '⏳ Mengunduh...' : '⬇ Export Excel'}
-                        </ExportBtn>
-                    </Header>
-
-                    <StatsRow>
-                        {statCards.map(card => (
-                            <StatCard key={card.label} color={card.color}>
-                                <StatIcon>{card.icon}</StatIcon>
-                                <StatValue>{card.value}</StatValue>
-                                <StatLabel>{card.label}</StatLabel>
-                            </StatCard>
-                        ))}
-                    </StatsRow>
-
-                    <TableCard>
-                        <TabRow>
-                            {STATUS_TABS.map(tab => (
-                                <Tab
-                                    key={tab.key}
-                                    active={activeTab === tab.key}
-                                    onClick={() => handleTabChange(tab.key)}
-                                >
-                                    {tab.label}
-                                    {tab.key && stats.by_status?.[tab.key] != null && (
-                                        <TabCount active={activeTab === tab.key}>
-                                            {stats.by_status[tab.key] || 0}
-                                        </TabCount>
-                                    )}
-                                    {!tab.key && (
-                                        <TabCount active={activeTab === tab.key}>{stats.total}</TabCount>
-                                    )}
-                                </Tab>
-                            ))}
-                        </TabRow>
-
-                        <DataTable
-                            columns={columns}
-                            data={orders}
-                            progressPending={loading}
-                            progressComponent={
-                                <div style={{ padding: '48px 0', display: 'flex', justifyContent: 'center' }}>
-                                    <BounceLoader color="#c0392b" size={32} />
-                                </div>
-                            }
-                            pagination
-                            paginationServer
-                            paginationTotalRows={count}
-                            paginationPerPage={perPage}
-                            paginationComponentOptions={{ noRowsPerPage: true }}
-                            onChangePage={p => setPage(p)}
-                            onRowClicked={row => history.push(`/admin/orders/${row._id}`)}
-                            pointerOnHover
-                            highlightOnHover
-                            noDataComponent={<Empty>Belum ada order</Empty>}
-                            customStyles={tableStyles}
-                        />
-                    </TableCard>
-                </Page>
-            }
-        />
+                    }
+                    pagination
+                    paginationServer
+                    paginationTotalRows={count}
+                    paginationPerPage={perPage}
+                    paginationComponentOptions={{ noRowsPerPage: true }}
+                    onChangePage={p => setPage(p)}
+                    onRowClicked={row => history.push(`/admin/orders/${row._id}`)}
+                    pointerOnHover
+                    highlightOnHover
+                    noDataComponent={<Empty>Belum ada order</Empty>}
+                    customStyles={tableStyles}
+                />
+            </TableCard>
+        </AdminLayout>
     );
 }
 
 const tableStyles = {
     headRow: {
-        style: {
-            backgroundColor: '#f8f9fa',
-            borderBottom: '2px solid #e9ecef',
-            minHeight: '44px',
-        },
+        style: { backgroundColor: '#f8f9fa', borderBottom: '2px solid #e9ecef', minHeight: '44px' },
     },
     headCells: {
-        style: {
-            fontSize: '12px',
-            fontWeight: '700',
-            color: '#495057',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            paddingLeft: '16px',
-            paddingRight: '8px',
-        },
+        style: { fontSize: '12px', fontWeight: '700', color: '#495057', textTransform: 'uppercase', letterSpacing: '0.5px', paddingLeft: '16px', paddingRight: '8px' },
     },
     rows: {
-        style: {
-            minHeight: '64px',
-            borderBottom: '1px solid #f1f3f5',
-            '&:last-child': { borderBottom: 'none' },
-        },
-        highlightOnHoverStyle: {
-            backgroundColor: '#fff8f8',
-            cursor: 'pointer',
-        },
+        style: { minHeight: '64px', borderBottom: '1px solid #f1f3f5', '&:last-child': { borderBottom: 'none' } },
+        highlightOnHoverStyle: { backgroundColor: '#fff8f8', cursor: 'pointer' },
     },
     cells: {
-        style: {
-            paddingLeft: '16px',
-            paddingRight: '8px',
-        },
+        style: { paddingLeft: '16px', paddingRight: '8px' },
     },
     pagination: {
-        style: {
-            borderTop: '1px solid #e9ecef',
-            paddingTop: '12px',
-            paddingBottom: '12px',
-        },
+        style: { borderTop: '1px solid #e9ecef', paddingTop: '12px', paddingBottom: '12px' },
     },
 };
 
-const Page = styled.div`
-    padding: 28px 28px 40px;
-    min-height: 100vh;
-    background: #f4f6f9;
-`;
+const StickyTop = styled('div')({
+    position: 'sticky',
+    top: 0,
+    zIndex: 5,
+    background: '#f5f5f5',
+    paddingBottom: '0.75rem',
+});
 
-const Header = styled.div`
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 24px;
-`;
+const PageHeader = styled('div')({
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: '1.25rem',
+    gap: '1rem',
+    flexWrap: 'wrap',
+});
 
-const Title = styled.h2`
-    font-size: 22px;
-    font-weight: 700;
-    color: #1a1a2e;
-    margin: 0 0 4px;
-`;
+const PageTitle = styled('h2')({
+    fontSize: '1.25rem',
+    fontWeight: 800,
+    color: '#111',
+    margin: '0 0 2px',
+});
 
-const Subtitle = styled.p`
-    font-size: 13px;
-    color: #888;
-    margin: 0;
-`;
+const PageSub = styled('p')({
+    fontSize: '0.8125rem',
+    color: '#999',
+    margin: 0,
+});
 
-const ExportBtn = styled.button`
-    background: ${p => p.disabled ? '#e0e0e0' : '#27ae60'};
-    color: ${p => p.disabled ? '#aaa' : '#fff'};
-    border: none;
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: ${p => p.disabled ? 'not-allowed' : 'pointer'};
-    white-space: nowrap;
-    transition: background 0.15s;
-    &:hover { background: ${p => p.disabled ? '#e0e0e0' : '#219a52'}; }
-`;
+const ExportBtn = styled('button')(({ disabled }) => ({
+    background: disabled ? '#e0e0e0' : '#27ae60',
+    color: disabled ? '#aaa' : '#fff',
+    border: 'none',
+    borderRadius: 8,
+    padding: '10px 20px',
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    whiteSpace: 'nowrap',
+    transition: 'background 0.15s',
+    flexShrink: 0,
+    '&:hover': { background: disabled ? '#e0e0e0' : '#219a52' },
+}));
 
-const StatsRow = styled.div`
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
+const StatsRow = styled('div')({
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '1rem',
+    marginBottom: '1.25rem',
+    '@media (max-width: 900px)': { gridTemplateColumns: 'repeat(2, 1fr)' },
+    '@media (max-width: 480px)': { gridTemplateColumns: 'repeat(2, 1fr)' },
+});
 
-    @media (max-width: 900px) {
-        grid-template-columns: repeat(2, 1fr);
-    }
-`;
+const StatCard = styled('div')(({ color }) => ({
+    background: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
+    borderLeft: `4px solid ${color}`,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+}));
 
-const StatCard = styled.div`
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-    border-left: 4px solid ${p => p.color};
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-`;
+const StatIcon = styled('div')({ fontSize: 22, marginBottom: 6 });
+const StatValue = styled('div')({ fontSize: 28, fontWeight: 800, color: '#1a1a2e', lineHeight: 1 });
+const StatLabel = styled('div')({ fontSize: 12, color: '#888', marginTop: 2 });
 
-const StatIcon = styled.div`
-    font-size: 22px;
-    margin-bottom: 6px;
-`;
+const TableCard = styled('div')({
+    background: '#fff',
+    borderRadius: 12,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
+    overflow: 'hidden',
+});
 
-const StatValue = styled.div`
-    font-size: 28px;
-    font-weight: 800;
-    color: #1a1a2e;
-    line-height: 1;
-`;
+const TabRow = styled('div')({
+    display: 'flex',
+    gap: 4,
+    padding: '1rem 1rem 0',
+    borderBottom: '1px solid #e9ecef',
+    overflowX: 'auto',
+    msOverflowStyle: 'none',
+    scrollbarWidth: 'none',
+    '&::-webkit-scrollbar': { display: 'none' },
+});
 
-const StatLabel = styled.div`
-    font-size: 12px;
-    color: #888;
-    margin-top: 2px;
-`;
+const Tab = styled('button')(({ active }) => ({
+    background: 'none',
+    border: 'none',
+    borderBottom: `2px solid ${active ? '#c0392b' : 'transparent'}`,
+    color: active ? '#c0392b' : '#888',
+    fontSize: 13,
+    fontWeight: active ? 700 : 500,
+    padding: '8px 12px 12px',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    transition: 'color 0.15s',
+    '&:hover': { color: '#c0392b' },
+}));
 
-const TableCard = styled.div`
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-    overflow: hidden;
-`;
+const TabCount = styled('span')(({ active }) => ({
+    background: active ? '#c0392b' : '#e9ecef',
+    color: active ? '#fff' : '#666',
+    fontSize: 11,
+    fontWeight: 700,
+    borderRadius: 999,
+    padding: '1px 7px',
+    minWidth: 20,
+    textAlign: 'center',
+}));
 
-const TabRow = styled.div`
-    display: flex;
-    gap: 4px;
-    padding: 16px 16px 0;
-    border-bottom: 1px solid #e9ecef;
-    overflow-x: auto;
-`;
+const OrderNum = styled('span')({
+    fontWeight: 700,
+    color: '#1a1a2e',
+    fontSize: 13,
+});
 
-const Tab = styled.button`
-    background: none;
-    border: none;
-    border-bottom: 2px solid ${p => p.active ? '#c0392b' : 'transparent'};
-    color: ${p => p.active ? '#c0392b' : '#888'};
-    font-size: 13px;
-    font-weight: ${p => p.active ? '700' : '500'};
-    padding: 8px 12px 12px;
-    cursor: pointer;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: color 0.15s;
-    &:hover { color: #c0392b; }
-`;
+const DateCell = styled('span')({
+    fontSize: 12,
+    color: '#666',
+});
 
-const TabCount = styled.span`
-    background: ${p => p.active ? '#c0392b' : '#e9ecef'};
-    color: ${p => p.active ? '#fff' : '#666'};
-    font-size: 11px;
-    font-weight: 700;
-    border-radius: 999px;
-    padding: 1px 7px;
-    min-width: 20px;
-    text-align: center;
-`;
+const CustomerCell = styled('div')({
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+    '& .name': { fontSize: 13, fontWeight: 600, color: '#1a1a2e' },
+    '& .email': { fontSize: 11, color: '#aaa' },
+});
 
-const OrderNum = styled.span`
-    font-weight: 700;
-    color: #1a1a2e;
-    font-size: 13px;
-`;
+const ItemCount = styled('span')({
+    fontSize: 12,
+    color: '#555',
+    background: '#f0f0f0',
+    padding: '3px 8px',
+    borderRadius: 999,
+    whiteSpace: 'nowrap',
+});
 
-const DateCell = styled.span`
-    font-size: 12px;
-    color: #666;
-`;
+const TotalCell = styled('span')({
+    fontSize: 13,
+    fontWeight: 700,
+    color: '#c0392b',
+});
 
-const CustomerCell = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    .name {
-        font-size: 13px;
-        font-weight: 600;
-        color: #1a1a2e;
-    }
-    .email {
-        font-size: 11px;
-        color: #aaa;
-    }
-`;
+const StatusBadge = styled('span')(({ color }) => ({
+    background: `${color}22`,
+    color: color,
+    fontSize: 11,
+    fontWeight: 700,
+    padding: '4px 10px',
+    borderRadius: 999,
+    whiteSpace: 'nowrap',
+    border: `1px solid ${color}44`,
+}));
 
-const ItemCount = styled.span`
-    font-size: 12px;
-    color: #555;
-    background: #f0f0f0;
-    padding: 3px 8px;
-    border-radius: 999px;
-    white-space: nowrap;
-`;
+const UpdateBtn = styled('button')(({ disabled }) => ({
+    background: '#c0392b',
+    color: 'white',
+    border: 'none',
+    borderRadius: 6,
+    padding: '5px 10px',
+    fontSize: 11,
+    fontWeight: 700,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    whiteSpace: 'nowrap',
+    opacity: disabled ? 0.5 : 1,
+    transition: 'background 0.15s',
+    '&:hover': { background: disabled ? '#c0392b' : '#a93226' },
+}));
 
-const TotalCell = styled.span`
-    font-size: 13px;
-    font-weight: 700;
-    color: #c0392b;
-`;
-
-const StatusBadge = styled.span`
-    background: ${p => p.color}22;
-    color: ${p => p.color};
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 999px;
-    white-space: nowrap;
-    border: 1px solid ${p => p.color}44;
-`;
-
-const UpdateBtn = styled.button`
-    background: #c0392b;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 5px 10px;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    white-space: nowrap;
-    opacity: ${p => p.disabled ? 0.5 : 1};
-    transition: background 0.15s;
-    &:hover { background: ${p => p.disabled ? '#c0392b' : '#a93226'}; }
-`;
-
-const Empty = styled.div`
-    padding: 48px;
-    color: #ccc;
-    font-size: 14px;
-    text-align: center;
-`;
+const Empty = styled('div')({
+    padding: 48,
+    color: '#ccc',
+    fontSize: 14,
+    textAlign: 'center',
+});

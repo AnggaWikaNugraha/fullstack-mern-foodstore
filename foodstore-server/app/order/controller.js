@@ -215,14 +215,28 @@ async function show(req, res, next) {
 
 async function updateStatus(req, res, next) {
   try {
-    if (!req.user || req.user.role !== 'admin') {
-      return res.json({ error: 1, message: 'Admin only' });
-    }
+    if (!req.user) return res.json({ error: 1, message: 'Unauthorized' });
 
     const { status } = req.body;
-    const allowed = ['processing', 'in_delivery', 'delivered'];
-    if (!allowed.includes(status)) {
-      return res.json({ error: 1, message: 'Status tidak valid' });
+
+    if (req.user.role === 'admin') {
+      const allowed = ['processing', 'in_delivery', 'delivered'];
+      if (!allowed.includes(status)) {
+        return res.json({ error: 1, message: 'Status tidak valid' });
+      }
+    } else {
+      // User hanya boleh konfirmasi penerimaan pesanannya sendiri
+      if (status !== 'delivered') {
+        return res.json({ error: 1, message: 'Tidak diizinkan' });
+      }
+      const existing = await Order.findById(req.params.id);
+      if (!existing) return res.json({ error: 1, message: 'Order tidak ditemukan' });
+      if (String(existing.user) !== String(req.user._id)) {
+        return res.json({ error: 1, message: 'Bukan pesanan Anda' });
+      }
+      if (existing.status !== 'in_delivery') {
+        return res.json({ error: 1, message: 'Pesanan belum dalam pengiriman' });
+      }
     }
 
     const order = await Order.findByIdAndUpdate(

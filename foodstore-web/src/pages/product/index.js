@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import DataTable from 'react-data-table-component';
-import { LayoutSidebar } from 'upkit';
-import styled from 'styled-components';
+import styled from '@emotion/styled';
 import BounceLoader from 'react-spinners/BounceLoader';
-import AppSidebar from '../../component/AppSidebar';
+import AdminLayout from '../../component/AdminLayout';
 
 import { formatRupiah } from '../../utils/format-rupiah';
 import { getImageUrl } from '../../utils/image-url';
@@ -155,56 +154,52 @@ const AdminProduct = () => {
         },
         {
             name: 'Actions',
+            width: '160px',
             cell: row => (
-                <>
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                     <ActionBtn onClick={() => openEdit(row)}>Edit</ActionBtn>
-                    <ActionBtn Bg="#c0392b" onClick={() => handleDelete(row._id)}>Delete</ActionBtn>
-                </>
+                    <ActionBtn bg="#c0392b" onClick={() => handleDelete(row._id)}>Delete</ActionBtn>
+                </div>
             ),
         },
     ];
 
     return (
-        <div>
-            <LayoutSidebar
-                sidebar={<AppSidebar />}
-                content={
-                    <div className="w-full p-10 h-full min-h-screen">
-                        <TopBar>
-                            <Heading>PRODUCT</Heading>
-                            <Button onClick={openAdd}>+ Tambah Product</Button>
-                        </TopBar>
+        <>
+            <AdminLayout title="Produk" subtitle="Kelola semua produk yang tersedia di toko">
+                <TableCard>
+                    <TableTopBar>
+                        <div />
+                        <AddBtn onClick={openAdd}>+ Tambah Produk</AddBtn>
+                    </TableTopBar>
 
-                        <DataTable
-                            columns={columns}
-                            data={products}
-                            progressPending={loading}
-                            progressComponent={
-                                <div style={{ padding: 30 }}>
-                                    <BounceLoader color="red" />
-                                </div>
-                            }
-                            pagination
-                            paginationServer
-                            paginationTotalRows={count}
-                            onChangePage={p => setPage(p)}
-                            paginationPerPage={perPage}
-                            noDataComponent={
-                                <p style={{ padding: 20, color: '#888' }}>
-                                    Belum ada produk. Klik "+ Tambah Product" untuk mulai.
-                                </p>
-                            }
-                        />
-                    </div>
-                }
-                sidebarSize={80}
-            />
+                    <DataTable
+                        columns={columns}
+                        data={products}
+                        progressPending={loading}
+                        progressComponent={
+                            <div style={{ padding: 40, display: 'flex', justifyContent: 'center' }}>
+                                <BounceLoader color="#c0392b" size={32} />
+                            </div>
+                        }
+                        pagination
+                        paginationServer
+                        paginationTotalRows={count}
+                        onChangePage={p => setPage(p)}
+                        paginationPerPage={perPage}
+                        noDataComponent={
+                            <Empty>Belum ada produk. Klik "+ Tambah Produk" untuk mulai.</Empty>
+                        }
+                        customStyles={tableStyles}
+                    />
+                </TableCard>
+            </AdminLayout>
 
             {showModal && (
                 <Overlay>
                     <Modal>
                         <ModalHeader>
-                            <h2>{selectedProduct ? 'Edit Product' : 'Tambah Product'}</h2>
+                            <h2>{selectedProduct ? 'Edit Produk' : 'Tambah Produk'}</h2>
                             <CloseBtn onClick={() => setShowModal(false)}>✕</CloseBtn>
                         </ModalHeader>
 
@@ -277,30 +272,69 @@ const AdminProduct = () => {
                             </FormGroup>
 
                             <ModalFooter>
-                                <Button type="submit" disabled={submitLoading}>
+                                <SubmitBtn type="submit" disabled={submitLoading}>
                                     {submitLoading ? 'Menyimpan...' : selectedProduct ? 'Update' : 'Simpan'}
-                                </Button>
-                                <Button type="button" Bg="#bababa" onClick={() => setShowModal(false)}>Batal</Button>
+                                </SubmitBtn>
+                                <CancelBtn type="button" onClick={() => setShowModal(false)}>Batal</CancelBtn>
                             </ModalFooter>
                         </form>
                     </Modal>
                 </Overlay>
             )}
-        </div>
+        </>
     );
 };
 
 export default AdminProduct;
 
-const TopBar = styled('div')({
+const tableStyles = {
+    headRow: {
+        style: { backgroundColor: '#f8f9fa', borderBottom: '2px solid #e9ecef', minHeight: '44px' },
+    },
+    headCells: {
+        style: { fontSize: '12px', fontWeight: '700', color: '#495057', textTransform: 'uppercase', letterSpacing: '0.5px', paddingLeft: '16px', paddingRight: '8px' },
+    },
+    rows: {
+        style: { minHeight: '64px', borderBottom: '1px solid #f1f3f5' },
+    },
+    cells: {
+        style: { paddingLeft: '16px', paddingRight: '8px' },
+    },
+    pagination: {
+        style: { borderTop: '1px solid #e9ecef', paddingTop: '12px', paddingBottom: '12px' },
+    },
+};
+
+const TableCard = styled('div')({
+    background: '#fff',
+    borderRadius: '0.875rem',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
+    overflowX: 'auto',
+});
+
+const TableTopBar = styled('div')({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 24,
+    padding: '1rem 1.25rem',
+    borderBottom: '1px solid #f0f0f0',
 });
 
-const StockBadge = styled('span')(props => ({
-    backgroundColor: props.color || '#888',
+const AddBtn = styled('button')({
+    background: '#c0392b',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '0.5rem',
+    padding: '0.5rem 1.125rem',
+    fontSize: '0.875rem',
+    fontWeight: 700,
+    cursor: 'pointer',
+    transition: 'background 0.15s',
+    '&:hover': { background: '#a93226' },
+});
+
+const StockBadge = styled('span')(({ color }) => ({
+    backgroundColor: color || '#888',
     color: 'white',
     borderRadius: 5,
     padding: '3px 8px',
@@ -308,31 +342,28 @@ const StockBadge = styled('span')(props => ({
     fontWeight: 700,
 }));
 
-const Heading = styled('p')({
-    fontSize: 23,
-    fontWeight: 'bold',
+const ActionBtn = styled('button')(({ bg }) => ({
+    backgroundColor: bg || '#333',
+    color: 'white',
+    border: 'none',
+    padding: '5px 12px',
+    borderRadius: 5,
+    cursor: 'pointer',
+    fontSize: 12,
+    fontWeight: 600,
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+    transition: 'opacity 0.1s',
+    '&:hover': { opacity: 0.85 },
+}));
+
+const Empty = styled('p')({
+    color: '#ccc',
+    fontSize: 14,
+    textAlign: 'center',
+    padding: '3rem 0',
     margin: 0,
 });
-
-const Button = styled('button')(props => ({
-    backgroundColor: props.Bg || 'black',
-    color: props.CFont || 'white',
-    padding: '10px 20px',
-    borderRadius: 5,
-    cursor: 'pointer',
-    opacity: props.disabled ? 0.6 : 1,
-    marginRight: props.Bg ? 0 : 10,
-}));
-
-const ActionBtn = styled('button')(props => ({
-    backgroundColor: props.Bg || 'black',
-    color: 'white',
-    padding: '6px 14px',
-    marginRight: 8,
-    borderRadius: 5,
-    cursor: 'pointer',
-    fontSize: 13,
-}));
 
 const Overlay = styled('div')({
     position: 'fixed',
@@ -346,8 +377,8 @@ const Overlay = styled('div')({
 
 const Modal = styled('div')({
     backgroundColor: 'white',
-    borderRadius: 10,
-    padding: '30px',
+    borderRadius: 12,
+    padding: '1.75rem',
     width: '100%',
     maxWidth: 560,
     maxHeight: '90vh',
@@ -358,14 +389,14 @@ const ModalHeader = styled('div')({
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
-    '& h2': { fontSize: 18, fontWeight: 'bold' },
+    marginBottom: '1.25rem',
+    '& h2': { fontSize: 18, fontWeight: 'bold', margin: 0 },
 });
 
 const ModalFooter = styled('div')({
     display: 'flex',
     gap: 10,
-    marginTop: 24,
+    marginTop: '1.25rem',
 });
 
 const CloseBtn = styled('button')({
@@ -403,7 +434,7 @@ const Input = styled('input')({
     width: '100%',
     outline: 'none',
     boxSizing: 'border-box',
-    '&:focus': { borderColor: '#333' },
+    '&:focus': { borderColor: '#c0392b' },
 });
 
 const Textarea = styled('textarea')({
@@ -414,7 +445,7 @@ const Textarea = styled('textarea')({
     width: '100%',
     resize: 'vertical',
     outline: 'none',
-    '&:focus': { borderColor: '#333' },
+    '&:focus': { borderColor: '#c0392b' },
 });
 
 const ImagePreview = styled('img')({
@@ -434,6 +465,7 @@ const ErrorMsg = styled('p')({
     padding: '10px 14px',
     marginBottom: 16,
     fontSize: 14,
+    margin: '0 0 16px',
 });
 
 const Select = styled('select')({
@@ -444,7 +476,7 @@ const Select = styled('select')({
     width: '100%',
     outline: 'none',
     backgroundColor: 'white',
-    '&:focus': { borderColor: '#333' },
+    '&:focus': { borderColor: '#c0392b' },
 });
 
 const CheckboxGrid = styled('div')({
@@ -464,4 +496,30 @@ const CheckboxLabel = styled('label')({
     fontSize: 14,
     cursor: 'pointer',
     '& input': { cursor: 'pointer' },
+});
+
+const SubmitBtn = styled('button')({
+    background: '#c0392b',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 6,
+    padding: '10px 20px',
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: 'pointer',
+    transition: 'background 0.15s',
+    '&:hover': { background: '#a93226' },
+    '&:disabled': { opacity: 0.6, cursor: 'not-allowed' },
+});
+
+const CancelBtn = styled('button')({
+    background: '#e9ecef',
+    color: '#555',
+    border: 'none',
+    borderRadius: 6,
+    padding: '10px 20px',
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: 'pointer',
+    '&:hover': { background: '#dee2e6' },
 });

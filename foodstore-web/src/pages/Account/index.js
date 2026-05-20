@@ -1,11 +1,12 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useHistory, Link } from 'react-router-dom';
+import { useHistory, useLocation, Link } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { setPassword } from '../../api/auth';
 import { userLogin } from '../../features/Auth/actions';
 import BounceLoader from 'react-spinners/BounceLoader';
 import { getInvoices } from '../../api/invoice';
+import { getOrders } from '../../api/orders';
 import { formatRupiah } from '../../utils/format-rupiah';
 
 const TABS = [
@@ -35,25 +36,49 @@ export default function Account() {
     const cartSaving  = useSelector(state => state.cartSaving);
     const dispatch    = useDispatch();
     const history     = useHistory();
+    const location    = useLocation();
     const user        = auth?.user;
 
-    const [tab,            setTab]            = React.useState('biodata');
-    const [invoices,       setInvoices]       = React.useState([]);
-    const [invoiceLoading, setInvoiceLoading] = React.useState(false);
-    const [pwForm,         setPwForm]         = React.useState({ password: '', password_confirmation: '' });
+    const initialTab  = new URLSearchParams(location.search).get('tab') || 'biodata';
+    const [tab,            setTab]            = React.useState(initialTab);
+    const [invoices,        setInvoices]       = React.useState([]);
+    const [invoiceLoading,  setInvoiceLoading] = React.useState(false);
+    const [pendingInvoices,  setPendingInvoices]  = React.useState([]);
+    const [pendingExpanded,  setPendingExpanded]  = React.useState(false);
+    const [adminOrders,      setAdminOrders]      = React.useState([]);
+    const [adminExpanded,    setAdminExpanded]    = React.useState(false);
+    const [pwForm,          setPwForm]         = React.useState({ password: '', password_confirmation: '' });
     const [pwStatus,       setPwStatus]       = React.useState('idle');
     const [pwMsg,          setPwMsg]          = React.useState('');
 
-    const handleTabChange = (key) => {
-        setTab(key);
-        if (key === 'riwayat') {
-            setInvoiceLoading(true);
+    React.useEffect(() => {
+        if (!user) return;
+        if (user.role === 'admin') {
+            getOrders({ limit: 20, page: 1, status: 'processing' })
+                .then(res => setAdminOrders(res.data.data || []))
+                .catch(() => {});
+        } else {
             getInvoices({ limit: 20 })
-                .then(res => setInvoices(res.data.data || []))
-                .catch(() => {})
-                .finally(() => setInvoiceLoading(false));
+                .then(res => {
+                    const all = res.data.data || [];
+                    setPendingInvoices(all.filter(inv =>
+                        ['waiting_payment', 'pending'].includes(inv.payment_status)
+                    ));
+                })
+                .catch(() => {});
         }
-    };
+    }, []); // eslint-disable-line
+
+    React.useEffect(() => {
+        if (tab !== 'riwayat') return;
+        setInvoiceLoading(true);
+        getInvoices({ limit: 20 })
+            .then(res => setInvoices(res.data.data || []))
+            .catch(() => {})
+            .finally(() => setInvoiceLoading(false));
+    }, [tab]); // eslint-disable-line
+
+    const handleTabChange = (key) => setTab(key);
 
     const handleSetPassword = async (e) => {
         e.preventDefault();
@@ -100,10 +125,17 @@ export default function Account() {
                 {/* ── MOBILE: tab bar ── */}
                 <MobileTabBar>
                     {TABS.map(t => (
-                        <MobileTabItem key={t.key} active={tab === t.key} onClick={() => handleTabChange(t.key)}>
-                            <span>{t.icon}</span>
-                            <span>{t.label}</span>
-                        </MobileTabItem>
+                        t.key === 'alamat' ? (
+                            <MobileTabItem key={t.key} active={tab === t.key} as={Link} to="/alamat-pengiriman">
+                                <span>{t.icon}</span>
+                                <span>{t.label}</span>
+                            </MobileTabItem>
+                        ) : (
+                            <MobileTabItem key={t.key} active={tab === t.key} onClick={() => handleTabChange(t.key)}>
+                                <span>{t.icon}</span>
+                                <span>{t.label}</span>
+                            </MobileTabItem>
+                        )
                     ))}
                     {user.role === 'admin' && (
                         <MobileTabItem active={tab === 'admin'} onClick={() => handleTabChange('admin')}>
@@ -130,10 +162,17 @@ export default function Account() {
 
                     <NavList>
                         {TABS.map(t => (
-                            <NavItem key={t.key} active={tab === t.key} onClick={() => handleTabChange(t.key)}>
-                                <NavIcon>{t.icon}</NavIcon>
-                                <NavLabel active={tab === t.key}>{t.label}</NavLabel>
-                            </NavItem>
+                            t.key === 'alamat' ? (
+                                <NavItem key={t.key} as={Link} to="/alamat-pengiriman" active={tab === t.key} style={{ textDecoration: 'none' }}>
+                                    <NavIcon>{t.icon}</NavIcon>
+                                    <NavLabel active={tab === t.key}>{t.label}</NavLabel>
+                                </NavItem>
+                            ) : (
+                                <NavItem key={t.key} active={tab === t.key} onClick={() => handleTabChange(t.key)}>
+                                    <NavIcon>{t.icon}</NavIcon>
+                                    <NavLabel active={tab === t.key}>{t.label}</NavLabel>
+                                </NavItem>
+                            )
                         ))}
                         {user.role === 'admin' && (
                             <NavItem active={tab === 'admin'} onClick={() => handleTabChange('admin')}>
@@ -155,6 +194,53 @@ export default function Account() {
 
                 {/* ── RIGHT CONTENT ── */}
                 <Content>
+
+                    {/* Admin: pesanan masuk perlu dikirim */}
+                    {user.role === 'admin' && adminOrders.length > 0 && (
+                        <AdminOrderBanner>
+                            <AdminBannerHead onClick={() => setAdminExpanded(v => !v)}>
+                                <AdminBannerIcon>🚚</AdminBannerIcon>
+                                <AdminBannerTitle>
+                                    {adminOrders.length} pesanan perlu dikirim
+                                </AdminBannerTitle>
+                                <PendingChevron expanded={adminExpanded}>›</PendingChevron>
+                            </AdminBannerHead>
+                            {adminExpanded && adminOrders.map((order, i) => (
+                                <AdminOrderItem key={i} as={Link} to="/admin/orders">
+                                    <AdminOrderInfo>
+                                        <AdminOrderNum>Order #{order.order_number}</AdminOrderNum>
+                                        <AdminOrderMeta>
+                                            {order.user?.full_name || '-'} · {(order.order_items || []).reduce((s, it) => s + it.qty, 0)} item
+                                        </AdminOrderMeta>
+                                    </AdminOrderInfo>
+                                    <AdminProcessBtn>Proses →</AdminProcessBtn>
+                                </AdminOrderItem>
+                            ))}
+                        </AdminOrderBanner>
+                    )}
+
+                    {/* User: pending payment banner */}
+                    {user.role !== 'admin' && pendingInvoices.length > 0 && (
+                        <PendingBanner>
+                            <PendingBannerHead onClick={() => setPendingExpanded(v => !v)}>
+                                <PendingBannerIcon>⏳</PendingBannerIcon>
+                                <PendingBannerTitle>
+                                    {pendingInvoices.length} pesanan menunggu pembayaran
+                                </PendingBannerTitle>
+                                <PendingChevron expanded={pendingExpanded}>›</PendingChevron>
+                            </PendingBannerHead>
+                            {pendingExpanded && pendingInvoices.map((inv, i) => (
+                                <PendingItem key={i} as={Link} to={`/invoice/${inv.order?._id}`}>
+                                    <PendingItemInfo>
+                                        <PendingItemOrder>Order #{inv.order?.order_number || '-'}</PendingItemOrder>
+                                        <PendingItemTotal>{formatRupiah(inv.total)}</PendingItemTotal>
+                                    </PendingItemInfo>
+                                    <PendingPayBtn>Bayar →</PendingPayBtn>
+                                </PendingItem>
+                            ))}
+                        </PendingBanner>
+                    )}
+
                     {/* Biodata */}
                     {tab === 'biodata' && (
                         <Section>
@@ -325,18 +411,24 @@ export default function Account() {
 
 const PageBg = styled('div')({
     background: '#f5f5f5',
-    minHeight: 'calc(100vh - 3.75rem)',
-    padding: '1.5rem 0 3rem',
-    '@media (max-width: 640px)': { padding: '0 0 3rem' },
+    height: 'calc(100vh - 3.75rem)',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
 });
 
 const PageInner = styled('div')({
-    maxWidth: '62rem',
-    margin: '0 auto',
-    padding: '0 1.25rem',
+    flex: 1,
+    minHeight: 0,
     display: 'flex',
     gap: '1.25rem',
-    alignItems: 'flex-start',
+    alignItems: 'stretch',
+    overflow: 'hidden',
+    maxWidth: '62rem',
+    width: '100%',
+    margin: '0 auto',
+    padding: '1.5rem 1.25rem 2rem',
+    boxSizing: 'border-box',
     '@media (max-width: 640px)': {
         flexDirection: 'column',
         padding: 0,
@@ -350,6 +442,7 @@ const MobileHeader = styled('div')({
     display: 'none',
     '@media (max-width: 640px)': {
         display: 'flex',
+        flexShrink: 0,
         alignItems: 'center',
         gap: '1rem',
         background: '#c0392b',
@@ -389,6 +482,7 @@ const MobileTabBar = styled('div')({
     display: 'none',
     '@media (max-width: 640px)': {
         display: 'flex',
+        flexShrink: 0,
         overflowX: 'auto',
         background: '#fff',
         borderBottom: '1px solid #f0f0f0',
@@ -441,7 +535,12 @@ const Sidebar = styled('div')({
     background: '#fff',
     borderRadius: '0.875rem',
     boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
-    overflow: 'hidden',
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    alignSelf: 'stretch',
+    msOverflowStyle: 'none',
+    scrollbarWidth: 'none',
+    '&::-webkit-scrollbar': { display: 'none' },
     '@media (max-width: 640px)': { display: 'none' },
 });
 
@@ -528,7 +627,15 @@ const Divider = styled('div')({
 const Content = styled('div')({
     flex: 1,
     minWidth: 0,
-    '@media (max-width: 640px)': { width: '100%', padding: '0.75rem' },
+    minHeight: 0,
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    paddingBottom: '2rem',
+    '@media (max-width: 640px)': {
+        width: '100%',
+        padding: '0.75rem',
+        paddingBottom: '1.5rem',
+    },
 });
 
 const Section = styled('div')({
@@ -697,6 +804,158 @@ const SaveBtn = styled('button')(({ disabled }) => ({
     cursor: disabled ? 'not-allowed' : 'pointer',
     '&:hover': { background: disabled ? '#e0e0e0' : '#a93226' },
 }));
+
+/* ─── Pending payment banner ─────────────────────────────────────────────── */
+
+const PendingBanner = styled('div')({
+    background: '#fff9f0',
+    border: '1px solid #f5cba7',
+    borderRadius: '0.75rem',
+    overflow: 'hidden',
+    marginBottom: '1rem',
+});
+
+const PendingBannerHead = styled('div')({
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.625rem',
+    padding: '0.75rem 1.25rem',
+    background: '#fff3e0',
+    cursor: 'pointer',
+    userSelect: 'none',
+    '&:hover': { background: '#ffe9c8' },
+});
+
+const PendingChevron = styled('span')(({ expanded }) => ({
+    marginLeft: 'auto',
+    fontSize: '1.125rem',
+    color: '#e67e22',
+    fontWeight: 700,
+    transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
+    transition: 'transform 0.2s',
+    display: 'inline-block',
+    lineHeight: 1,
+}));
+
+const PendingBannerIcon = styled('span')({
+    fontSize: 18,
+    flexShrink: 0,
+});
+
+const PendingBannerTitle = styled('div')({
+    fontSize: '0.875rem',
+    fontWeight: 700,
+    color: '#c0392b',
+});
+
+const PendingItem = styled('div')({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '0.75rem 1.25rem',
+    borderBottom: '1px solid #fde8cc',
+    textDecoration: 'none',
+    cursor: 'pointer',
+    transition: 'background 0.12s',
+    '&:last-child': { borderBottom: 'none' },
+    '&:hover': { background: '#fff3e0' },
+});
+
+const PendingItemInfo = styled('div')({});
+
+const PendingItemOrder = styled('div')({
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    color: '#333',
+    marginBottom: 2,
+});
+
+const PendingItemTotal = styled('div')({
+    fontSize: '0.8125rem',
+    color: '#e67e22',
+    fontWeight: 700,
+});
+
+const PendingPayBtn = styled('div')({
+    background: '#c0392b',
+    color: '#fff',
+    borderRadius: '0.5rem',
+    padding: '0.4375rem 1rem',
+    fontSize: '0.8125rem',
+    fontWeight: 700,
+    flexShrink: 0,
+    whiteSpace: 'nowrap',
+});
+
+/* ─── Admin order banner ─────────────────────────────────────────────────── */
+
+const AdminOrderBanner = styled('div')({
+    background: '#ebf5fb',
+    border: '1px solid #aed6f1',
+    borderRadius: '0.75rem',
+    overflow: 'hidden',
+    marginBottom: '1rem',
+});
+
+const AdminBannerHead = styled('div')({
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.625rem',
+    padding: '0.75rem 1.25rem',
+    background: '#d6eaf8',
+    cursor: 'pointer',
+    userSelect: 'none',
+    '&:hover': { background: '#c5e0f5' },
+});
+
+const AdminBannerIcon = styled('span')({
+    fontSize: 18,
+    flexShrink: 0,
+});
+
+const AdminBannerTitle = styled('div')({
+    fontSize: '0.875rem',
+    fontWeight: 700,
+    color: '#1a5276',
+});
+
+const AdminOrderItem = styled('div')({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '0.75rem 1.25rem',
+    borderBottom: '1px solid #aed6f1',
+    textDecoration: 'none',
+    cursor: 'pointer',
+    transition: 'background 0.12s',
+    '&:last-child': { borderBottom: 'none' },
+    '&:hover': { background: '#d6eaf8' },
+});
+
+const AdminOrderInfo = styled('div')({});
+
+const AdminOrderNum = styled('div')({
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    color: '#1a5276',
+    marginBottom: 2,
+});
+
+const AdminOrderMeta = styled('div')({
+    fontSize: '0.8125rem',
+    color: '#5d8aa8',
+});
+
+const AdminProcessBtn = styled('div')({
+    background: '#2980b9',
+    color: '#fff',
+    borderRadius: '0.5rem',
+    padding: '0.4375rem 1rem',
+    fontSize: '0.8125rem',
+    fontWeight: 700,
+    flexShrink: 0,
+    whiteSpace: 'nowrap',
+});
 
 /* ─── Admin Panel ─────────────────────────────────────────────────────────── */
 
