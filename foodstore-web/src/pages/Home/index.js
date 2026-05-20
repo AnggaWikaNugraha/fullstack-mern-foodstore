@@ -9,7 +9,7 @@ import { addItem } from '../../features/Cart/actions';
 import { Responsive, Pagination, Pill } from 'upkit';
 import { formatRupiah } from '../../utils/format-rupiah';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProducts, setPage, goToNextPage, goToPrevPage, setKeyword, setCategory, toggleTag } from '../../features/products/actions';
+import { fetchProducts, setPage, goToNextPage, goToPrevPage, setCategory, toggleTag } from '../../features/products/actions';
 import { getTags } from '../../api/tag';
 import { getWishlist, addToWishlist, removeFromWishlist } from '../../api/wishlist';
 import { saveCart, cartState } from '../../api/cart';

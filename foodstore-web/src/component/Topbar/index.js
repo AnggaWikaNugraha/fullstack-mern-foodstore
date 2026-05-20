@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useHistory } from 'react-router-dom';
-import FaShieldAlt from "@meronex/icons/fa/FaShieldAlt";
 import FaSignOutAlt from "@meronex/icons/fa/FaSignOutAlt";
 import styled from '@emotion/styled';
 
@@ -50,12 +49,6 @@ export default function TopBar() {
 
                     {user ? (
                         <>
-                            {user.role === 'admin' && (
-                                <AdminBtn onClick={() => history.push('/admin/product')}>
-                                    <FaShieldAlt style={{ marginRight: '0.375rem' }} />
-                                    Admin
-                                </AdminBtn>
-                            )}
                             <ProfileLink to="/account" title={user.full_name}>
                                 <Avatar>{initials}</Avatar>
                                 <UserName>{user.full_name}</UserName>
@@ -248,21 +241,6 @@ const LogoutBtn = styled('button')({
     '&:hover': { background: 'rgba(255,255,255,0.25)', color: 'white' },
 });
 
-const AdminBtn = styled('button')({
-    display: 'flex',
-    alignItems: 'center',
-    background: 'rgba(255,255,255,0.15)',
-    color: 'white',
-    border: '1px solid rgba(255,255,255,0.3)',
-    borderRadius: '0.5rem',
-    padding: '0.375rem 0.875rem',
-    fontSize: '0.8125rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    transition: 'background 0.15s',
-    whiteSpace: 'nowrap',
-    '&:hover': { background: 'rgba(255,255,255,0.25)' },
-});
 
 const MasukBtn = styled(Link)({
     display: 'flex',
