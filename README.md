@@ -1,6 +1,6 @@
 # Fullstack MERN Foodstore
 
-A food e-commerce application built with the MERN Stack (MongoDB, Express, React, Node.js). Users can browse food products, add items to their cart, checkout, and view order history. Admins can manage products, categories, and orders.
+A full-featured food e-commerce application built with the MERN Stack (MongoDB, Express, React, Node.js). Users can browse food products, add to cart, checkout with delivery address, pay via Midtrans, track order status in real-time, confirm delivery, and review purchased items. Admins can manage products, categories, orders, and monitor a live dashboard with revenue charts, low-stock alerts, and Excel export.
 
 ---
 
@@ -43,12 +43,22 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 ## Features
 
 - Product listing with search by keyword, category, and tags
-- User registration & login (JWT-based auth)
+- User registration & login (JWT-based auth + Google OAuth)
+- Email verification before first login
 - Shopping cart (per-user, isolated)
 - Checkout with delivery address selection
-- Order history & invoice detail
+- Midtrans Snap payment gateway (sandbox)
+- Order history & invoice detail with visual timeline
+- Real-time order status tracking via Pusher
+- User can confirm delivery directly from invoice page
+- Product rating & review (only after payment settled)
+- Wishlist — save favourite products
 - Manage delivery addresses with Indonesian regional data (province, city, district, village)
-- Admin product & category management
+- Account page with collapsible pending-payment banner (user) / pending-orders banner (admin)
+- Admin product, category & order management
+- Admin dashboard — revenue chart, top products, summary cards
+- Low-stock alert via Pusher when stock ≤ 5
+- Export all orders to Excel (client-side, SheetJS)
 - Role-based access control (guest / user / admin)
 
 ---
@@ -58,7 +68,7 @@ A food e-commerce application built with the MERN Stack (MongoDB, Express, React
 | Role  | Access |
 |-------|--------|
 | guest | Read products |
-| user  | CRUD own delivery addresses, update cart, create & view orders, read own invoices, manage wishlist |
+| user  | CRUD own delivery addresses, update cart, create & view orders, read own invoices, manage wishlist, confirm own delivery |
 | admin | Manage all resources (full access) |
 
 ---
@@ -313,12 +323,6 @@ REACT_APP_PUSHER_CLUSTER=
 
 ---
 
-## Entity Diagram
-
-![image](https://user-images.githubusercontent.com/37723902/120694299-3bc7e900-c4d4-11eb-8d92-cb9344f272c2.png)
-
----
-
 ## API Endpoints
 
 Base URL: `http://localhost:3000`
@@ -525,11 +529,14 @@ Creates order from current cart. Decrements product stock automatically. Sends o
 #### `GET /api/orders/:id`
 **Response:** single order object with `order_items`, `user`, and linked `invoice` (payment_status, total, sub_total).
 
-#### `PUT /api/orders/:id/status` — Admin only
+#### `PUT /api/orders/:id/status` — Login required
 **Body**
 ```json
 { "status": "processing | in_delivery | delivered" }
 ```
+- **Admin** — can set any of the three statuses
+- **User** — can only set `delivered` on their own order when current status is `in_delivery` (confirm receipt)
+
 **Response:** updated order object. Also triggers a Pusher event `order:status_updated` on `private-order-<id>`.
 
 ---
@@ -640,3 +647,105 @@ Top 5 best-selling products.
 #### `GET /api/wilayah/kabupaten?provinsi=<name>`
 #### `GET /api/wilayah/kecamatan?kabupaten=<name>`
 #### `GET /api/wilayah/desa?kecamatan=<name>`
+
+---
+
+## Authentication Flow
+
+![Login](docs/images/login.png)
+
+### Email / Password Login
+
+```
+User enters email + password
+        │
+        ▼
+POST /auth/login
+        │
+        ├─► Email not found              → error "Email or password incorrect"
+        │
+        ├─► Wrong password              → error "Email or password incorrect"
+        │
+        ├─► Account not yet verified
+        │       │
+        │       ▼
+        │   Resend verification link (Nodemailer)
+        │   Redirect to /cek-email
+        │
+        └─► Valid account & verified
+                │
+                ▼
+            Generate JWT token
+            Save token to DB (tokens[] array)
+            Return { user, token }
+                │
+                ▼
+            Frontend saves token to localStorage
+            Redux dispatch userLogin
+            Redirect to /
+```
+
+---
+
+### Google OAuth Login
+
+```
+User clicks "Sign in with Google"
+        │
+        ▼
+GET /auth/google  →  Redirect to Google Consent Screen
+        │
+        ▼ (user approves)
+GET /auth/google/callback  (handled by passport-google-oauth20)
+        │
+        ├─► google_id found in DB
+        │       → Login directly (existing Google user)
+        │
+        ├─► Email found but no google_id
+        │       → Link google_id to existing account (merge, no duplicate)
+        │       → Login as existing account
+        │
+        └─► Email & google_id not found
+                → Auto-register new user (no password)
+                │
+                ▼
+        Check verified:
+        ├─► Not verified → send email, redirect /cek-email
+        └─► Verified → generate token, redirect to:
+                CLIENT_URL/#/auth/callback?token=<jwt>
+                │
+                ▼
+            Frontend reads token from URL params
+            Save to localStorage
+            Redux dispatch userLogin
+            Redirect to /
+```
+
+---
+
+### Email Verification
+
+```
+User registers (email/password or Google)
+        │
+        ▼
+Send email with link:
+  /verify-email?token=<uuid>&email=<email>
+  (link valid for 24 hours)
+        │
+        ▼
+User clicks link in email
+        │
+        ▼
+GET /auth/verify-email/:token
+        │
+        ├─► Token invalid / expired  → error, prompt resend at /cek-email
+        └─► Token valid
+                │
+                ▼
+            Set verified: true in DB
+            Remove verification token
+            Return { message: "Account successfully verified" }
+            User can now login normally
+```
+
