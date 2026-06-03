@@ -8,7 +8,6 @@ A full-featured food e-commerce application built with the MERN Stack (MongoDB, 
 
 - Rekomendasi produk AI — integrasi OpenAI API
 - monitoring Sentry — error tracking production, tau kalau ada crash di user
-- revamp ui
 
 - PWA (Progressive Web App) — bisa di-install di HP, offline mode, push notif native
 - Jest + React Testing Library — unit test komponen React
@@ -162,35 +161,6 @@ fullstack-mern-foodstore/
         ├── styles/
         └── utils/
 ```
-
----
-
-## Pages
-
-| Path | Page | Access |
-|------|------|--------|
-| `/` | Home — product listing | Everyone |
-| `/login` | Login — email/password + Google OAuth button | Guest only |
-| `/register` | Register new account | Guest only |
-| `/register/berhasil` | Registration success | Guest only |
-| `/logout` | Logout | Login only |
-| `/account` | Account profile & order history | Login only |
-| `/wishlist` | Wishlist | Login only |
-| `/alamat-pengiriman/` | Delivery address list | Login only |
-| `/alamat-pengiriman/tambah` | Add delivery address | Login only |
-| `/checkout` | Checkout | Login only |
-| `/invoice/:order_id` | Invoice detail + Midtrans payment | Login only |
-| `/admin/dashboard` | Admin dashboard | Admin only |
-| `/admin/orders` | Manage orders — stat cards, status filter tabs, export Excel | Admin only |
-| `/admin/product` | Manage products | Admin only |
-| `/admin/categories` | Manage categories | Admin only |
-| `/admin/orders/:id` | Admin order detail | Admin only |
-| `/admin/tag` | Manage tags | Admin only |
-| `/auth/callback` | Google OAuth callback — process token from URL | Everyone |
-| `/cek-email` | Check email prompt — shown after register or unverified login attempt | Everyone |
-| `/verify-email` | Process verification link from email | Everyone |
-| `/error` | 404 page | Everyone |
-
 ---
 
 ## Tech Stack
@@ -749,3 +719,430 @@ GET /auth/verify-email/:token
             User can now login normally
 ```
 
+---
+
+### Cart
+
+Users can select individual items via checkbox before checkout. The order summary panel on the right updates in real-time showing subtotal, shipping fee, and total. Only checked items are included in the purchase.
+
+```
+Cart page
+        │
+        ├─► Check/uncheck item          → subtotal recalculates
+        ├─► Select all checkbox         → toggle all items
+        ├─► +/- quantity buttons        → update qty, recalculate price
+        ├─► Delete (trash icon)         → remove item from cart
+        │
+        └─► Click "Beli (n)"
+                │
+                ▼
+            POST /api/orders (checked items only)
+            Clear cart
+            Redirect to /checkout
+```
+
+---
+
+## Checkout
+
+3-step checkout flow with a visual progress bar. Each step must be completed before proceeding.
+
+```
+Step 1 — Order Items
+        │
+        Review selected items, qty, and price
+        │
+        ▼
+Click "Selanjutnya →"
+
+Step 2 — Delivery Address
+        │
+        Choose from saved addresses (radio select)
+        ├─► No address yet → click "+ Tambah Alamat" → /alamat-pengiriman/tambah
+        │
+        ▼
+Click "Selanjutnya →"
+
+Step 3 — Order Confirmation
+        │
+        Review: delivery address, items, subtotal, shipping fee, total
+        │
+        ▼
+Click "🛒 Bayar Sekarang"
+        │
+        ▼
+POST /api/orders
+        ├─► Stock decremented automatically
+        ├─► Cart cleared
+        ├─► Invoice created (status: waiting_payment)
+        └─► Order confirmation email sent via Nodemailer (fire-and-forget)
+                │
+                ▼
+            Redirect to /invoice/:order_id
+```
+
+---
+
+## Invoice & Payment
+
+Full invoice lifecycle — from pending payment through each order status, with real-time updates via Pusher.
+
+```
+Invoice page loads (status: waiting_payment)
+        │
+        ▼
+Status banner: ⏳ "Waiting Payments"
+User clicks "🔒 Buy Now"
+        │
+        ▼
+GET /api/payments/token/:order_id → snap_token
+Midtrans Snap popup opens
+        │
+        ├─► User selects payment method
+        │   (Credit card, GoPay, VA, QRIS, OVO, Dana, etc.)
+        │
+        ▼
+Payment completed
+        │
+        ▼
+onSuccess callback → verifyPayment()
+GET /api/payments/verify/:order_id
+        ├─► Sync payment status from Midtrans to DB
+        └─► Pusher triggers admin toast notification
+                │
+                ▼
+Invoice status updates (no reload needed)
+
+━━━ Real-time Order Status (Pusher) ━━━
+
+Admin updates order status from /admin/orders
+        │
+        ▼
+PUT /api/orders/:id/status
+        │
+        ▼
+Pusher event fired: order:status_updated
+on channel: private-order-<id>
+        │
+        ▼
+Invoice page receives event → status updates live
+
+Status progression & banners:
+  ✅  payment confirmed  → "Pembayaran Dikonfirmasi"
+  🔄  processing        → "Pesanan Sedang Diproses"
+  🚚  in_delivery       → "Pesanan Dalam Pengiriman" + ✓ Konfirmasi Diterima button
+  🎉  delivered         → "Pesanan Berhasil Diterima!"
+  ❌  failed/expired    → "Pembayaran Gagal"
+```
+
+> The **✓ Konfirmasi Diterima** button is shown to the user when the order is `in_delivery`. Clicking it calls `PUT /api/orders/:id/status { status: "delivered" }` — user can confirm receipt without going through admin.
+
+---
+
+## Admin Dashboard
+
+Only accessible to users with `role: admin`. Non-admin users are redirected by the `OnlyAdmin` route guard.
+
+```
+Admin navigates to /admin/dashboard
+        │
+        ▼
+OnlyAdmin guard checks Redux auth state
+        ├─► Not admin → redirect to /
+        └─► Admin → render Dashboard
+                │
+                ▼
+        Component mounts
+        Fire 3 API calls in parallel (Promise.all):
+        │
+        ├─► GET /api/dashboard/summary
+        │       Aggregate Invoice (payment_status: settlement/paid/capture)
+        │       Count Order, Product, User (role: user)
+        │       → { total_revenue, total_orders, total_products, total_users }
+        │
+        ├─► GET /api/dashboard/revenue
+        │       Aggregate Invoice last 30 days
+        │       Group by date (%Y-%m-%d)
+        │       → [{ _id: "2024-01-01", revenue: 150000, orders: 3 }]
+        │
+        └─► GET /api/dashboard/top-products
+                Aggregate OrderItem, group by product
+                Sort by total_qty DESC, limit 5
+                Lookup products collection for name + image
+                → [{ name, image_url, total_qty, total_revenue }]
+                        │
+                        ▼
+                Loading state (BounceLoader) until all 3 resolve
+                        │
+                        ▼
+                Render:
+                ├─► 4 Summary Cards (Revenue, Orders, Produk, User)
+                ├─► Area Chart — Revenue 30 Hari Terakhir (Recharts)
+                ├─► Bar Chart  — Orders per Hari (Recharts, same chartData)
+                └─► Top 5 Produk Terlaris (ranked list with image)
+```
+---
+
+## Admin — Manage Produk
+1. retrieve
+```
+Admin navigates to /admin/product
+        │
+        ▼
+Component mounts — fire 3 parallel requests:
+  ├─► GET /api/products?limit=10&skip=0   → product list (paginated, server-side)
+  ├─► GET /api/categories?limit=100       → populate category dropdown in form
+  └─► GET /api/tags?limit=100             → populate tag checkboxes in form
+
+Backend (GET /api/products):
+  Build criteria from query params (q, category, tags)
+  Product.find(criteria).limit().skip().populate('category').populate('tags')
+  Return { data: [...], count: <total> }
+        │
+        ▼
+Render DataTable (react-data-table-component):
+  Columns: Image · Name · Price · Category · Tags · Stock · Actions
+  Pagination: server-side, 10 per page
+        │
+        ├─► Stock badge logic:
+        │       stock === 0   → red badge "Habis"
+        │       stock <= 5    → orange badge "⚠ {n}"
+        │       stock > 5     → plain number
+        │
+        └─► Page change → setPage(n) → re-fetch with new skip
+```
+2. Create
+
+```
+Admin clicks "+ Tambah Produk"
+        │
+        ▼
+Modal opens (selectedProduct = null)
+Form fields: Name*, Description, Price*, Stock*, Category (dropdown), Tags (checkboxes), Image (file)
+        │
+        ▼
+Admin fills form → clicks "Simpan"
+        │
+        ▼
+handleSubmit:
+  Build FormData (multipart/form-data)
+  POST /api/products  (multer memoryStorage — no disk write)
+        │
+        ▼
+Backend (store):
+  CASL policy.can('create', 'Product') — admin only
+  Resolve tags: Tag.find({ name: { $in: payload.tags } }) → replace names with ObjectId[]
+  Resolve category: Category.findOne({ name: regex }) → replace name with ObjectId
+  If image: uploadToCloudinary(req.file.buffer) → save secure_url
+  new Product(payload).save()
+  Return saved product
+        │
+        ▼
+Frontend: close modal → re-fetch product list
+```
+3. Update
+
+```
+Admin clicks "Edit" on a row
+        │
+        ▼
+Modal opens pre-filled with row data (selectedProduct = row)
+Image field optional — leave blank to keep existing image
+        │
+        ▼
+Admin edits fields → clicks "Update"
+        │
+        ▼
+handleSubmit:
+  Build FormData
+  PUT /api/products/:id
+        │
+        ▼
+Backend (update):
+  CASL policy.can('update', 'Product') — admin only
+  Same tag & category resolution as Create
+  If new image file:
+    deleteFromCloudinary(existing.image_url)   ← old image removed from cloud
+    uploadToCloudinary(req.file.buffer)        ← new image uploaded
+  Product.findOneAndUpdate({ _id }, payload, { new: true, runValidators: true })
+  Return updated product
+        │
+        ▼
+Frontend: close modal → re-fetch product list
+```
+4. Delete
+
+```
+Admin clicks "Delete" on a row
+        │
+        ▼
+window.confirm('Yakin hapus produk ini?')
+  ├─► Cancel → nothing
+  └─► OK
+        │
+        ▼
+DELETE /api/products/:id
+        │
+        ▼
+Backend (destroy):
+  CASL policy.can('delete', 'Product') — admin only
+  Product.findOneAndDelete({ _id })
+  Return { message, data }
+        │
+        ▼
+Frontend: re-fetch product list
+```
+5. realtime notif stok lower and update stok if order by user
+
+Stock is not decremented manually — it happens automatically at order creation:
+
+```
+POST /api/orders (customer checkout)
+        │
+        ▼
+For each order item:
+  Product.findOneAndUpdate(
+    { _id: item.product },
+    { $inc: { stock: -item.qty } },
+    { new: true }
+  )
+        │
+        ├─► updated.stock <= 5
+        │       Pusher fires 'product:low_stock' on 'private-admin'
+        │       Admin sees orange low-stock toast in real-time
+        │
+        └─► Stock badge on /admin/product updates on next fetch
+```
+
+---
+
+## Admin — Manajemen Order
+
+```
+Admin navigates to /admin/orders
+        │
+        ▼
+Component mounts — fire 2 parallel requests:
+  ├─► GET /api/orders/stats
+  │       Aggregate Order group by status
+  │       → { total, by_status: { waiting_payment, processing, in_delivery, delivered, pending } }
+  │       Used for: 4 stat cards + tab count badges
+  │
+  └─► GET /api/orders?limit=10&page=1
+        Order.find().populate('order_items').populate('user').sort('-createdAt')
+        → { data: [...], count }
+        │
+        ▼
+Render:
+  ├─► 4 Stat Cards (Total Order, Menunggu Bayar, Diproses/Dikirim, Diterima)
+  ├─► Status Tabs (Semua · Menunggu Bayar · Diproses · Dikirim · Diterima · Pending)
+  │       Tab click → setActiveTab + reset page → re-fetch with ?status=<key>
+  │
+  └─► DataTable — server-side pagination, 10 per page
+        Columns: Order# · Tanggal · Customer · Items · Total · Status · Aksi
+        Row click → navigate to /admin/orders/:id (order detail)
+```
+
+### Status Flow & Aksi Button
+
+Status progression is one-way, defined in `STATUS_FLOW`:
+
+```
+waiting_payment  →  (no action — payment decides this transition)
+processing       →  [→ Dikirim]   (next: in_delivery)
+in_delivery      →  [→ Diterima]  (next: delivered)
+delivered        →  —             (terminal)
+pending          →  —             (terminal)
+```
+
+The "Aksi" column reads `STATUS_FLOW[row.status].next` — if `null`, shows `—`. Otherwise renders the `→ {nextLabel}` button.
+
+### Update Status (Admin)
+
+```
+Admin clicks "→ Dikirim" or "→ Diterima"
+        │
+        ▼
+handleUpdateStatus(order, newStatus):
+  setUpdatingId(order._id)   ← disables button while in flight
+  PUT /api/orders/:id/status  { status: newStatus }
+        │
+        ▼
+Backend (updateStatus):
+  req.user.role === 'admin'
+  Allowed values: ['processing', 'in_delivery', 'delivered']
+  Order.findByIdAndUpdate({ _id }, { status }, { new: true })
+        │
+        ▼
+  pusher.trigger(`private-order-${order._id}`, 'order:status_updated', {
+      order_id, status
+  })
+        │
+        ▼
+Frontend (AdminOrders):
+  Optimistic update → setOrders(prev.map patch status in-place)
+  Re-fetch stats → tab count badges update
+```
+
+### Real-time Update to Customer (Pusher)
+
+```
+Customer is on /invoice/:order_id page
+        │
+        ▼
+useEffect on mount:
+  pusher.subscribe(`private-order-${order_id}`)
+  channel.bind('order:status_updated', ({ status }) => {
+      setInvoice(prev => { ...prev, order: { ...prev.order, status } })
+  })
+        │
+        ▼
+When admin updates status (above):
+  Pusher broadcasts 'order:status_updated' on that channel
+        │
+        ▼
+Customer's invoice page receives event — status banner updates live:
+  processing   → "🔄 Pesanan Sedang Diproses"
+  in_delivery  → "🚚 Pesanan Dalam Pengiriman" + button "✓ Konfirmasi Diterima"
+  delivered    → "🎉 Pesanan Berhasil Diterima!"
+
+No page reload needed.
+
+On unmount: channel.unbind_all() + pusher.unsubscribe(channel)
+```
+
+### User Self-Confirm Delivery
+
+```
+Customer clicks "✓ Konfirmasi Diterima" (only visible when status = in_delivery)
+        │
+        ▼
+PUT /api/orders/:id/status  { status: 'delivered' }
+        │
+        ▼
+Backend (updateStatus — user branch):
+  status must be 'delivered'
+  existing.user must match req.user._id    ← ownership check
+  existing.status must be 'in_delivery'   ← guard against invalid transition
+  Update → Pusher fires same 'order:status_updated' event
+```
+
+### Export Excel
+
+```
+Admin clicks "⬇ Export Excel"
+        │
+        ▼
+GET /api/orders/export  (admin only, no pagination)
+  Order.find().populate('order_items').populate('user').sort('-createdAt')
+  → all orders
+        │
+        ▼
+Client-side (SheetJS):
+  Sheet 1 "Ringkasan Order" — one row per order
+    (No. Order, Tanggal, Customer, Email, Jumlah Item, Sub Total, Ongkir, Total, Status, Alamat)
+  Sheet 2 "Detail Items" — one row per product line
+    (No. Order, Tanggal, Customer, Nama Produk, Qty, Harga Satuan, Subtotal)
+  XLSX.writeFile → download laporan-order-{date}.xlsx
+  No file generated on server.
+```
