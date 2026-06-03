@@ -13,6 +13,13 @@ A full-featured food e-commerce application built with the MERN Stack (MongoDB, 
 - Jest + React Testing Library — unit test komponen React
 - TanStack Query (React Query) — gantikan manual loading/error state, auto cache, refetch. Jauh lebih clean dari Redux untuk server state
 - Swagger / OpenAPI — auto-generate dokumentasi API dari kode. Profesional banget untuk portfolio
+- **Mode Kasir / POS (Point of Sale)** — halaman `/admin/kasir` khusus admin (OnlyAdmin guard), reuse cart & order logic yang sudah ada. User & guest tetap pakai flow online store.
+- **Barcode Scanner** — extend product search, scan via kamera (ZXing) atau USB reader
+- **Pembayaran Tunai** — extend payment page, tambah opsi "Tunai" di samping Midtrans, hitung kembalian otomatis
+- **Order Source Flag** — tambah field `source: 'kasir' | 'online'` di Order model
+- **Walk-in Customer** — transaksi tanpa akun, reuse guest flow
+- **Struk Printer** — cetak struk dari invoice page via react-to-print
+- **Barcode Produk** — tambah field `barcode` di Product model, generate label via JsBarcode
 
 ## New Features
 
