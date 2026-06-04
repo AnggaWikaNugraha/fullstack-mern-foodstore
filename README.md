@@ -8,6 +8,14 @@ A full-featured food e-commerce application built with the MERN Stack (MongoDB, 
 
 - Rekomendasi produk AI — integrasi OpenAI API
 - monitoring Sentry — error tracking production, tau kalau ada crash di user
+- **Google Sign-In Mobile** — login Google native di aplikasi mobile (React Native / Expo) menggunakan `@react-native-google-signin/google-signin`, bukan redirect browser. Token Google dikirim ke backend untuk verifikasi dan generate JWT seperti flow OAuth web.
+  - **New API:** `POST /auth/google/mobile` — menerima `id_token` dari Google SDK mobile, verifikasi via `google-auth-library`, lalu jalankan merge logic yang sama seperti OAuth web, return `{ user, token }`
+
+- **Device ID & One Account One Device** — setiap login menyimpan `device_id` (generated dari fingerprint perangkat) ke DB. Satu akun hanya boleh login di satu HP sekaligus. Jika login dari perangkat baru, sesi di perangkat lama otomatis dicabut. Backend menyimpan `{ token, device_id, last_active }` per sesi di array `sessions[]` dalam dokumen User.
+  - **Enhanced:** `POST /auth/login` — tambah field `device_id` di body, simpan sesi baru, cabut sesi lama jika device berbeda
+  - **Enhanced:** `POST /auth/logout` — invalidate hanya sesi device yang sedang aktif (bukan semua token)
+  - **New API:** `GET /api/users/sessions` — list semua sesi aktif milik user `[{ device_id, last_active, current }]`
+  - **New API:** `DELETE /api/users/sessions/:device_id` — paksa logout dari perangkat tertentu (remote logout)
 
 - PWA (Progressive Web App) — bisa di-install di HP, offline mode, push notif native
 - Jest + React Testing Library — unit test komponen React
@@ -348,6 +356,18 @@ On failure:
 { "error": 1, "message": "Link verifikasi tidak valid atau sudah expired" }
 ```
 
+#### `POST /auth/resend-verification`
+Resend verification email. Used on `/cek-email` page when user didn't receive the link.
+
+**Body (form-data)**
+```json
+{ "email": "string" }
+```
+**Response**
+```json
+{ "message": "Link verifikasi telah dikirim ulang" }
+```
+
 ---
 
 #### `GET /auth/google`
@@ -520,10 +540,20 @@ Creates order from current cart. Decrements product stock automatically. Sends o
 
 ### Invoice — Login required (owner only)
 
+#### `GET /api/invoices`
+Returns all invoices belonging to the logged-in user.
+
+**Query params:** `limit`, `skip`
+
+**Response**
+```json
+{ "data": [ { "_id": "", "order": {}, "payment_status": "waiting_payment", "total": 0, "createdAt": "" } ], "count": 0 }
+```
+
 #### `GET /api/invoices/:order_id`
 **Response**
 ```json
-{ "_id": "", "order": "", "amount": 0, "payment_status": "waiting_payment", "items": [] }
+{ "_id": "", "order": { "_id": "", "status": "", "order_items": [], "order_number": 0 }, "payment_status": "waiting_payment", "sub_total": 0, "delivery_fee": 0, "total": 0, "delivery_address": {}, "user": {} }
 ```
 
 ---
@@ -615,6 +645,26 @@ Top 5 best-selling products.
 ```json
 [ { "product": { "name": "", "image_url": "" }, "total_qty": 20, "total_revenue": 300000 } ]
 ```
+
+---
+
+### Pusher Auth
+
+#### `POST /api/pusher/auth` — Login required
+Authenticate Pusher private channels. Called automatically by the Pusher JS client when subscribing to a `private-*` channel.
+
+**Body**
+```json
+{ "socket_id": "string", "channel_name": "private-admin | private-order-<id>" }
+```
+**Response**
+```json
+{ "auth": "<pusher_signature>" }
+```
+
+Channels used:
+- `private-admin` — admin receives payment settlement toasts and low-stock alerts
+- `private-order-<id>` — customer receives real-time order status updates
 
 ---
 
