@@ -27,7 +27,7 @@ async function store(req, res, next) {
 
     // (1) Dapatkan `items` di keranjang belanja
     let items = await CartItem
-      .find({ user: req.user._id })
+      .find({ user: req.user._id, checked: true })
       .populate("product");
 
     let address = await DeliveryAddress.findOne({ _id: delivery_address });
@@ -99,8 +99,8 @@ async function store(req, res, next) {
       }
     }
 
-    // clear cart items
-    await CartItem.deleteMany({ user: req.user._id });
+    // clear only checked cart items
+    await CartItem.deleteMany({ user: req.user._id, checked: true });
 
     // Kirim email konfirmasi — fire-and-forget, tidak blok response
     if (req.user?.email) {

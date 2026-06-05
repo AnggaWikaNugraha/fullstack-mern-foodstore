@@ -29,8 +29,11 @@ router.post("/logout", controller.logout);
 router.get("/verify-email/:token", controller.verifyEmail);
 router.post("/resend-verification", controller.resendVerification);
 
-// Google OAuth routes
+// Google OAuth — web (redirect flow)
 router.get("/google", passport.authenticate("google", { scope: ["profile", "email"], session: false }));
 router.get("/google/callback", passport.authenticate("google", { failureRedirect: `${process.env.CLIENT_URL}/#/login?error=google_failed`, session: false }), controller.googleCallback);
+
+// Google OAuth — mobile (id_token flow, untuk Flutter / React Native)
+router.post("/google/mobile", multer().none(), controller.googleMobileLogin);
 
 module.exports = router;

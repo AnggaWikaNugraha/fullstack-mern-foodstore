@@ -4,6 +4,9 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const config = require("../config");
+const { OAuth2Client } = require("google-auth-library");
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const { getToken } = require("../utils/get-token");
 const { sendVerificationEmail } = require("../utils/mailer");
@@ -252,11 +255,64 @@ function googleCallback(req, res) {
   res.redirect(`${process.env.CLIENT_URL}/#/auth/callback?token=${signed}`);
 }
 
+async function googleMobileLogin(req, res, next) {
+  try {
+    const { id_token } = req.body;
+    if (!id_token) return res.json({ error: 1, message: 'id_token harus diisi' });
+
+    // verifikasi id_token dari Google SDK mobile
+    const ticket = await googleClient.verifyIdToken({
+      idToken: id_token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const email    = payload.email;
+    const google_id = payload.sub;
+    const full_name = payload.name;
+
+    // merge logic — sama seperti googleStrategy
+    let user = await User.findOne({ google_id });
+
+    if (!user) {
+      user = await User.findOne({ email });
+      if (user) {
+        await User.findByIdAndUpdate(user._id, { google_id });
+        user = await User.findById(user._id);
+      } else {
+        user = await User.create({ full_name, email, google_id, password: null, verified: false });
+      }
+    }
+
+    // cek verified
+    if (user.verified !== true) {
+      const verification_token = crypto.randomBytes(32).toString('hex');
+      const verification_token_expired = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await User.findByIdAndUpdate(user._id, { verification_token, verification_token_expired });
+      const verification_link = `${process.env.CLIENT_URL}/#/verify-email?token=${verification_token}`;
+      await sendVerificationEmail({ to: user.email, full_name: user.full_name, verification_link });
+      return res.json({ error: 1, message: 'email_not_verified', email: user.email });
+    }
+
+    const { password, token: tokenArr, __v, createdAt, updatedAt, ...userClean } = user.toJSON();
+    const userPayload = { ...userClean, has_password: !!password };
+    const signed = jwt.sign(userPayload, config.secretKey);
+    await User.findByIdAndUpdate(user._id, { $addToSet: { token: signed } });
+
+    return res.json({ message: 'logged in successfully', user: userPayload, token: signed });
+  } catch (err) {
+    if (err.message?.includes('Invalid token')) {
+      return res.json({ error: 1, message: 'id_token tidak valid atau sudah expired' });
+    }
+    next(err);
+  }
+}
+
 module.exports = {
   register,
   localStrategy,
   googleStrategy,
   googleCallback,
+  googleMobileLogin,
   verifyEmail,
   resendVerification,
   login,

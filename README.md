@@ -8,9 +8,6 @@ A full-featured food e-commerce application built with the MERN Stack (MongoDB, 
 
 - Rekomendasi produk AI — integrasi OpenAI API
 - monitoring Sentry — error tracking production, tau kalau ada crash di user
-- **Google Sign-In Mobile** — login Google native di aplikasi mobile (React Native / Expo) menggunakan `@react-native-google-signin/google-signin`, bukan redirect browser. Token Google dikirim ke backend untuk verifikasi dan generate JWT seperti flow OAuth web.
-  - **New API:** `POST /auth/google/mobile` — menerima `id_token` dari Google SDK mobile, verifikasi via `google-auth-library`, lalu jalankan merge logic yang sama seperti OAuth web, return `{ user, token }`
-
 - **Device ID & One Account One Device** — setiap login menyimpan `device_id` (generated dari fingerprint perangkat) ke DB. Satu akun hanya boleh login di satu HP sekaligus. Jika login dari perangkat baru, sesi di perangkat lama otomatis dicabut. Backend menyimpan `{ token, device_id, last_active }` per sesi di array `sessions[]` dalam dokumen User.
   - **Enhanced:** `POST /auth/login` — tambah field `device_id` di body, simpan sesi baru, cabut sesi lama jika device berbeda
   - **Enhanced:** `POST /auth/logout` — invalidate hanya sesi device yang sedang aktif (bukan semua token)
@@ -39,10 +36,17 @@ A full-featured food e-commerce application built with the MERN Stack (MongoDB, 
 - **Cloudinary Image Upload** — product images stored in cloud, old image auto-deleted on update
 - **Order Confirmation Email** — sent automatically via Nodemailer on checkout (fire-and-forget)
 - **Stock Management** — stock decremented automatically via `$inc` when order is created
+
 - **Pusher Real-time Notifications** — admin gets instant toast when payment settles, customer sees order status update live (Pusher used instead of Socket.io for Vercel serverless compatibility)
+
 - **Google OAuth** — login with Google account via `passport-google-oauth20`. Smart account merge: if the Google email already exists in DB (registered via email/password), `google_id` is linked to the existing account — no duplicate accounts. New Google users are auto-registered without a password. Users can optionally set a password later from the Account page to enable both login methods on the same account.
+
 - **Email Verification** — all new accounts (email/password or Google) must verify their email before logging in. A verification link is sent via Nodemailer and expires in 24 hours. If the link expires or login is attempted before verifying, a new link is automatically re-sent and the user is redirected to `/cek-email`.
+
 - **Export Laporan Excel** — admin can export all orders to `.xlsx` with 2 sheets: "Ringkasan Order" (per-order summary with customer, address, total, status) and "Detail Items" (per-product-line with qty, price, subtotal). Generated client-side via SheetJS (`xlsx`), no server file generation needed.
+
+- **Google Sign-In Mobile** — endpoint `POST /auth/google/mobile` untuk login Google dari aplikasi Flutter / React Native. Mobile app mengirim `id_token` dari Google SDK, backend verifikasi via `google-auth-library`, jalankan merge logic yang sama seperti OAuth web, return `{ user, token }`. Tidak perlu redirect browser.
+
 - **Low Stock Alert** — when an order causes a product's stock to drop to ≤ 5, a Pusher `product:low_stock` event is fired on `private-admin`. Admin sees an orange toast panel (separate from payment toasts) showing the product name and remaining stock. Clicking navigates to the product management page. Toasts auto-dismiss after 8 seconds.
 
   | Condition                    | Email/Password                                       | Google OAuth                                         |
@@ -381,6 +385,26 @@ Redirects to `CLIENT_URL/#/auth/callback?token=<jwt>` on success.
 - `google_id` found in DB → existing Google user, login directly
 - Email found but no `google_id` → existing email/password account, link `google_id` to it
 - Neither found → auto-register new user (no password)
+
+#### `POST /auth/google/mobile` — Mobile only (Flutter / React Native)
+Login Google dari aplikasi mobile. Mobile app mengirim `id_token` dari Google SDK — tidak pakai redirect browser.
+
+**Body**
+```json
+{ "id_token": "<id_token dari Google SDK>" }
+```
+**Response sukses**
+```json
+{ "message": "logged in successfully", "user": { "_id": "", "full_name": "", "role": "user" }, "token": "<jwt>" }
+```
+**Response belum verifikasi email**
+```json
+{ "error": 1, "message": "email_not_verified", "email": "user@gmail.com" }
+```
+
+Merge logic sama persis seperti OAuth web. Cara pakai:
+- **Flutter:** `google_sign_in` → `googleUser.authentication.idToken`
+- **React Native:** `@react-native-google-signin/google-signin` → `GoogleSignin.signIn().idToken`
 
 ---
 
