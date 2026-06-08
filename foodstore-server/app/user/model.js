@@ -48,6 +48,10 @@ let userSchema = Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    image_url: {
+      type: String,
+      default: null,
+    },
     token: [String],
   },
   { timestamps: true }

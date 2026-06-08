@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const User = require('./model');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 
 const HASH_ROUND = 10;
 
@@ -29,4 +30,24 @@ async function setPassword(req, res, next) {
     }
 }
 
-module.exports = { setPassword };
+async function updateAvatar(req, res, next) {
+    try {
+        if (!req.user) return res.json({ error: 1, message: 'Unauthorized' });
+        if (!req.file) return res.json({ error: 1, message: 'File gambar harus disertakan' });
+
+        const user = await User.findById(req.user._id);
+
+        // hapus foto lama dari Cloudinary kalau ada
+        if (user.image_url) await deleteFromCloudinary(user.image_url);
+
+        const result = await uploadToCloudinary(req.file.buffer, 'foodstore/avatars');
+
+        await User.findByIdAndUpdate(req.user._id, { image_url: result.secure_url });
+
+        return res.json({ message: 'Foto profil berhasil diupdate', image_url: result.secure_url });
+    } catch (err) {
+        next(err);
+    }
+}
+
+module.exports = { setPassword, updateAvatar };

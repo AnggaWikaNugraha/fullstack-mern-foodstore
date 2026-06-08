@@ -20,6 +20,7 @@ const wishlistRouter = require('./app/wishlist/router');
 const dashboardRouter = require('./app/dashboard/router');
 const pusherAuthRouter = require('./app/pusher-auth/router');
 const userRouter = require('./app/user/router');
+const uploadRouter = require('./app/upload/router');
 const { decodeToken } = require('./app/auth/middleware');
 const cors = require('cors');
 
@@ -52,6 +53,7 @@ app.use('/api', wishlistRouter);
 app.use('/api', dashboardRouter);
 app.use('/api', pusherAuthRouter);
 app.use('/api', userRouter);
+app.use('/api', uploadRouter);
 
 
 // catch 404 and forward to error handler

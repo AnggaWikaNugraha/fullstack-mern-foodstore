@@ -694,10 +694,37 @@ Channels used:
 
 ### Wilayah (Indonesian Regional Data)
 
+Data wilayah Indonesia dari file CSV. Filter menggunakan `kode_induk` (kode numerik dari level di atasnya).
+
 #### `GET /api/wilayah/provinsi`
-#### `GET /api/wilayah/kabupaten?provinsi=<name>`
-#### `GET /api/wilayah/kecamatan?kabupaten=<name>`
-#### `GET /api/wilayah/desa?kecamatan=<name>`
+**Response**
+```json
+[ { "kode": "11", "nama": "ACEH" }, { "kode": "32", "nama": "JAWA BARAT" } ]
+```
+
+#### `GET /api/wilayah/kabupaten?kode_induk=<kode_provinsi>`
+**Query params:** `kode_induk` — `kode` dari provinsi
+
+**Example:** `GET /api/wilayah/kabupaten?kode_induk=32`
+```json
+[ { "kode": "3201", "kode_provinsi": "32", "nama": "KABUPATEN BOGOR" } ]
+```
+
+#### `GET /api/wilayah/kecamatan?kode_induk=<kode_kabupaten>`
+**Query params:** `kode_induk` — `kode` dari kabupaten/kota
+
+**Example:** `GET /api/wilayah/kecamatan?kode_induk=3201`
+```json
+[ { "kode": "3201010", "kode_kabupaten": "3201", "nama": "CIOMAS" } ]
+```
+
+#### `GET /api/wilayah/desa?kode_induk=<kode_kecamatan>`
+**Query params:** `kode_induk` — `kode` dari kecamatan
+
+**Example:** `GET /api/wilayah/desa?kode_induk=3201010`
+```json
+[ { "kode": "3201010001", "kode_kecamatan": "3201010", "nama": "MEKARJAYA" } ]
+```
 
 ---
 
