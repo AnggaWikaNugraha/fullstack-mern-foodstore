@@ -107,14 +107,21 @@ async function login(req, res, next) {
   })(req, res, next);
 }
 
-function me(req, res, next) {
+async function me(req, res, next) {
   if (!req.user) {
     return res.json({
       error: 1,
       message: `Your're not login or token expired`,
     });
   }
-  return res.json(req.user);
+  try {
+    const user = await User.findById(req.user._id)
+      .select("-password -token -__v -createdAt -updatedAt");
+    if (!user) return res.json({ error: 1, message: "User tidak ditemukan" });
+    return res.json({ ...user.toJSON(), has_password: !!user.password });
+  } catch (err) {
+    next(err);
+  }
 }
 
 async function logout(req, res, next) {
@@ -200,9 +207,11 @@ async function googleStrategy(accessToken, refreshToken, profile, done) {
       // cari by email — akun sudah ada tapi belum pernah login Google
       user = await User.findOne({ email });
 
+      const image_url = profile.photos?.[0]?.value || null;
+
       if (user) {
-        // merge — tambahkan google_id ke akun yang sudah ada
-        await User.findByIdAndUpdate(user._id, { google_id });
+        // merge — tambahkan google_id dan foto ke akun yang sudah ada
+        await User.findByIdAndUpdate(user._id, { google_id, image_url });
         user = await User.findById(user._id);
       } else {
         // belum punya akun — buat baru, verified: false dulu
@@ -210,6 +219,7 @@ async function googleStrategy(accessToken, refreshToken, profile, done) {
           full_name: profile.displayName,
           email,
           google_id,
+          image_url,
           password: null,
           verified: false,
         });
@@ -275,11 +285,12 @@ async function googleMobileLogin(req, res, next) {
 
     if (!user) {
       user = await User.findOne({ email });
+      const image_url = payload.picture || null;
       if (user) {
-        await User.findByIdAndUpdate(user._id, { google_id });
+        await User.findByIdAndUpdate(user._id, { google_id, image_url });
         user = await User.findById(user._id);
       } else {
-        user = await User.create({ full_name, email, google_id, password: null, verified: false });
+        user = await User.create({ full_name, email, google_id, image_url, password: null, verified: false });
       }
     }
 
