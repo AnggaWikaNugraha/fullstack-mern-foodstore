@@ -29,7 +29,7 @@ function formatRupiah(amount) {
     return 'Rp ' + Number(amount).toLocaleString('id-ID');
 }
 
-async function sendOrderStatusNotification({ fcm_token, order_number, status, total, item_count }) {
+async function sendOrderStatusNotification({ fcm_token, order_id, order_number, status, total, item_count }) {
     if (!isExpoPushToken(fcm_token)) {
         console.warn(`[PUSH] skip — bukan Expo token: ${fcm_token}`);
         return;
@@ -54,7 +54,7 @@ async function sendOrderStatusNotification({ fcm_token, order_number, status, to
         body: bodyLines.join('\n'),
         mutableContent: true,
         priority: 'high',
-        data: { order_number: String(order_number), status, type: 'order_status' },
+        data: { order_id: String(order_id), order_number: String(order_number), status, type: 'order_status' },
     };
 
     try {

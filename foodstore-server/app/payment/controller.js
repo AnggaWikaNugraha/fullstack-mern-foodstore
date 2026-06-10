@@ -87,6 +87,7 @@ async function handleNotification(req, res, next) {
                 if (user?.fcm_token) {
                     sendOrderStatusNotification({
                         fcm_token: user.fcm_token,
+                        order_id: String(order._id),
                         order_number: order.order_number,
                         status: 'processing',
                         total: invoice.total,
@@ -138,6 +139,7 @@ async function verifyPayment(req, res, next) {
                     if (user?.fcm_token) {
                         sendOrderStatusNotification({
                             fcm_token: user.fcm_token,
+                            order_id: String(order._id),
                             order_number: order.order_number,
                             status: 'processing',
                             total: invoice.total,

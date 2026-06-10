@@ -261,6 +261,7 @@ async function updateStatus(req, res, next) {
             const invoice = await Invoice.findOne({ order: order._id }).catch(() => null);
             sendOrderStatusNotification({
                 fcm_token: user.fcm_token,
+                order_id: String(order._id),
                 order_number: order.order_number,
                 status: order.status,
                 total: invoice?.total,
