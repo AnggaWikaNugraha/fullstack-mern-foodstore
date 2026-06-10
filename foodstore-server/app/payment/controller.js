@@ -89,6 +89,8 @@ async function handleNotification(req, res, next) {
                         fcm_token: user.fcm_token,
                         order_number: order.order_number,
                         status: 'processing',
+                        total: invoice.total,
+                        item_count: order.order_items?.length,
                     });
                 }
             }).catch(() => {});
@@ -138,6 +140,8 @@ async function verifyPayment(req, res, next) {
                             fcm_token: user.fcm_token,
                             order_number: order.order_number,
                             status: 'processing',
+                            total: invoice.total,
+                            item_count: order.order_items?.length,
                         });
                     }
                 }).catch(() => {});

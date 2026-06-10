@@ -256,12 +256,15 @@ async function updateStatus(req, res, next) {
     }).catch(() => {});
 
     // FCM — push notification untuk mobile (fire-and-forget)
-    User.findById(order.user).then(user => {
+    User.findById(order.user).then(async user => {
         if (user?.fcm_token) {
+            const invoice = await Invoice.findOne({ order: order._id }).catch(() => null);
             sendOrderStatusNotification({
                 fcm_token: user.fcm_token,
                 order_number: order.order_number,
                 status: order.status,
+                total: invoice?.total,
+                item_count: order.order_items?.length,
             });
         }
     }).catch(() => {});
