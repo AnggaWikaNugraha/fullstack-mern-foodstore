@@ -1,3 +1,4 @@
 node_modules/
 .env
 client_secret_*.json
+firebase-service-account.json

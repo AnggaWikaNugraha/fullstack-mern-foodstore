@@ -9,6 +9,8 @@ const { policyFor } = require("../policy");
 const { subject } = require("@casl/ability");
 const { sendOrderConfirmation } = require("../utils/mailer");
 const pusher = require("../pusher");
+const { sendOrderStatusNotification } = require("../utils/expo-push");
+const User = require("../user/model");
 
 async function store(req, res, next) {
   // (1) dapatkan policy untuk user yang sedang login
@@ -247,9 +249,21 @@ async function updateStatus(req, res, next) {
 
     if (!order) return res.json({ error: 1, message: 'Order tidak ditemukan' });
 
+    // Pusher — real-time update untuk web
     pusher.trigger(`private-order-${order._id}`, 'order:status_updated', {
         order_id: String(order._id),
         status: order.status,
+    }).catch(() => {});
+
+    // FCM — push notification untuk mobile (fire-and-forget)
+    User.findById(order.user).then(user => {
+        if (user?.fcm_token) {
+            sendOrderStatusNotification({
+                fcm_token: user.fcm_token,
+                order_number: order.order_number,
+                status: order.status,
+            });
+        }
     }).catch(() => {});
 
     return res.json(order);

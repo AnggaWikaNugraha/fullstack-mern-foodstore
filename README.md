@@ -39,6 +39,28 @@ A full-featured food e-commerce application built with the MERN Stack (MongoDB, 
 
 - **Pusher Real-time Notifications** — admin gets instant toast when payment settles, customer sees order status update live (Pusher used instead of Socket.io for Vercel serverless compatibility)
 
+  ```
+  [Order dibuat]
+  order.status    = waiting_payment
+  payment_status  = waiting_payment
+  → 📧 Email ke user
+          ↓
+  [User bayar via Midtrans]
+  payment_status  = settlement
+  order.status    = processing  ← otomatis
+  → 📡 Pusher: private-admin       (payment:settlement)
+  → 📡 Pusher: private-order-{id}  (order:status_updated)
+  → 🔔 FCM ke user (mobile)
+          ↓
+  [Admin update → in_delivery]
+  → 📡 Pusher: private-order-{id}  (order:status_updated)
+  → 🔔 FCM ke user (mobile)
+          ↓
+  [User/Admin konfirmasi → delivered]
+  → 📡 Pusher: private-order-{id}  (order:status_updated)
+  → 🔔 FCM ke user (mobile)
+  ```
+
 - **Google OAuth** — login with Google account via `passport-google-oauth20`. Smart account merge: if the Google email already exists in DB (registered via email/password), `google_id` is linked to the existing account — no duplicate accounts. New Google users are auto-registered without a password. Users can optionally set a password later from the Account page to enable both login methods on the same account.
 
 - **Email Verification** — all new accounts (email/password or Google) must verify their email before logging in. A verification link is sent via Nodemailer and expires in 24 hours. If the link expires or login is attempted before verifying, a new link is automatically re-sent and the user is redirected to `/cek-email`.
@@ -420,6 +442,42 @@ Set or change password. Used by Google users who want to enable email/password l
 **Response**
 ```json
 { "message": "Password berhasil disimpan" }
+```
+
+#### `PUT /api/users/avatar` — Login required
+Upload user profile picture. Stored in Cloudinary (`foodstore/avatars`). Old image is automatically deleted.
+
+**Body (form-data):** `image` (file, max 5MB)
+
+**Response**
+```json
+{ "message": "Avatar berhasil diupdate", "image_url": "https://res.cloudinary.com/..." }
+```
+
+#### `PUT /api/users/mobile/fcm-token` — Login required
+Save FCM token from mobile device. Used to send push notifications when order status changes.
+
+**Body**
+```json
+{ "fcm_token": "string" }
+```
+**Response**
+```json
+{ "message": "FCM token tersimpan" }
+```
+
+---
+
+### Upload — Login required
+
+#### `POST /api/upload`
+General-purpose image upload to Cloudinary (`foodstore/uploads`). For mobile apps that need to upload images outside of product/avatar flow.
+
+**Body (form-data):** `image` (file, max 5MB)
+
+**Response**
+```json
+{ "url": "https://res.cloudinary.com/...", "public_id": "foodstore/uploads/xxx", "width": 1080, "height": 720 }
 ```
 
 ---

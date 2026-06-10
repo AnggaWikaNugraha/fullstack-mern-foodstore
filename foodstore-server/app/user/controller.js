@@ -50,4 +50,16 @@ async function updateAvatar(req, res, next) {
     }
 }
 
-module.exports = { setPassword, updateAvatar };
+async function updateFcmToken(req, res, next) {
+    try {
+        if (!req.user) return res.json({ error: 1, message: 'Unauthorized' });
+        const { fcm_token } = req.body;
+        if (!fcm_token) return res.json({ error: 1, message: 'fcm_token harus diisi' });
+        await User.findByIdAndUpdate(req.user._id, { fcm_token });
+        return res.json({ message: 'FCM token berhasil disimpan' });
+    } catch (err) {
+        next(err);
+    }
+}
+
+module.exports = { setPassword, updateAvatar, updateFcmToken };

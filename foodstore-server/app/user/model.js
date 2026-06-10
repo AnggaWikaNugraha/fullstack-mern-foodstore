@@ -52,6 +52,10 @@ let userSchema = Schema(
       type: String,
       default: null,
     },
+    fcm_token: {
+      type: String,
+      default: null,
+    },
     token: [String],
   },
   { timestamps: true }

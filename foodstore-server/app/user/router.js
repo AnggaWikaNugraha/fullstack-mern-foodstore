@@ -12,5 +12,6 @@ const upload = multer({
 
 router.put('/users/set-password', controller.setPassword);
 router.put('/users/avatar', upload.single('image'), controller.updateAvatar);
+router.put('/users/mobile/fcm-token', multer().none(), controller.updateFcmToken);
 
 module.exports = router;

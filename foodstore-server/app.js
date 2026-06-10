@@ -2,7 +2,7 @@ var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+// var logger = require('morgan');
 require('./database');
 // --> import file product router
 const productRouter = require('./app/product/router');
@@ -23,6 +23,7 @@ const userRouter = require('./app/user/router');
 const uploadRouter = require('./app/upload/router');
 const { decodeToken } = require('./app/auth/middleware');
 const cors = require('cors');
+const apiLogger = require('./app/utils/logger');
 
 var app = express();
 
@@ -30,7 +31,7 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(logger('dev'));
+// app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -38,6 +39,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cors());
 app.use(decodeToken());
+app.use(apiLogger);
 app.use('/auth', authRouter);
 app.use('/api', productRouter);
 app.use('/api', categoryRouter);
