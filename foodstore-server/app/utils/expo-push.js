@@ -1,6 +1,6 @@
-const { Expo } = require('expo-server-sdk');
+const axios = require('axios');
 
-const expo = new Expo();
+const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 
 const statusLabel = {
     processing:  'Pesanan Sedang Diproses',
@@ -8,8 +8,12 @@ const statusLabel = {
     delivered:   'Pesanan Telah Diterima',
 };
 
+function isExpoPushToken(token) {
+    return typeof token === 'string' && /^ExponentPushToken\[.+\]$/.test(token);
+}
+
 async function sendOrderStatusNotification({ fcm_token, order_number, status }) {
-    if (!fcm_token || !Expo.isExpoPushToken(fcm_token)) {
+    if (!isExpoPushToken(fcm_token)) {
         console.warn(`[PUSH] skip — bukan Expo token: ${fcm_token}`);
         return;
     }
@@ -23,11 +27,17 @@ async function sendOrderStatusNotification({ fcm_token, order_number, status }) 
     };
 
     try {
-        const [ticket] = await expo.sendPushNotificationsAsync([message]);
-        if (ticket.status === 'error') {
+        const { data } = await axios.post(EXPO_PUSH_URL, message, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+        });
+        const ticket = data?.data;
+        if (ticket?.status === 'error') {
             console.error(`[PUSH] ✗ failed order #${order_number}:`, ticket.message);
         } else {
-            console.log(`[PUSH] ✓ sent order #${order_number} (${status}) → ${ticket.id}`);
+            console.log(`[PUSH] ✓ sent order #${order_number} (${status}) → ${ticket?.id}`);
         }
     } catch (err) {
         console.error(`[PUSH] ✗ failed order #${order_number}:`, err.message);
