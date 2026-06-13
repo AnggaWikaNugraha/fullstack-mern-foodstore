@@ -1,115 +1,6 @@
 # Fullstack MERN Foodstore
 
-A full-featured food e-commerce application built with the MERN Stack (MongoDB, Express, React, Node.js). Users can browse food products, add to cart, checkout with delivery address, pay via Midtrans, track order status in real-time, confirm delivery, and review purchased items. Admins can manage products, categories, orders, and monitor a live dashboard with revenue charts, low-stock alerts, and Excel export.
-
----
-
-## Coming soon
-
-- Rekomendasi produk AI — integrasi OpenAI API
-- monitoring Sentry — error tracking production, tau kalau ada crash di user
-- **Device ID & One Account One Device** — setiap login menyimpan `device_id` (generated dari fingerprint perangkat) ke DB. Satu akun hanya boleh login di satu HP sekaligus. Jika login dari perangkat baru, sesi di perangkat lama otomatis dicabut. Backend menyimpan `{ token, device_id, last_active }` per sesi di array `sessions[]` dalam dokumen User.
-  - **Enhanced:** `POST /auth/login` — tambah field `device_id` di body, simpan sesi baru, cabut sesi lama jika device berbeda
-  - **Enhanced:** `POST /auth/logout` — invalidate hanya sesi device yang sedang aktif (bukan semua token)
-  - **New API:** `GET /api/users/sessions` — list semua sesi aktif milik user `[{ device_id, last_active, current }]`
-  - **New API:** `DELETE /api/users/sessions/:device_id` — paksa logout dari perangkat tertentu (remote logout)
-
-- PWA (Progressive Web App) — bisa di-install di HP, offline mode, push notif native
-- Jest + React Testing Library — unit test komponen React
-- TanStack Query (React Query) — gantikan manual loading/error state, auto cache, refetch. Jauh lebih clean dari Redux untuk server state
-- Swagger / OpenAPI — auto-generate dokumentasi API dari kode. Profesional banget untuk portfolio
-- **Mode Kasir / POS (Point of Sale)** — halaman `/admin/kasir` khusus admin (OnlyAdmin guard), reuse cart & order logic yang sudah ada. User & guest tetap pakai flow online store.
-- **Barcode Scanner** — extend product search, scan via kamera (ZXing) atau USB reader
-- **Pembayaran Tunai** — extend payment page, tambah opsi "Tunai" di samping Midtrans, hitung kembalian otomatis
-- **Order Source Flag** — tambah field `source: 'kasir' | 'online'` di Order model
-- **Walk-in Customer** — transaksi tanpa akun, reuse guest flow
-- **Struk Printer** — cetak struk dari invoice page via react-to-print
-- **Barcode Produk** — tambah field `barcode` di Product model, generate label via JsBarcode
-
-## New Features
-
-- **Midtrans Payment Gateway** — Snap popup integration, invoice can be paid directly (sandbox mode)
-- **Wishlist** — save favourite products, toggle ❤️ on product card, `/wishlist` page
-- **Admin Dashboard** — 30-day revenue chart, orders per day, top 5 best-selling products, summary cards
-- **Admin Order Management** — admin updates order status from UI (processing → in_delivery → delivered)
-- **Rating & Review** — product review only available after payment settlement
-- **Cloudinary Image Upload** — product images stored in cloud, old image auto-deleted on update
-- **Order Confirmation Email** — sent automatically via Nodemailer on checkout (fire-and-forget)
-- **Stock Management** — stock decremented automatically via `$inc` when order is created
-
-- **Pusher Real-time Notifications** — admin gets instant toast when payment settles, customer sees order status update live (Pusher used instead of Socket.io for Vercel serverless compatibility)
-
-  ```
-  [Order dibuat]
-  order.status    = waiting_payment
-  payment_status  = waiting_payment
-  → 📧 Email ke user
-          ↓
-  [User bayar via Midtrans]
-  payment_status  = settlement
-  order.status    = processing  ← otomatis
-  → 📡 Pusher: private-admin       (payment:settlement)
-  → 📡 Pusher: private-order-{id}  (order:status_updated)
-  → 🔔 FCM ke user (mobile)
-          ↓
-  [Admin update → in_delivery]
-  → 📡 Pusher: private-order-{id}  (order:status_updated)
-  → 🔔 FCM ke user (mobile)
-          ↓
-  [User/Admin konfirmasi → delivered]
-  → 📡 Pusher: private-order-{id}  (order:status_updated)
-  → 🔔 FCM ke user (mobile)
-  ```
-
-- **Google OAuth** — login with Google account via `passport-google-oauth20`. Smart account merge: if the Google email already exists in DB (registered via email/password), `google_id` is linked to the existing account — no duplicate accounts. New Google users are auto-registered without a password. Users can optionally set a password later from the Account page to enable both login methods on the same account.
-
-- **Email Verification** — all new accounts (email/password or Google) must verify their email before logging in. A verification link is sent via Nodemailer and expires in 24 hours. If the link expires or login is attempted before verifying, a new link is automatically re-sent and the user is redirected to `/cek-email`.
-
-- **Export Laporan Excel** — admin can export all orders to `.xlsx` with 2 sheets: "Ringkasan Order" (per-order summary with customer, address, total, status) and "Detail Items" (per-product-line with qty, price, subtotal). Generated client-side via SheetJS (`xlsx`), no server file generation needed.
-
-- **Google Sign-In Mobile** — endpoint `POST /auth/google/mobile` untuk login Google dari aplikasi Flutter / React Native. Mobile app mengirim `id_token` dari Google SDK, backend verifikasi via `google-auth-library`, jalankan merge logic yang sama seperti OAuth web, return `{ user, token }`. Tidak perlu redirect browser.
-
-- **Low Stock Alert** — when an order causes a product's stock to drop to ≤ 5, a Pusher `product:low_stock` event is fired on `private-admin`. Admin sees an orange toast panel (separate from payment toasts) showing the product name and remaining stock. Clicking navigates to the product management page. Toasts auto-dismiss after 8 seconds.
-
-  | Condition                    | Email/Password                                       | Google OAuth                                         |
-  |------------------------------|------------------------------------------------------|------------------------------------------------------|
-  | New user                     | `verified: false`, send email, redirect `/cek-email` | `verified: false`, send email, redirect `/cek-email` |
-  | Not verified yet             | Resend email, redirect `/cek-email`                  | Resend email, redirect `/cek-email`                  |
-  | Already verified             | Login success                                        | Login success                                        |
-  | Old user (no verified field) | Resend email, redirect `/cek-email`                  | Resend email, redirect `/cek-email`                  |
-
----
-
-## Features
-
-- Product listing with search by keyword, category, and tags
-- User registration & login (JWT-based auth + Google OAuth)
-- Email verification before first login
-- Shopping cart (per-user, isolated)
-- Checkout with delivery address selection
-- Midtrans Snap payment gateway (sandbox)
-- Order history & invoice detail with visual timeline
-- Real-time order status tracking via Pusher
-- User can confirm delivery directly from invoice page
-- Product rating & review (only after payment settled)
-- Wishlist — save favourite products
-- Manage delivery addresses with Indonesian regional data (province, city, district, village)
-- Account page with collapsible pending-payment banner (user) / pending-orders banner (admin)
-- Admin product, category & order management
-- Admin dashboard — revenue chart, top products, summary cards
-- Low-stock alert via Pusher when stock ≤ 5
-- Export all orders to Excel (client-side, SheetJS)
-- Role-based access control (guest / user / admin)
-
----
-
-## Roles & Permissions (CASL)
-
-| Role  | Access |
-|-------|--------|
-| guest | Read products |
-| user  | CRUD own delivery addresses, update cart, create & view orders, read own invoices, manage wishlist, confirm own delivery |
-| admin | Manage all resources (full access) |
+A full-featured food e-commerce application built with the MERN Stack (MongoDB, Express, React, Node.js). Users can browse food products, add to cart, checkout with delivery address, pay via Midtrans, track order status in real-time via Pusher, confirm delivery, review purchased items, and save favourites to wishlist. Authentication supports email/password with email verification and Google OAuth. Admins can manage products, categories, and orders, and monitor a live dashboard with revenue charts, low-stock alerts, and Excel export. Ships with a mobile-ready REST API including Google Sign-In mobile endpoint and Expo push notifications for real-time order status updates (React Native / Flutter).
 
 ---
 
@@ -133,12 +24,16 @@ fullstack-mern-foodstore/
 │   │   ├── product/                   # Food products
 │   │   ├── review/                    # Product reviews & ratings
 │   │   ├── tag/                       # Product tags
-│   │   ├── user/                      # User model + set-password endpoint
+│   │   ├── user/                      # User model, set-password, avatar upload, FCM token
+│   │   ├── upload/                    # General image upload to Cloudinary
 │   │   ├── pusher-auth/               # Pusher private channel auth endpoint
 │   │   ├── wilayah/                   # Indonesian regional data (CSV-based)
 │   │   ├── wishlist/                  # Wishlist
 │   │   ├── utils/
-│   │   │   ├── cloudinary.js          # Cloudinary upload helper
+│   │   │   ├── cloudinary.js          # Cloudinary upload/delete helper
+│   │   │   ├── expo-push.js           # Expo push notification sender
+│   │   │   ├── firebase.js            # Firebase Admin SDK init (FCM fallback)
+│   │   │   ├── logger.js              # API request/response logger middleware
 │   │   │   ├── mailer.js              # Nodemailer transporter
 │   │   │   └── get-token.js           # JWT token helper
 │   │   └── config.js
@@ -227,6 +122,9 @@ fullstack-mern-foodstore/
 | nodemailer | Transactional email (order confirmation) |
 | midtrans-client | Midtrans Snap payment gateway |
 | pusher | Trigger real-time events to clients via Pusher API |
+| axios | HTTP client — used for Expo Push API calls |
+| firebase-admin | Firebase Admin SDK — FCM push notification (optional, loaded from service account JSON) |
+| google-auth-library | Verify Google `id_token` from mobile SDK for `POST /auth/google/mobile` |
 | csvtojson | Parse Indonesian regional data from CSV |
 | mongoose-sequence | Auto-increment customer_id |
 | dotenv | Environment variable configuration |
@@ -256,81 +154,91 @@ fullstack-mern-foodstore/
 
 ---
 
-## Getting Started
+## Coming soon
 
-### Backend
+- Rekomendasi produk AI — integrasi OpenAI API
+- monitoring Sentry — error tracking production, tau kalau ada crash di user
+- **Device ID & One Account One Device** — setiap login menyimpan `device_id` (generated dari fingerprint perangkat) ke DB. Satu akun hanya boleh login di satu HP sekaligus. Jika login dari perangkat baru, sesi di perangkat lama otomatis dicabut. Backend menyimpan `{ token, device_id, last_active }` per sesi di array `sessions[]` dalam dokumen User.
+  - **Enhanced:** `POST /auth/login` — tambah field `device_id` di body, simpan sesi baru, cabut sesi lama jika device berbeda
+  - **Enhanced:** `POST /auth/logout` — invalidate hanya sesi device yang sedang aktif (bukan semua token)
+  - **New API:** `GET /api/users/sessions` — list semua sesi aktif milik user `[{ device_id, last_active, current }]`
+  - **New API:** `DELETE /api/users/sessions/:device_id` — paksa logout dari perangkat tertentu (remote logout)
 
-```bash
-cd foodstore-server
-npm install
-# Create .env file (see configuration below)
-npm start
-```
+- PWA (Progressive Web App)
+- Jest + React Testing Library
+- TanStack Query (React Query) — gantikan manual loading/error state, auto cache, refetch.
+- Swagger / OpenAPI
+- **Mode Kasir / POS (Point of Sale)**
+- **Barcode Scanner** — extend product search, scan via kamera (ZXing) atau USB reader
+- **Pembayaran Tunai** — extend payment page, tambah opsi "Tunai" di samping Midtrans, hitung kembalian otomatis
+- **Order Source Flag** — tambah field `source: 'kasir' | 'online'` di Order model
+- **Walk-in Customer** — transaksi tanpa akun, reuse guest flow
+- **Struk Printer**
+- **Barcode Produk**
 
-Server runs at `http://localhost:3000`
+## New Features
 
-### Frontend
+- **Midtrans Payment Gateway**
+- **Admin Dashboard** — 30-day revenue chart, orders per day, top 5 best-selling products, summary cards
+- **Admin Order Management** — admin updates order status from UI (processing → in_delivery → delivered)
+- **Rating & Review**
+- **Cloudinary Image Upload**
+- **Order Confirmation Email**
+- **Stock Management**
+- **Pusher Real-time Notifications** — admin gets instant toast when payment settles, customer sees order status update live (Pusher used instead of Socket.io for Vercel serverless compatibility)
 
-```bash
-cd foodstore-web
-npm install
-# Create .env file (see configuration below)
-npm start
-```
+  ```
+  [Order dibuat]
+  order.status    = waiting_payment
+  payment_status  = waiting_payment
+  → 📧 Email ke user
+          ↓
+  [User bayar via Midtrans]
+  payment_status  = settlement
+  order.status    = processing  ← otomatis
+  → 📡 Pusher: private-admin       (payment:settlement)
+  → 📡 Pusher: private-order-{id}  (order:status_updated)
+  → 🔔 FCM ke user (mobile)
+          ↓
+  [Admin update → in_delivery]
+  → 📡 Pusher: private-order-{id}  (order:status_updated)
+  → 🔔 FCM ke user (mobile)
+          ↓
+  [User/Admin konfirmasi → delivered]
+  → 📡 Pusher: private-order-{id}  (order:status_updated)
+  → 🔔 FCM ke user (mobile)
+  ```
 
-Frontend runs at `http://localhost:3001`
+- **Google OAuth** — login with Google account via `passport-google-oauth20`. Smart account merge: if the Google email already exists in DB (registered via email/password), `google_id` is linked to the existing account — no duplicate accounts. New Google users are auto-registered without a password. Users can optionally set a password later from the Account page to enable both login methods on the same account.
 
----
+- **Email Verification** — all new accounts (email/password or Google) must verify their email before logging in. A verification link is sent via Nodemailer and expires in 24 hours. If the link expires or login is attempted before verifying, a new link is automatically re-sent and the user is redirected to `/cek-email`.
 
-## Environment Variables
+- **Export Laporan Excel**
 
-### `foodstore-server/.env`
+- **Google Sign-In Mobile** — `POST /auth/google/mobile` endpoint for Google login from Flutter / React Native apps. Mobile app sends the `id_token` from the Google SDK, backend verifies it via `google-auth-library`, runs the same account merge logic as the web OAuth flow, and returns `{ user, token }`. No browser redirect required.
 
-```
-PORT=3000
-MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/foodstore
-SECRET_KEY=your_secret_key
+- **Low Stock Alert**
 
-# Cloudinary
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
+## Features
 
-# Nodemailer (Gmail App Password)
-MAIL_USER=
-MAIL_PASS=
-
-# Midtrans (Sandbox)
-MIDTRANS_SERVER_KEY=
-MIDTRANS_CLIENT_KEY=
-MIDTRANS_IS_PRODUCTION=false
-
-# Pusher
-PUSHER_APP_ID=
-PUSHER_KEY=
-PUSHER_SECRET=
-PUSHER_CLUSTER=
-
-# Google OAuth
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
-CLIENT_URL=http://localhost:3001
-```
-
-### `foodstore-web/.env`
-
-```
-REACT_APP_API_HOST=http://localhost:3000
-REACT_APP_SITE_TITLE=FoodStore
-REACT_APP_GLOBAL_ONGKIR=20000
-REACT_APP_OWNER=YourName
-REACT_APP_CONTACT=your@email.com
-REACT_APP_BILLING_NO=1234567890
-REACT_APP_BILLING_BANK=BCA
-REACT_APP_PUSHER_KEY=
-REACT_APP_PUSHER_CLUSTER=
-```
+- Product listing with search by keyword, category, and tags
+- User registration & login (JWT-based auth + Google OAuth)
+- Email verification before first login
+- Shopping cart (per-user, isolated)
+- Checkout with delivery address selection
+- Midtrans Snap payment gateway (sandbox)
+- Order history & invoice detail with visual timeline
+- Real-time order status tracking via Pusher
+- User can confirm delivery directly from invoice page
+- Product rating & review (only after payment settled)
+- Wishlist — save favourite products
+- Manage delivery addresses with Indonesian regional data (province, city, district, village)
+- Account page with collapsible pending-payment banner (user) / pending-orders banner (admin)
+- Admin product, category & order management
+- Admin dashboard — revenue chart, top products, summary cards
+- Low-stock alert via Pusher when stock ≤ 5
+- Export all orders to Excel (client-side, SheetJS)
+- Role-based access control (guest / user / admin)
 
 ---
 
@@ -344,7 +252,7 @@ Base URL: `http://localhost:3000`
 
 ### Auth
 
-#### `POST /auth/register`
+**`POST /auth/register`**
 **Body (form-data)**
 ```json
 { "full_name": "string", "email": "string", "password": "string" }
@@ -354,7 +262,7 @@ Base URL: `http://localhost:3000`
 { "message": "Register success" }
 ```
 
-#### `POST /auth/login`
+**`POST /auth/login`**
 **Body (form-data)**
 ```json
 { "email": "string", "password": "string" }
@@ -364,13 +272,13 @@ Base URL: `http://localhost:3000`
 { "user": { "_id": "", "full_name": "", "role": "user" }, "token": "<jwt>" }
 ```
 
-#### `GET /auth/me`
+**`GET /auth/me`**
 Requires `Authorization: Bearer <token>`. Returns current logged-in user.
 
-#### `POST /auth/logout`
+**`POST /auth/logout`**
 Requires `Authorization: Bearer <token>`.
 
-#### `GET /auth/verify-email/:token`
+**`GET /auth/verify-email/:token`**
 Verify email from link. Token must exist in DB and not be expired.
 
 **Response**
@@ -382,7 +290,7 @@ On failure:
 { "error": 1, "message": "Link verifikasi tidak valid atau sudah expired" }
 ```
 
-#### `POST /auth/resend-verification`
+**`POST /auth/resend-verification`**
 Resend verification email. Used on `/cek-email` page when user didn't receive the link.
 
 **Body (form-data)**
@@ -396,10 +304,10 @@ Resend verification email. Used on `/cek-email` page when user didn't receive th
 
 ---
 
-#### `GET /auth/google`
+**`GET /auth/google`**
 Redirect browser to Google consent screen. No body needed — open directly in browser (not via axios).
 
-#### `GET /auth/google/callback`
+**`GET /auth/google/callback`**
 Google redirects here after user approves. Handled automatically by `passport-google-oauth20`.
 Redirects to `CLIENT_URL/#/auth/callback?token=<jwt>` on success.
 
@@ -408,7 +316,7 @@ Redirects to `CLIENT_URL/#/auth/callback?token=<jwt>` on success.
 - Email found but no `google_id` → existing email/password account, link `google_id` to it
 - Neither found → auto-register new user (no password)
 
-#### `POST /auth/google/mobile` — Mobile only (Flutter / React Native)
+**`POST /auth/google/mobile` — Mobile only (Flutter / React Native)**
 Login Google dari aplikasi mobile. Mobile app mengirim `id_token` dari Google SDK — tidak pakai redirect browser.
 
 **Body**
@@ -432,7 +340,7 @@ Merge logic sama persis seperti OAuth web. Cara pakai:
 
 ### User
 
-#### `PUT /api/users/set-password` — Login required
+**`PUT /api/users/set-password` — Login required**
 Set or change password. Used by Google users who want to enable email/password login.
 
 **Body**
@@ -444,7 +352,7 @@ Set or change password. Used by Google users who want to enable email/password l
 { "message": "Password berhasil disimpan" }
 ```
 
-#### `PUT /api/users/avatar` — Login required
+**`PUT /api/users/avatar` — Login required**
 Upload user profile picture. Stored in Cloudinary (`foodstore/avatars`). Old image is automatically deleted.
 
 **Body (form-data):** `image` (file, max 5MB)
@@ -454,7 +362,7 @@ Upload user profile picture. Stored in Cloudinary (`foodstore/avatars`). Old ima
 { "message": "Avatar berhasil diupdate", "image_url": "https://res.cloudinary.com/..." }
 ```
 
-#### `PUT /api/users/mobile/fcm-token` — Login required
+**`PUT /api/users/mobile/fcm-token` — Login required**
 Save FCM token from mobile device. Used to send push notifications when order status changes.
 
 **Body**
@@ -470,7 +378,7 @@ Save FCM token from mobile device. Used to send push notifications when order st
 
 ### Upload — Login required
 
-#### `POST /api/upload`
+**`POST /api/upload`**
 General-purpose image upload to Cloudinary (`foodstore/uploads`). For mobile apps that need to upload images outside of product/avatar flow.
 
 **Body (form-data):** `image` (file, max 5MB)
@@ -484,7 +392,7 @@ General-purpose image upload to Cloudinary (`foodstore/uploads`). For mobile app
 
 ### Product
 
-#### `GET /api/products`
+**`GET /api/products`**
 **Query params:** `limit`, `skip`, `q` (keyword), `category`, `tags[]`
 
 **Response**
@@ -492,15 +400,15 @@ General-purpose image upload to Cloudinary (`foodstore/uploads`). For mobile app
 { "data": [ { "_id": "", "name": "", "price": 0, "image_url": "", "stock": 0 } ], "count": 0 }
 ```
 
-#### `POST /api/products` — Admin only
+**`POST /api/products` — Admin only**
 **Body (form-data):** `name`, `description`, `price`, `category`, `tags[]`, `image` (file)
 
 **Response:** created product object
 
-#### `PUT /api/products/:id` — Admin only
+**`PUT /api/products/:id` — Admin only**
 Same fields as POST, all optional. Old image auto-deleted from Cloudinary on update.
 
-#### `DELETE /api/products/:id` — Admin only
+**`DELETE /api/products/:id` — Admin only**
 **Response**
 ```json
 { "message": "Product deleted" }
@@ -510,59 +418,59 @@ Same fields as POST, all optional. Old image auto-deleted from Cloudinary on upd
 
 ### Category
 
-#### `GET /api/categories`
+**`GET /api/categories`**
 **Response**
 ```json
 { "data": [ { "_id": "", "name": "" } ], "count": 0 }
 ```
 
-#### `POST /api/categories`
+**`POST /api/categories`**
 **Body:** `{ "name": "string" }`
 
-#### `PUT /api/categories/:id`
+**`PUT /api/categories/:id`**
 **Body:** `{ "name": "string" }`
 
-#### `DELETE /api/categories/:id`
+**`DELETE /api/categories/:id`**
 
 ---
 
 ### Tag
 
-#### `GET /api/tags`
-#### `POST /api/tags` — **Body:** `{ "name": "string" }`
-#### `PUT /api/tags/:id` — **Body:** `{ "name": "string" }`
-#### `DELETE /api/tags/:id`
+**`GET /api/tags`**
+**`POST /api/tags` — **Body:** `{ "name": "string" }`**
+**`PUT /api/tags/:id` — **Body:** `{ "name": "string" }`**
+**`DELETE /api/tags/:id`**
 
 ---
 
 ### Delivery Address — Login required
 
-#### `GET /api/delivery-addresses`
+**`GET /api/delivery-addresses`**
 **Response**
 ```json
 [ { "_id": "", "nama": "", "provinsi": "", "kabupaten": "", "kecamatan": "", "kelurahan": "", "detail": "" } ]
 ```
 
-#### `POST /api/delivery-addresses`
+**`POST /api/delivery-addresses`**
 **Body**
 ```json
 { "nama": "string", "provinsi": "string", "kabupaten": "string", "kecamatan": "string", "kelurahan": "string", "detail": "string" }
 ```
 
-#### `PUT /api/delivery-addresses/:id` — Owner only
-#### `DELETE /api/delivery-addresses/:id` — Owner only
+**`PUT /api/delivery-addresses/:id` — Owner only**
+**`DELETE /api/delivery-addresses/:id` — Owner only**
 
 ---
 
 ### Cart — Login required
 
-#### `GET /api/carts`
+**`GET /api/carts`**
 **Response**
 ```json
 { "items": [ { "_id": "", "product": {}, "qty": 1 } ] }
 ```
 
-#### `PUT /api/carts`
+**`PUT /api/carts`**
 **Body**
 ```json
 { "items": [ { "_id": "<product_id>", "qty": 2 } ] }
@@ -572,7 +480,7 @@ Same fields as POST, all optional. Old image auto-deleted from Cloudinary on upd
 
 ### Order — Login required
 
-#### `GET /api/orders`
+**`GET /api/orders`**
 **Query params:** `limit`, `skip`, `status` (optional — filter by order status)
 
 **Response**
@@ -580,7 +488,7 @@ Same fields as POST, all optional. Old image auto-deleted from Cloudinary on upd
 { "data": [ { "_id": "", "status": "processing", "delivery_fee": 20000, "user": { "full_name": "", "email": "" }, "order_items": [], "createdAt": "" } ], "count": 0 }
 ```
 
-#### `GET /api/orders/stats` — Admin only
+**`GET /api/orders/stats` — Admin only**
 Returns order counts grouped by status.
 
 **Response**
@@ -588,7 +496,7 @@ Returns order counts grouped by status.
 { "total": 42, "by_status": { "waiting_payment": 5, "processing": 3, "in_delivery": 2, "delivered": 30, "pending": 2 } }
 ```
 
-#### `GET /api/orders/export` — Admin only
+**`GET /api/orders/export` — Admin only**
 Returns all orders (no pagination) with `user` and `order_items` populated. Used for client-side Excel generation.
 
 **Response**
@@ -596,7 +504,7 @@ Returns all orders (no pagination) with `user` and `order_items` populated. Used
 { "data": [ { "_id": "", "order_number": 1, "status": "", "delivery_fee": 0, "delivery_address": {}, "user": { "full_name": "", "email": "" }, "order_items": [ { "name": "", "qty": 1, "price": 0 } ], "createdAt": "" } ] }
 ```
 
-#### `POST /api/orders`
+**`POST /api/orders`**
 Creates order from current cart. Decrements product stock automatically. Sends order confirmation email.
 
 **Body**
@@ -605,10 +513,10 @@ Creates order from current cart. Decrements product stock automatically. Sends o
 ```
 **Response:** created order object
 
-#### `GET /api/orders/:id`
+**`GET /api/orders/:id`**
 **Response:** single order object with `order_items`, `user`, and linked `invoice` (payment_status, total, sub_total).
 
-#### `PUT /api/orders/:id/status` — Login required
+**`PUT /api/orders/:id/status` — Login required**
 **Body**
 ```json
 { "status": "processing | in_delivery | delivered" }
@@ -622,7 +530,7 @@ Creates order from current cart. Decrements product stock automatically. Sends o
 
 ### Invoice — Login required (owner only)
 
-#### `GET /api/invoices`
+**`GET /api/invoices`**
 Returns all invoices belonging to the logged-in user.
 
 **Query params:** `limit`, `skip`
@@ -632,7 +540,7 @@ Returns all invoices belonging to the logged-in user.
 { "data": [ { "_id": "", "order": {}, "payment_status": "waiting_payment", "total": 0, "createdAt": "" } ], "count": 0 }
 ```
 
-#### `GET /api/invoices/:order_id`
+**`GET /api/invoices/:order_id`**
 **Response**
 ```json
 { "_id": "", "order": { "_id": "", "status": "", "order_items": [], "order_number": 0 }, "payment_status": "waiting_payment", "sub_total": 0, "delivery_fee": 0, "total": 0, "delivery_address": {}, "user": {} }
@@ -642,7 +550,7 @@ Returns all invoices belonging to the logged-in user.
 
 ### Payment (Midtrans)
 
-#### `GET /api/payments/token/:order_id` — Login required
+**`GET /api/payments/token/:order_id` — Login required**
 Get Snap token to open Midtrans payment popup.
 
 **Response**
@@ -650,7 +558,7 @@ Get Snap token to open Midtrans payment popup.
 { "token": "<snap_token>" }
 ```
 
-#### `GET /api/payments/verify/:order_id` — Login required
+**`GET /api/payments/verify/:order_id` — Login required**
 Force-sync payment status from Midtrans API to database. Call this after payment popup closes.
 
 **Response**
@@ -658,7 +566,7 @@ Force-sync payment status from Midtrans API to database. Call this after payment
 { "payment_status": "settlement | pending | deny | cancel | expire" }
 ```
 
-#### `POST /api/payments/notification`
+**`POST /api/payments/notification`**
 Midtrans webhook — called automatically by Midtrans server after payment event.
 
 **Body (sent by Midtrans)**
@@ -670,13 +578,13 @@ Midtrans webhook — called automatically by Midtrans server after payment event
 
 ### Review
 
-#### `POST /api/reviews` — Login required
+**`POST /api/reviews` — Login required**
 **Body**
 ```json
 { "product_id": "", "order_id": "", "rating": 5, "comment": "string" }
 ```
 
-#### `GET /api/reviews`
+**`GET /api/reviews`**
 **Query params:** `product_id`, `order_id`
 
 **Response**
@@ -688,31 +596,31 @@ Midtrans webhook — called automatically by Midtrans server after payment event
 
 ### Wishlist — Login required
 
-#### `GET /api/wishlists`
+**`GET /api/wishlists`**
 **Response**
 ```json
 [ { "_id": "", "product": { "_id": "", "name": "", "price": 0, "image_url": "" } } ]
 ```
 
-#### `POST /api/wishlists`
+**`POST /api/wishlists`**
 **Body**
 ```json
 { "product_id": "<product_id>" }
 ```
 
-#### `DELETE /api/wishlists/:product_id`
+**`DELETE /api/wishlists/:product_id`**
 
 ---
 
 ### Dashboard — Admin only
 
-#### `GET /api/dashboard/summary`
+**`GET /api/dashboard/summary`**
 **Response**
 ```json
 { "total_revenue": 0, "total_orders": 0, "total_products": 0, "total_users": 0 }
 ```
 
-#### `GET /api/dashboard/revenue`
+**`GET /api/dashboard/revenue`**
 Revenue and orders per day, last 30 days.
 
 **Response**
@@ -720,7 +628,7 @@ Revenue and orders per day, last 30 days.
 [ { "date": "2024-01-01", "revenue": 150000, "orders": 3 } ]
 ```
 
-#### `GET /api/dashboard/top-products`
+**`GET /api/dashboard/top-products`**
 Top 5 best-selling products.
 
 **Response**
@@ -732,7 +640,7 @@ Top 5 best-selling products.
 
 ### Pusher Auth
 
-#### `POST /api/pusher/auth` — Login required
+**`POST /api/pusher/auth` — Login required**
 Authenticate Pusher private channels. Called automatically by the Pusher JS client when subscribing to a `private-*` channel.
 
 **Body**
@@ -754,13 +662,13 @@ Channels used:
 
 Data wilayah Indonesia dari file CSV. Filter menggunakan `kode_induk` (kode numerik dari level di atasnya).
 
-#### `GET /api/wilayah/provinsi`
+**`GET /api/wilayah/provinsi`**
 **Response**
 ```json
 [ { "kode": "11", "nama": "ACEH" }, { "kode": "32", "nama": "JAWA BARAT" } ]
 ```
 
-#### `GET /api/wilayah/kabupaten?kode_induk=<kode_provinsi>`
+**`GET /api/wilayah/kabupaten?kode_induk=<kode_provinsi>`**
 **Query params:** `kode_induk` — `kode` dari provinsi
 
 **Example:** `GET /api/wilayah/kabupaten?kode_induk=32`
@@ -768,7 +676,7 @@ Data wilayah Indonesia dari file CSV. Filter menggunakan `kode_induk` (kode nume
 [ { "kode": "3201", "kode_provinsi": "32", "nama": "KABUPATEN BOGOR" } ]
 ```
 
-#### `GET /api/wilayah/kecamatan?kode_induk=<kode_kabupaten>`
+**`GET /api/wilayah/kecamatan?kode_induk=<kode_kabupaten>`**
 **Query params:** `kode_induk` — `kode` dari kabupaten/kota
 
 **Example:** `GET /api/wilayah/kecamatan?kode_induk=3201`
@@ -776,7 +684,7 @@ Data wilayah Indonesia dari file CSV. Filter menggunakan `kode_induk` (kode nume
 [ { "kode": "3201010", "kode_kabupaten": "3201", "nama": "CIOMAS" } ]
 ```
 
-#### `GET /api/wilayah/desa?kode_induk=<kode_kecamatan>`
+**`GET /api/wilayah/desa?kode_induk=<kode_kecamatan>`**
 **Query params:** `kode_induk` — `kode` dari kecamatan
 
 **Example:** `GET /api/wilayah/desa?kode_induk=3201010`
@@ -1312,3 +1220,97 @@ Client-side (SheetJS):
   XLSX.writeFile → download laporan-order-{date}.xlsx
   No file generated on server.
 ```
+## Getting Started
+
+> **Node.js >= 20** is required (for `firebase-admin` and `expo-server-sdk` compatibility). Use `nvm use 20` or higher.
+
+### Backend
+
+```bash
+cd foodstore-server
+npm install
+# Create .env file (see Environment Variables below)
+# Optional: place firebase-service-account.json in foodstore-server/ to enable FCM push notifications
+npm run dev   # development (nodemon)
+# or
+npm start     # production
+```
+
+Server runs at `http://localhost:3000`
+
+### Frontend
+
+```bash
+cd foodstore-web
+npm install
+# Create .env file (see Environment Variables below)
+npm start
+```
+
+Frontend runs at `http://localhost:3001`
+
+---
+
+## Environment Variables
+
+### `foodstore-server/.env`
+
+```
+PORT=3000
+MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/foodstore
+SECRET_KEY=your_secret_key
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+# Nodemailer (Gmail App Password)
+MAIL_USER=
+MAIL_PASS=
+
+# Midtrans (Sandbox)
+MIDTRANS_SERVER_KEY=
+MIDTRANS_CLIENT_KEY=
+MIDTRANS_IS_PRODUCTION=false
+
+# Pusher
+PUSHER_APP_ID=
+PUSHER_KEY=
+PUSHER_SECRET=
+PUSHER_CLUSTER=
+
+# Google OAuth (web + mobile id_token verification)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+CLIENT_URL=http://localhost:3001
+```
+
+> **FCM Push Notifications (optional):** Download the Firebase service account JSON from Firebase Console → Project Settings → Service Accounts → Generate new private key. Rename it to `firebase-service-account.json` and place it in `foodstore-server/`. The server auto-detects the file — if absent, push notifications are silently disabled.
+
+### `foodstore-web/.env`
+
+```
+REACT_APP_API_HOST=http://localhost:3000
+REACT_APP_SITE_TITLE=FoodStore
+REACT_APP_GLOBAL_ONGKIR=20000
+REACT_APP_OWNER=YourName
+REACT_APP_CONTACT=your@email.com
+REACT_APP_BILLING_NO=1234567890
+REACT_APP_BILLING_BANK=BCA
+REACT_APP_PUSHER_KEY=
+REACT_APP_PUSHER_CLUSTER=
+```
+
+---
+
+## Roles & Permissions (CASL)
+
+| Role  | Access |
+|-------|--------|
+| guest | Read products |
+| user  | CRUD own delivery addresses, update cart, create & view orders, read own invoices, manage wishlist, confirm own delivery |
+| admin | Manage all resources (full access) |
+
+---
