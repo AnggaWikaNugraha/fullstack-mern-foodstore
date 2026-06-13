@@ -696,6 +696,31 @@ Data wilayah Indonesia dari file CSV. Filter menggunakan `kode_induk` (kode nume
 
 ## Authentication Flow
 
+### Register
+
+```
+User fills register form (full_name, email, password)
+        │
+        ▼
+POST /auth/register
+        │
+        ├─► Email already exists            → error "Email already registered"
+        │
+        └─► Email not found
+                │
+                ▼
+            Create user { verified: false }
+            Hash password (bcrypt)
+            Send verification link at email (Nodemailer)
+            Return { message: "Register success" }
+                │
+                ▼
+            Redirect to /cek-email
+            (user must verify before login)
+```
+
+---
+
 ![Login](docs/images/login.png)
 
 ### Email / Password Login
@@ -713,7 +738,7 @@ POST /auth/login
         ├─► Account not yet verified
         │       │
         │       ▼
-        │   Resend verification link (Nodemailer)
+        │   Resend verification link at email (Nodemailer)
         │   Redirect to /cek-email
         │
         └─► Valid account & verified
@@ -770,7 +795,7 @@ GET /auth/google/callback  (handled by passport-google-oauth20)
 ### Email Verification
 
 ```
-User registers (email/password or Google)
+User registers/login (email/password or Google)
         │
         ▼
 Send email with link:
