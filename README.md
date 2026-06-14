@@ -271,9 +271,9 @@ POST /auth/register
 
 ---
 
-![Login](docs/images/login.png)
-
 ### Email / Password Login
+
+![Login](docs/images/login.png)
 
 ```
 User enters email + password
