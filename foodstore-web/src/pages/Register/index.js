@@ -16,7 +16,7 @@ export default function Register() {
         setError('');
         const response = await registerUser(formData);
         if (response.status === 200 && !response.data?.error) {
-            history.push('/register/berhasil');
+            history.push('/cek-email');
         } else {
             setStatus('error');
             setError(response.data?.message || 'Terjadi kesalahan, coba lagi.');

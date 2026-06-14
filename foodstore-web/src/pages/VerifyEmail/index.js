@@ -60,7 +60,7 @@ export default function VerifyEmail() {
                             <div style={{ fontSize: 48, marginBottom: 16 }}>❌</div>
                             <Title>Verifikasi Gagal</Title>
                             <Desc>{message || 'Link tidak valid atau sudah expired.'}</Desc>
-                            <ActionLink to="/register">Daftar ulang</ActionLink>
+                            <ActionLink to="/cek-email">Kirim Ulang Link</ActionLink>
                         </>
                     )}
                 </div>

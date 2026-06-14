@@ -289,7 +289,7 @@ POST /auth/login
         │       │
         │       ▼
         │   Resend verification link at email (Nodemailer)
-        │   Redirect to /cek-email
+        │   Redirect to /cek-email (flow Email Verification)
         │
         └─► Valid account & verified
                 │
@@ -318,10 +318,10 @@ GET /auth/google  →  Redirect to Google Consent Screen
 GET /auth/google/callback  (handled by passport-google-oauth20)
         │
         ├─► google_id found in DB
-        │       → Login directly (existing Google user)
+        │       → Login as existing account
         │
         ├─► Email found but no google_id
-        │       → Link google_id to existing account (merge, no duplicate)
+        │       → add obj google_id from res google to existing account (merge, no duplicate)
         │       → Login as existing account
         │
         └─► Email & google_id not found
@@ -329,9 +329,10 @@ GET /auth/google/callback  (handled by passport-google-oauth20)
                 │
                 ▼
         Check verified:
-        ├─► Not verified → send email, redirect /cek-email
+        ├─► Not Verified -> send email && Redirect to /cek-email (flow Email Verification)
         └─► Verified → generate token, redirect to:
                 CLIENT_URL/#/auth/callback?token=<jwt>
+                (auto redrect)
                 │
                 ▼
             Frontend reads token from URL params
@@ -342,14 +343,14 @@ GET /auth/google/callback  (handled by passport-google-oauth20)
 
 ---
 
-### Email Verification
+### flow Email Verification
 
 ```
-User registers/login (email/password or Google)
+flow login/register/google (email/password or Google)
         │
         ▼
 Send email with link:
-  /verify-email?token=<uuid>&email=<email>
+  /verify-email?token=<uuid> (ui loading verifikation)
   (link valid for 24 hours)
         │
         ▼
@@ -365,6 +366,7 @@ GET /auth/verify-email/:token
             Set verified: true in DB
             Remove verification token
             Return { message: "Account successfully verified" }
+            /verify-email?token=<uuid> (ui succes verified)
             User can now login normally
 ```
 
