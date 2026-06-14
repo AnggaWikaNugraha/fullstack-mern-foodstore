@@ -308,6 +308,8 @@ POST /auth/login
 
 ### Google OAuth Login
 
+![Login](docs/images/google.png)
+
 ```
 User clicks "Sign in with Google"
         │
@@ -344,6 +346,8 @@ GET /auth/google/callback  (handled by passport-google-oauth20)
 ---
 
 ### flow Email Verification
+
+![Login](docs/images/verivikasi.png)
 
 ```
 flow login/register/google (email/password or Google)
