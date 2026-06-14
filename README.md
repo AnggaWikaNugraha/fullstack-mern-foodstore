@@ -242,461 +242,11 @@ fullstack-mern-foodstore/
 
 ---
 
-## API Endpoints
-
-Base URL: `http://localhost:3000`
-
-> Auth endpoints are under `/auth`. All other endpoints are prefixed with `/api`.
-
----
-
-### Auth
-
-**`POST /auth/register`**
-**Body (form-data)**
-```json
-{ "full_name": "string", "email": "string", "password": "string" }
-```
-**Response**
-```json
-{ "message": "Register success" }
-```
-
-**`POST /auth/login`**
-**Body (form-data)**
-```json
-{ "email": "string", "password": "string" }
-```
-**Response**
-```json
-{ "user": { "_id": "", "full_name": "", "role": "user" }, "token": "<jwt>" }
-```
-
-**`GET /auth/me`**
-Requires `Authorization: Bearer <token>`. Returns current logged-in user.
-
-**`POST /auth/logout`**
-Requires `Authorization: Bearer <token>`.
-
-**`GET /auth/verify-email/:token`**
-Verify email from link. Token must exist in DB and not be expired.
-
-**Response**
-```json
-{ "message": "Akun berhasil diverifikasi" }
-```
-On failure:
-```json
-{ "error": 1, "message": "Link verifikasi tidak valid atau sudah expired" }
-```
-
-**`POST /auth/resend-verification`**
-Resend verification email. Used on `/cek-email` page when user didn't receive the link.
-
-**Body (form-data)**
-```json
-{ "email": "string" }
-```
-**Response**
-```json
-{ "message": "Link verifikasi telah dikirim ulang" }
-```
-
----
-
-**`GET /auth/google`**
-Redirect browser to Google consent screen. No body needed — open directly in browser (not via axios).
-
-**`GET /auth/google/callback`**
-Google redirects here after user approves. Handled automatically by `passport-google-oauth20`.
-Redirects to `CLIENT_URL/#/auth/callback?token=<jwt>` on success.
-
-**Merge logic:**
-- `google_id` found in DB → existing Google user, login directly
-- Email found but no `google_id` → existing email/password account, link `google_id` to it
-- Neither found → auto-register new user (no password)
-
-**`POST /auth/google/mobile` — Mobile only (Flutter / React Native)**
-Login Google dari aplikasi mobile. Mobile app mengirim `id_token` dari Google SDK — tidak pakai redirect browser.
-
-**Body**
-```json
-{ "id_token": "<id_token dari Google SDK>" }
-```
-**Response sukses**
-```json
-{ "message": "logged in successfully", "user": { "_id": "", "full_name": "", "role": "user" }, "token": "<jwt>" }
-```
-**Response belum verifikasi email**
-```json
-{ "error": 1, "message": "email_not_verified", "email": "user@gmail.com" }
-```
-
-Merge logic sama persis seperti OAuth web. Cara pakai:
-- **Flutter:** `google_sign_in` → `googleUser.authentication.idToken`
-- **React Native:** `@react-native-google-signin/google-signin` → `GoogleSignin.signIn().idToken`
-
----
-
-### User
-
-**`PUT /api/users/set-password` — Login required**
-Set or change password. Used by Google users who want to enable email/password login.
-
-**Body**
-```json
-{ "password": "string", "password_confirmation": "string" }
-```
-**Response**
-```json
-{ "message": "Password berhasil disimpan" }
-```
-
-**`PUT /api/users/avatar` — Login required**
-Upload user profile picture. Stored in Cloudinary (`foodstore/avatars`). Old image is automatically deleted.
-
-**Body (form-data):** `image` (file, max 5MB)
-
-**Response**
-```json
-{ "message": "Avatar berhasil diupdate", "image_url": "https://res.cloudinary.com/..." }
-```
-
-**`PUT /api/users/mobile/fcm-token` — Login required**
-Save FCM token from mobile device. Used to send push notifications when order status changes.
-
-**Body**
-```json
-{ "fcm_token": "string" }
-```
-**Response**
-```json
-{ "message": "FCM token tersimpan" }
-```
-
----
-
-### Upload — Login required
-
-**`POST /api/upload`**
-General-purpose image upload to Cloudinary (`foodstore/uploads`). For mobile apps that need to upload images outside of product/avatar flow.
-
-**Body (form-data):** `image` (file, max 5MB)
-
-**Response**
-```json
-{ "url": "https://res.cloudinary.com/...", "public_id": "foodstore/uploads/xxx", "width": 1080, "height": 720 }
-```
-
----
-
-### Product
-
-**`GET /api/products`**
-**Query params:** `limit`, `skip`, `q` (keyword), `category`, `tags[]`
-
-**Response**
-```json
-{ "data": [ { "_id": "", "name": "", "price": 0, "image_url": "", "stock": 0 } ], "count": 0 }
-```
-
-**`POST /api/products` — Admin only**
-**Body (form-data):** `name`, `description`, `price`, `category`, `tags[]`, `image` (file)
-
-**Response:** created product object
-
-**`PUT /api/products/:id` — Admin only**
-Same fields as POST, all optional. Old image auto-deleted from Cloudinary on update.
-
-**`DELETE /api/products/:id` — Admin only**
-**Response**
-```json
-{ "message": "Product deleted" }
-```
-
----
-
-### Category
-
-**`GET /api/categories`**
-**Response**
-```json
-{ "data": [ { "_id": "", "name": "" } ], "count": 0 }
-```
-
-**`POST /api/categories`**
-**Body:** `{ "name": "string" }`
-
-**`PUT /api/categories/:id`**
-**Body:** `{ "name": "string" }`
-
-**`DELETE /api/categories/:id`**
-
----
-
-### Tag
-
-**`GET /api/tags`**
-**`POST /api/tags` — **Body:** `{ "name": "string" }`**
-**`PUT /api/tags/:id` — **Body:** `{ "name": "string" }`**
-**`DELETE /api/tags/:id`**
-
----
-
-### Delivery Address — Login required
-
-**`GET /api/delivery-addresses`**
-**Response**
-```json
-[ { "_id": "", "nama": "", "provinsi": "", "kabupaten": "", "kecamatan": "", "kelurahan": "", "detail": "" } ]
-```
-
-**`POST /api/delivery-addresses`**
-**Body**
-```json
-{ "nama": "string", "provinsi": "string", "kabupaten": "string", "kecamatan": "string", "kelurahan": "string", "detail": "string" }
-```
-
-**`PUT /api/delivery-addresses/:id` — Owner only**
-**`DELETE /api/delivery-addresses/:id` — Owner only**
-
----
-
-### Cart — Login required
-
-**`GET /api/carts`**
-**Response**
-```json
-{ "items": [ { "_id": "", "product": {}, "qty": 1 } ] }
-```
-
-**`PUT /api/carts`**
-**Body**
-```json
-{ "items": [ { "_id": "<product_id>", "qty": 2 } ] }
-```
-
----
-
-### Order — Login required
-
-**`GET /api/orders`**
-**Query params:** `limit`, `skip`, `status` (optional — filter by order status)
-
-**Response**
-```json
-{ "data": [ { "_id": "", "status": "processing", "delivery_fee": 20000, "user": { "full_name": "", "email": "" }, "order_items": [], "createdAt": "" } ], "count": 0 }
-```
-
-**`GET /api/orders/stats` — Admin only**
-Returns order counts grouped by status.
-
-**Response**
-```json
-{ "total": 42, "by_status": { "waiting_payment": 5, "processing": 3, "in_delivery": 2, "delivered": 30, "pending": 2 } }
-```
-
-**`GET /api/orders/export` — Admin only**
-Returns all orders (no pagination) with `user` and `order_items` populated. Used for client-side Excel generation.
-
-**Response**
-```json
-{ "data": [ { "_id": "", "order_number": 1, "status": "", "delivery_fee": 0, "delivery_address": {}, "user": { "full_name": "", "email": "" }, "order_items": [ { "name": "", "qty": 1, "price": 0 } ], "createdAt": "" } ] }
-```
-
-**`POST /api/orders`**
-Creates order from current cart. Decrements product stock automatically. Sends order confirmation email.
-
-**Body**
-```json
-{ "delivery_fee": 20000, "delivery_address": "<address_id>" }
-```
-**Response:** created order object
-
-**`GET /api/orders/:id`**
-**Response:** single order object with `order_items`, `user`, and linked `invoice` (payment_status, total, sub_total).
-
-**`PUT /api/orders/:id/status` — Login required**
-**Body**
-```json
-{ "status": "processing | in_delivery | delivered" }
-```
-- **Admin** — can set any of the three statuses
-- **User** — can only set `delivered` on their own order when current status is `in_delivery` (confirm receipt)
-
-**Response:** updated order object. Also triggers a Pusher event `order:status_updated` on `private-order-<id>`.
-
----
-
-### Invoice — Login required (owner only)
-
-**`GET /api/invoices`**
-Returns all invoices belonging to the logged-in user.
-
-**Query params:** `limit`, `skip`
-
-**Response**
-```json
-{ "data": [ { "_id": "", "order": {}, "payment_status": "waiting_payment", "total": 0, "createdAt": "" } ], "count": 0 }
-```
-
-**`GET /api/invoices/:order_id`**
-**Response**
-```json
-{ "_id": "", "order": { "_id": "", "status": "", "order_items": [], "order_number": 0 }, "payment_status": "waiting_payment", "sub_total": 0, "delivery_fee": 0, "total": 0, "delivery_address": {}, "user": {} }
-```
-
----
-
-### Payment (Midtrans)
-
-**`GET /api/payments/token/:order_id` — Login required**
-Get Snap token to open Midtrans payment popup.
-
-**Response**
-```json
-{ "token": "<snap_token>" }
-```
-
-**`GET /api/payments/verify/:order_id` — Login required**
-Force-sync payment status from Midtrans API to database. Call this after payment popup closes.
-
-**Response**
-```json
-{ "payment_status": "settlement | pending | deny | cancel | expire" }
-```
-
-**`POST /api/payments/notification`**
-Midtrans webhook — called automatically by Midtrans server after payment event.
-
-**Body (sent by Midtrans)**
-```json
-{ "order_id": "", "transaction_status": "settlement", "fraud_status": "accept" }
-```
-
----
-
-### Review
-
-**`POST /api/reviews` — Login required**
-**Body**
-```json
-{ "product_id": "", "order_id": "", "rating": 5, "comment": "string" }
-```
-
-**`GET /api/reviews`**
-**Query params:** `product_id`, `order_id`
-
-**Response**
-```json
-[ { "_id": "", "user": {}, "rating": 5, "comment": "", "createdAt": "" } ]
-```
-
----
-
-### Wishlist — Login required
-
-**`GET /api/wishlists`**
-**Response**
-```json
-[ { "_id": "", "product": { "_id": "", "name": "", "price": 0, "image_url": "" } } ]
-```
-
-**`POST /api/wishlists`**
-**Body**
-```json
-{ "product_id": "<product_id>" }
-```
-
-**`DELETE /api/wishlists/:product_id`**
-
----
-
-### Dashboard — Admin only
-
-**`GET /api/dashboard/summary`**
-**Response**
-```json
-{ "total_revenue": 0, "total_orders": 0, "total_products": 0, "total_users": 0 }
-```
-
-**`GET /api/dashboard/revenue`**
-Revenue and orders per day, last 30 days.
-
-**Response**
-```json
-[ { "date": "2024-01-01", "revenue": 150000, "orders": 3 } ]
-```
-
-**`GET /api/dashboard/top-products`**
-Top 5 best-selling products.
-
-**Response**
-```json
-[ { "product": { "name": "", "image_url": "" }, "total_qty": 20, "total_revenue": 300000 } ]
-```
-
----
-
-### Pusher Auth
-
-**`POST /api/pusher/auth` — Login required**
-Authenticate Pusher private channels. Called automatically by the Pusher JS client when subscribing to a `private-*` channel.
-
-**Body**
-```json
-{ "socket_id": "string", "channel_name": "private-admin | private-order-<id>" }
-```
-**Response**
-```json
-{ "auth": "<pusher_signature>" }
-```
-
-Channels used:
-- `private-admin` — admin receives payment settlement toasts and low-stock alerts
-- `private-order-<id>` — customer receives real-time order status updates
-
----
-
-### Wilayah (Indonesian Regional Data)
-
-Data wilayah Indonesia dari file CSV. Filter menggunakan `kode_induk` (kode numerik dari level di atasnya).
-
-**`GET /api/wilayah/provinsi`**
-**Response**
-```json
-[ { "kode": "11", "nama": "ACEH" }, { "kode": "32", "nama": "JAWA BARAT" } ]
-```
-
-**`GET /api/wilayah/kabupaten?kode_induk=<kode_provinsi>`**
-**Query params:** `kode_induk` — `kode` dari provinsi
-
-**Example:** `GET /api/wilayah/kabupaten?kode_induk=32`
-```json
-[ { "kode": "3201", "kode_provinsi": "32", "nama": "KABUPATEN BOGOR" } ]
-```
-
-**`GET /api/wilayah/kecamatan?kode_induk=<kode_kabupaten>`**
-**Query params:** `kode_induk` — `kode` dari kabupaten/kota
-
-**Example:** `GET /api/wilayah/kecamatan?kode_induk=3201`
-```json
-[ { "kode": "3201010", "kode_kabupaten": "3201", "nama": "CIOMAS" } ]
-```
-
-**`GET /api/wilayah/desa?kode_induk=<kode_kecamatan>`**
-**Query params:** `kode_induk` — `kode` dari kecamatan
-
-**Example:** `GET /api/wilayah/desa?kode_induk=3201010`
-```json
-[ { "kode": "3201010001", "kode_kecamatan": "3201010", "nama": "MEKARJAYA" } ]
-```
-
----
-
 ## Authentication Flow
 
 ### Register
+
+![Login](docs/images/register.png)
 
 ```
 User fills register form (full_name, email, password)
@@ -1245,6 +795,461 @@ Client-side (SheetJS):
   XLSX.writeFile → download laporan-order-{date}.xlsx
   No file generated on server.
 ```
+
+---
+
+## API Endpoints
+
+Base URL: `http://localhost:3000`
+
+> Auth endpoints are under `/auth`. All other endpoints are prefixed with `/api`.
+
+---
+
+### Auth
+
+**`POST /auth/register`**
+**Body (form-data)**
+```json
+{ "full_name": "string", "email": "string", "password": "string" }
+```
+**Response**
+```json
+{ "message": "Register success" }
+```
+
+**`POST /auth/login`**
+**Body (form-data)**
+```json
+{ "email": "string", "password": "string" }
+```
+**Response**
+```json
+{ "user": { "_id": "", "full_name": "", "role": "user" }, "token": "<jwt>" }
+```
+
+**`GET /auth/me`**
+Requires `Authorization: Bearer <token>`. Returns current logged-in user.
+
+**`POST /auth/logout`**
+Requires `Authorization: Bearer <token>`.
+
+**`GET /auth/verify-email/:token`**
+Verify email from link. Token must exist in DB and not be expired.
+
+**Response**
+```json
+{ "message": "Akun berhasil diverifikasi" }
+```
+On failure:
+```json
+{ "error": 1, "message": "Link verifikasi tidak valid atau sudah expired" }
+```
+
+**`POST /auth/resend-verification`**
+Resend verification email. Used on `/cek-email` page when user didn't receive the link.
+
+**Body (form-data)**
+```json
+{ "email": "string" }
+```
+**Response**
+```json
+{ "message": "Link verifikasi telah dikirim ulang" }
+```
+
+---
+
+**`GET /auth/google`**
+Redirect browser to Google consent screen. No body needed — open directly in browser (not via axios).
+
+**`GET /auth/google/callback`**
+Google redirects here after user approves. Handled automatically by `passport-google-oauth20`.
+Redirects to `CLIENT_URL/#/auth/callback?token=<jwt>` on success.
+
+**Merge logic:**
+- `google_id` found in DB → existing Google user, login directly
+- Email found but no `google_id` → existing email/password account, link `google_id` to it
+- Neither found → auto-register new user (no password)
+
+**`POST /auth/google/mobile` — Mobile only (Flutter / React Native)**
+Login Google dari aplikasi mobile. Mobile app mengirim `id_token` dari Google SDK — tidak pakai redirect browser.
+
+**Body**
+```json
+{ "id_token": "<id_token dari Google SDK>" }
+```
+**Response sukses**
+```json
+{ "message": "logged in successfully", "user": { "_id": "", "full_name": "", "role": "user" }, "token": "<jwt>" }
+```
+**Response belum verifikasi email**
+```json
+{ "error": 1, "message": "email_not_verified", "email": "user@gmail.com" }
+```
+
+Merge logic sama persis seperti OAuth web. Cara pakai:
+- **Flutter:** `google_sign_in` → `googleUser.authentication.idToken`
+- **React Native:** `@react-native-google-signin/google-signin` → `GoogleSignin.signIn().idToken`
+
+---
+
+### User
+
+**`PUT /api/users/set-password` — Login required**
+Set or change password. Used by Google users who want to enable email/password login.
+
+**Body**
+```json
+{ "password": "string", "password_confirmation": "string" }
+```
+**Response**
+```json
+{ "message": "Password berhasil disimpan" }
+```
+
+**`PUT /api/users/avatar` — Login required**
+Upload user profile picture. Stored in Cloudinary (`foodstore/avatars`). Old image is automatically deleted.
+
+**Body (form-data):** `image` (file, max 5MB)
+
+**Response**
+```json
+{ "message": "Avatar berhasil diupdate", "image_url": "https://res.cloudinary.com/..." }
+```
+
+**`PUT /api/users/mobile/fcm-token` — Login required**
+Save FCM token from mobile device. Used to send push notifications when order status changes.
+
+**Body**
+```json
+{ "fcm_token": "string" }
+```
+**Response**
+```json
+{ "message": "FCM token tersimpan" }
+```
+
+---
+
+### Upload — Login required
+
+**`POST /api/upload`**
+General-purpose image upload to Cloudinary (`foodstore/uploads`). For mobile apps that need to upload images outside of product/avatar flow.
+
+**Body (form-data):** `image` (file, max 5MB)
+
+**Response**
+```json
+{ "url": "https://res.cloudinary.com/...", "public_id": "foodstore/uploads/xxx", "width": 1080, "height": 720 }
+```
+
+---
+
+### Product
+
+**`GET /api/products`**
+**Query params:** `limit`, `skip`, `q` (keyword), `category`, `tags[]`
+
+**Response**
+```json
+{ "data": [ { "_id": "", "name": "", "price": 0, "image_url": "", "stock": 0 } ], "count": 0 }
+```
+
+**`POST /api/products` — Admin only**
+**Body (form-data):** `name`, `description`, `price`, `category`, `tags[]`, `image` (file)
+
+**Response:** created product object
+
+**`PUT /api/products/:id` — Admin only**
+Same fields as POST, all optional. Old image auto-deleted from Cloudinary on update.
+
+**`DELETE /api/products/:id` — Admin only**
+**Response**
+```json
+{ "message": "Product deleted" }
+```
+
+---
+
+### Category
+
+**`GET /api/categories`**
+**Response**
+```json
+{ "data": [ { "_id": "", "name": "" } ], "count": 0 }
+```
+
+**`POST /api/categories`**
+**Body:** `{ "name": "string" }`
+
+**`PUT /api/categories/:id`**
+**Body:** `{ "name": "string" }`
+
+**`DELETE /api/categories/:id`**
+
+---
+
+### Tag
+
+**`GET /api/tags`**
+**`POST /api/tags` — **Body:** `{ "name": "string" }`**
+**`PUT /api/tags/:id` — **Body:** `{ "name": "string" }`**
+**`DELETE /api/tags/:id`**
+
+---
+
+### Delivery Address — Login required
+
+**`GET /api/delivery-addresses`**
+**Response**
+```json
+[ { "_id": "", "nama": "", "provinsi": "", "kabupaten": "", "kecamatan": "", "kelurahan": "", "detail": "" } ]
+```
+
+**`POST /api/delivery-addresses`**
+**Body**
+```json
+{ "nama": "string", "provinsi": "string", "kabupaten": "string", "kecamatan": "string", "kelurahan": "string", "detail": "string" }
+```
+
+**`PUT /api/delivery-addresses/:id` — Owner only**
+**`DELETE /api/delivery-addresses/:id` — Owner only**
+
+---
+
+### Cart — Login required
+
+**`GET /api/carts`**
+**Response**
+```json
+{ "items": [ { "_id": "", "product": {}, "qty": 1 } ] }
+```
+
+**`PUT /api/carts`**
+**Body**
+```json
+{ "items": [ { "_id": "<product_id>", "qty": 2 } ] }
+```
+
+---
+
+### Order — Login required
+
+**`GET /api/orders`**
+**Query params:** `limit`, `skip`, `status` (optional — filter by order status)
+
+**Response**
+```json
+{ "data": [ { "_id": "", "status": "processing", "delivery_fee": 20000, "user": { "full_name": "", "email": "" }, "order_items": [], "createdAt": "" } ], "count": 0 }
+```
+
+**`GET /api/orders/stats` — Admin only**
+Returns order counts grouped by status.
+
+**Response**
+```json
+{ "total": 42, "by_status": { "waiting_payment": 5, "processing": 3, "in_delivery": 2, "delivered": 30, "pending": 2 } }
+```
+
+**`GET /api/orders/export` — Admin only**
+Returns all orders (no pagination) with `user` and `order_items` populated. Used for client-side Excel generation.
+
+**Response**
+```json
+{ "data": [ { "_id": "", "order_number": 1, "status": "", "delivery_fee": 0, "delivery_address": {}, "user": { "full_name": "", "email": "" }, "order_items": [ { "name": "", "qty": 1, "price": 0 } ], "createdAt": "" } ] }
+```
+
+**`POST /api/orders`**
+Creates order from current cart. Decrements product stock automatically. Sends order confirmation email.
+
+**Body**
+```json
+{ "delivery_fee": 20000, "delivery_address": "<address_id>" }
+```
+**Response:** created order object
+
+**`GET /api/orders/:id`**
+**Response:** single order object with `order_items`, `user`, and linked `invoice` (payment_status, total, sub_total).
+
+**`PUT /api/orders/:id/status` — Login required**
+**Body**
+```json
+{ "status": "processing | in_delivery | delivered" }
+```
+- **Admin** — can set any of the three statuses
+- **User** — can only set `delivered` on their own order when current status is `in_delivery` (confirm receipt)
+
+**Response:** updated order object. Also triggers a Pusher event `order:status_updated` on `private-order-<id>`.
+
+---
+
+### Invoice — Login required (owner only)
+
+**`GET /api/invoices`**
+Returns all invoices belonging to the logged-in user.
+
+**Query params:** `limit`, `skip`
+
+**Response**
+```json
+{ "data": [ { "_id": "", "order": {}, "payment_status": "waiting_payment", "total": 0, "createdAt": "" } ], "count": 0 }
+```
+
+**`GET /api/invoices/:order_id`**
+**Response**
+```json
+{ "_id": "", "order": { "_id": "", "status": "", "order_items": [], "order_number": 0 }, "payment_status": "waiting_payment", "sub_total": 0, "delivery_fee": 0, "total": 0, "delivery_address": {}, "user": {} }
+```
+
+---
+
+### Payment (Midtrans)
+
+**`GET /api/payments/token/:order_id` — Login required**
+Get Snap token to open Midtrans payment popup.
+
+**Response**
+```json
+{ "token": "<snap_token>" }
+```
+
+**`GET /api/payments/verify/:order_id` — Login required**
+Force-sync payment status from Midtrans API to database. Call this after payment popup closes.
+
+**Response**
+```json
+{ "payment_status": "settlement | pending | deny | cancel | expire" }
+```
+
+**`POST /api/payments/notification`**
+Midtrans webhook — called automatically by Midtrans server after payment event.
+
+**Body (sent by Midtrans)**
+```json
+{ "order_id": "", "transaction_status": "settlement", "fraud_status": "accept" }
+```
+
+---
+
+### Review
+
+**`POST /api/reviews` — Login required**
+**Body**
+```json
+{ "product_id": "", "order_id": "", "rating": 5, "comment": "string" }
+```
+
+**`GET /api/reviews`**
+**Query params:** `product_id`, `order_id`
+
+**Response**
+```json
+[ { "_id": "", "user": {}, "rating": 5, "comment": "", "createdAt": "" } ]
+```
+
+---
+
+### Wishlist — Login required
+
+**`GET /api/wishlists`**
+**Response**
+```json
+[ { "_id": "", "product": { "_id": "", "name": "", "price": 0, "image_url": "" } } ]
+```
+
+**`POST /api/wishlists`**
+**Body**
+```json
+{ "product_id": "<product_id>" }
+```
+
+**`DELETE /api/wishlists/:product_id`**
+
+---
+
+### Dashboard — Admin only
+
+**`GET /api/dashboard/summary`**
+**Response**
+```json
+{ "total_revenue": 0, "total_orders": 0, "total_products": 0, "total_users": 0 }
+```
+
+**`GET /api/dashboard/revenue`**
+Revenue and orders per day, last 30 days.
+
+**Response**
+```json
+[ { "date": "2024-01-01", "revenue": 150000, "orders": 3 } ]
+```
+
+**`GET /api/dashboard/top-products`**
+Top 5 best-selling products.
+
+**Response**
+```json
+[ { "product": { "name": "", "image_url": "" }, "total_qty": 20, "total_revenue": 300000 } ]
+```
+
+---
+
+### Pusher Auth
+
+**`POST /api/pusher/auth` — Login required**
+Authenticate Pusher private channels. Called automatically by the Pusher JS client when subscribing to a `private-*` channel.
+
+**Body**
+```json
+{ "socket_id": "string", "channel_name": "private-admin | private-order-<id>" }
+```
+**Response**
+```json
+{ "auth": "<pusher_signature>" }
+```
+
+Channels used:
+- `private-admin` — admin receives payment settlement toasts and low-stock alerts
+- `private-order-<id>` — customer receives real-time order status updates
+
+---
+
+### Wilayah (Indonesian Regional Data)
+
+Data wilayah Indonesia dari file CSV. Filter menggunakan `kode_induk` (kode numerik dari level di atasnya).
+
+**`GET /api/wilayah/provinsi`**
+**Response**
+```json
+[ { "kode": "11", "nama": "ACEH" }, { "kode": "32", "nama": "JAWA BARAT" } ]
+```
+
+**`GET /api/wilayah/kabupaten?kode_induk=<kode_provinsi>`**
+**Query params:** `kode_induk` — `kode` dari provinsi
+
+**Example:** `GET /api/wilayah/kabupaten?kode_induk=32`
+```json
+[ { "kode": "3201", "kode_provinsi": "32", "nama": "KABUPATEN BOGOR" } ]
+```
+
+**`GET /api/wilayah/kecamatan?kode_induk=<kode_kabupaten>`**
+**Query params:** `kode_induk` — `kode` dari kabupaten/kota
+
+**Example:** `GET /api/wilayah/kecamatan?kode_induk=3201`
+```json
+[ { "kode": "3201010", "kode_kabupaten": "3201", "nama": "CIOMAS" } ]
+```
+
+**`GET /api/wilayah/desa?kode_induk=<kode_kecamatan>`**
+**Query params:** `kode_induk` — `kode` dari kecamatan
+
+**Example:** `GET /api/wilayah/desa?kode_induk=3201010`
+```json
+[ { "kode": "3201010001", "kode_kecamatan": "3201010", "nama": "MEKARJAYA" } ]
+```
+
+---
+
 ## Getting Started
 
 > **Node.js >= 20** is required (for `firebase-admin` and `expo-server-sdk` compatibility). Use `nvm use 20` or higher.
