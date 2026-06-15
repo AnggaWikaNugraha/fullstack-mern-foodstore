@@ -376,7 +376,44 @@ GET /auth/verify-email/:token
 
 ---
 
+### Beranda (Home)
+
+![Login](docs/images/beranda.png)
+
+```
+User buka halaman /
+        │
+        ▼
+GET /api/products?limit=6&skip=0   ← load produk (Redux fetchProducts)
+GET /api/categories                ← load kategori sidebar
+GET /api/tags                      ← load tag filter
+GET /api/wishlists                 ← load wishlist user (jika login)
+        │
+        ▼
+Tampil grid produk
+        │
+        ├─► Klik kategori          → Redux setCategory → refetch products
+        ├─► Klik tag               → Redux toggleTag   → refetch products
+        ├─► Ketik search           → Redux setKeyword  → refetch products?q=<keyword>
+        ├─► Pagination             → Redux setPage / goToNextPage → refetch products?skip=<n>
+        │
+        ├─► Klik ❤️ / 🤍 wishlist
+        │       ├─► Belum login    → tidak ada aksi
+        │       ├─► Sudah ada      → DELETE /api/wishlists/:product_id
+        │       └─► Belum ada      → POST /api/wishlists
+        │
+        └─► Klik "Tambah ke Keranjang"
+                ├─► Belum login    → redirect /login
+                └─► Sudah login    → Redux addItem (update local state)
+                                      PUT /api/carts (sync ke backend)
+                                      icon cart di topbar update count
+```
+
+---
+
 ### Cart
+
+![Login](docs/images/cart.webp)
 
 Users can select individual items via checkbox before checkout. The order summary panel on the right updates in real-time showing subtotal, shipping fee, and total. Only checked items are included in the purchase.
 
