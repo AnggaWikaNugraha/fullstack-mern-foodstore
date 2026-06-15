@@ -420,17 +420,18 @@ Users can select individual items via checkbox before checkout. The order summar
 ```
 Cart page
         │
-        ├─► Check/uncheck item          → subtotal recalculates
-        ├─► Select all checkbox         → toggle all items
-        ├─► +/- quantity buttons        → update qty, recalculate price
-        ├─► Delete (trash icon)         → remove item from cart
+        ├─► On load              → GET /api/carts (load cart from server)
+        │
+        ├─► Check/uncheck item  → Redux update → PUT /api/carts (auto-save)
+        ├─► Select all checkbox → Redux update → PUT /api/carts (auto-save)
+        ├─► +/- qty buttons     → Redux update → PUT /api/carts (auto-save)
+        ├─► Delete (trash icon) → Redux update → PUT /api/carts (auto-save)
         │
         └─► Click "Beli (n)"
                 │
                 ▼
-            POST /api/orders (checked items only)
-            Clear cart
             Redirect to /checkout
+            (cart data passed via Redux — no API call on Checkout load)
 ```
 
 ---
