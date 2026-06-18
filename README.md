@@ -539,33 +539,78 @@ Redirect to /invoice/order_xyz789
 
 ## Invoice & Payment
 
+![Login](docs/images/invoices.png)
+
 Full invoice lifecycle — from pending payment through each order status, with real-time updates via Pusher.
 
 ```
-Invoice page loads (status: waiting_payment)
+Invoice page loads
         │
         ▼
-Status banner: ⏳ "Waiting Payments"
-User clicks "🔒 Buy Now"
+GET /api/invoices/order/:order_id       ← load invoice + order data
+GET /api/reviews/my-order/:order_id     ← load already-reviewed product ids
         │
         ▼
-GET /api/payments/token/:order_id → snap_token
-Midtrans Snap popup opens
+Status banner: ⏳ "Menunggu Pembayaran"
+User clicks "🔒 Bayar Sekarang"
+        │
+        ▼
+GET /api/payments/token/:order_id
+        │   backend: check snap_token in DB
+        │   ├─► exists → return immediately (skip Midtrans, prevent double charge)
+        │   └─► not found → snap.createTransaction() → Midtrans API → receive token
+        │                   save token to invoice.snap_token in DB
+        │   response: { snap_token: "..." }
+        ↓
+window.snap.pay(snap_token)  ← Midtrans Snap popup opens
         │
         ├─► User selects payment method
         │   (Credit card, GoPay, VA, QRIS, OVO, Dana, etc.)
+        │   Midtrans handles all payment UI internally
         │
         ▼
-Payment completed
+Payment result → Midtrans fires one of:
+        │
+        ├─► onSuccess(result)
+        │       result: {
+                  order_id: "invoice._id",
+                  payment_type: "gopay",
+                  gross_amount: "80000.00",
+        │         transaction_status: "settlement", }
+        │       → setInvoice({ payment_status: 'settlement' })  ← immediate local update
         │
         ▼
-onSuccess callback → verifyPayment()
+onSuccess callback
+verifyPayment()
 GET /api/payments/verify/:order_id
-        ├─► Sync payment status from Midtrans to DB
-        └─► Pusher triggers admin toast notification
-                │
-                ▼
-Invoice status updates (no reload needed)
+        │
+        │   backend: Invoice.findOne({ order: order_id })     ← find invoice by order_id
+        │            snap.transaction.status(invoice._id)     ← check status from Midtrans API
+        │            response from Midtrans: { transaction_status: "settlement", fraud_status: "accept" }
+        │
+        │   map transaction_status → paymentStatus:
+        │   capture + accept → settlement
+        │   settlement       → settlement
+        │   cancel/deny/expire → failed
+        │   pending          → pending
+        │
+        │   Invoice.findByIdAndUpdate(invoice._id, { payment_status: "settlement" })
+        │   Order.findByIdAndUpdate(order._id, { status: "processing" })
+        │
+        ├─► Pusher trigger 'private-admin' event 'payment:settlement'
+        │       payload: { order_id, order_number: "38", amount: 80000 }
+        │       → admin toast notification
+        │
+        ├─► Pusher trigger 'private-order-<id>' event 'order:status_updated'
+        │       payload: { order_id, status: "processing" }
+        │       → invoice page receives → order.status updates live (no reload)
+        │
+        ├─► FCM send to user mobile (fire-and-forget)
+        │       payload: { fcm_token, order_id, order_number, status: "processing", total, item_count }
+        │
+        └─► response: { payment_status: "settlement" }
+                ↓
+        setInvoice({ payment_status: "settlement" })  ← frontend confirm from server
 
 ━━━ Real-time Order Status (Pusher) ━━━
 
@@ -579,14 +624,15 @@ Pusher event fired: order:status_updated
 on channel: private-order-<id>
         │
         ▼
-Invoice page receives event → status updates live
+Invoice page receives event → order.status updates live
 
 Status progression & banners:
-  ✅  payment confirmed  → "Pembayaran Dikonfirmasi"
-  🔄  processing        → "Pesanan Sedang Diproses"
-  🚚  in_delivery       → "Pesanan Dalam Pengiriman" + ✓ Konfirmasi Diterima button
-  🎉  delivered         → "Pesanan Berhasil Diterima!"
-  ❌  failed/expired    → "Pembayaran Gagal"
+  ⏳  waiting_payment / pending  → "Menunggu Pembayaran"     + 🔒 Bayar Sekarang button
+  ✅  settlement (default)       → "Pembayaran Dikonfirmasi"
+  🔄  processing                 → "Pesanan Sedang Diproses"
+  🚚  in_delivery                → "Pesanan Dalam Pengiriman" + ✓ Konfirmasi Diterima button
+  🎉  delivered                  → "Pesanan Berhasil Diterima!"
+  ❌  failed / deny / cancel / expire → "Pembayaran Gagal"
 ```
 
 > The **✓ Konfirmasi Diterima** button is shown to the user when the order is `in_delivery`. Clicking it calls `PUT /api/orders/:id/status { status: "delivered" }` — user can confirm receipt without going through admin.
@@ -596,6 +642,8 @@ Status progression & banners:
 ## Admin Dashboard
 
 Only accessible to users with `role: admin`. Non-admin users are redirected by the `OnlyAdmin` route guard.
+
+![Login](docs/images/admin%20dashboard.png)
 
 ```
 Admin navigates to /admin/dashboard
@@ -638,6 +686,9 @@ OnlyAdmin guard checks Redux auth state
 ---
 
 ## Admin — Manage Produk
+
+![Login](docs/images/admin%20products.png)
+
 1. retrieve
 ```
 Admin navigates to /admin/product
@@ -771,6 +822,8 @@ For each order item:
 ---
 
 ## Admin — Manajemen Order
+
+![Login](docs/images/admin%20orders.png)
 
 ```
 Admin navigates to /admin/orders
