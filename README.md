@@ -350,8 +350,7 @@ GET /auth/google/callback  (handled by passport-google-oauth20)
 ![Login](docs/images/verivikasi.png)
 
 ```
-flow login/register/google (email/password or Google)
-        │
+pages check email
         ▼
 Send email with link:
   /verify-email?token=<uuid> (ui loading verifikation)
