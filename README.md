@@ -415,17 +415,15 @@ Tampil grid produk
 
 ![Login](docs/images/cart.webp)
 
-Users can select individual items via checkbox before checkout. The order summary panel on the right updates in real-time showing subtotal, shipping fee, and total. Only checked items are included in the purchase.
-
 ```
 Cart page
         │
         ├─► On load              → GET /api/carts (load cart from server)
         │
-        ├─► Check/uncheck item  → Redux update → PUT /api/carts (auto-save)
-        ├─► Select all checkbox → Redux update → PUT /api/carts (auto-save)
-        ├─► +/- qty buttons     → Redux update → PUT /api/carts (auto-save)
-        ├─► Delete (trash icon) → Redux update → PUT /api/carts (auto-save)
+        ├─► Check/uncheck item  → Redux update → PUT /api/carts  body: { items: [{ _id, qty, checked }] }
+        ├─► Select all checkbox → Redux update → PUT /api/carts  body: { items: [{ _id, qty, checked }] }
+        ├─► +/- qty buttons     → Redux update → PUT /api/carts  body: { items: [{ _id, qty, checked }] }
+        ├─► Delete (trash icon) → Redux update → PUT /api/carts  body: { items: [{ _id, qty, checked }] }
         │
         └─► Click "Beli (n)"
                 │
@@ -440,10 +438,14 @@ Cart page
 
 3-step checkout flow with a visual progress bar. Each step must be completed before proceeding.
 
+![Login](docs/images/checkout.webp)
+
 ```
+On Checkout mount → GET /api/delivery-addresses (preload saved addresses)
+
 Step 1 — Order Items
         │
-        Review selected items, qty, and price
+        Review selected items, qty, and price (data from Redux)
         │
         ▼
 Click "Selanjutnya →"
@@ -451,10 +453,10 @@ Click "Selanjutnya →"
 Step 2 — Delivery Address
         │
         Choose from saved addresses (radio select)
-        ├─► No address yet → click "+ Tambah Alamat" → /alamat-pengiriman/tambah
+        ├─► No address yet → click "+ Tambah Alamat" → /alamat-pengiriman/tambah?from=checkout&step=2
         │
         ▼
-Click "Selanjutnya →"
+Click "Selanjutnya →"  (disabled if no address selected)
 
 Step 3 — Order Confirmation
         │
@@ -464,14 +466,74 @@ Step 3 — Order Confirmation
 Click "🛒 Bayar Sekarang"
         │
         ▼
+PUT /api/carts
+        body: { "items": [
+            { "_id": "prod_1", "qty": 2, "checked": true },
+            { "_id": "prod_2", "qty": 1, "checked": true }
+          ]}
+        │
+        │   Redux cart sebelum:
+        │   [
+              { _id: "prod_1", qty: 2, checked: true  },   ← dikirim
+        │     { _id: "prod_2", qty: 1, checked: true  },   ← dikirim
+        │     { _id: "prod_3", qty: 1, checked: false }]   ← tidak dikirim
+        │
+        │   Backend: deleteMany ALL user cart []
+        │            insertMany [prod_1, prod_2] (checked only)
+        │            DB cart: [prod_1, prod_2]
+        │
+        ▼
 POST /api/orders
+        body:     { "delivery_fee": 15000, "delivery_address": "addr_abc123" }
+        response: {
+          ...,
+          "order_items": [
+            { ...,  "product": "prod_1" },
+            { ..., "product": "prod_2" }
+          ]
+        }
+
+        │
+        │   Backend: ambil CartItem checked:true
+        │            DB cart saat ini: [
+        │              { product: "prod_1", ... },
+        │              { product: "prod_2", ... }
+        │            ]
+        │            → buat OrderItem (snapshot, disimpan ke collection order-items):
+        │            [
+        │              { ..., product: "prod_1" },
+        │              { ..., product: "prod_2" }
+        │            ]
+        │            → deleteMany CartItem { checked: true }
+        │            DB cart setelah: [] (kosong)
         ├─► Stock decremented automatically
-        ├─► Cart cleared
+        │       Product.findByIdAndUpdate(prod_1, { $inc: { stock: -2 } })
+        │       Product.findByIdAndUpdate(prod_2, { $inc: { stock: -1 } })
+        │       before: { _id: "prod_1", name: "Nasi Goreng", stock: 20 }
+        │       after:  { _id: "prod_1", name: "Nasi Goreng", stock: 18 }
+        │       if stock <= 5 → Pusher trigger 'private-admin' event 'product:low_stock'
         ├─► Invoice created (status: waiting_payment)
         └─► Order confirmation email sent via Nodemailer (fire-and-forget)
-                │
-                ▼
-            Redirect to /invoice/:order_id
+        │
+        │
+        │   Frontend pakai response:
+        │   ├─► response._id → redirect ke /invoice/order_xyz789
+        │   └─► dispatch(setItems([prod_3]))
+
+            dispatch(
+              setItems(cart.filter(i => !orderedIds.has(i._id)))
+            ) hasil filter → [prod_3]  ← sisa yang tidak dibeli
+
+        │
+        │   Redux cart setelah:
+        │   [{ _id: "prod_3", qty: 1, checked: false }]   ← sisa yang tidak dibeli
+        │
+        │   listener deteksi Redux berubah →
+        │   PUT /api/carts body: { "items": [{ "_id": "prod_3", "qty": 1, "checked": false }] }
+        │   DB cart setelah: [prod_3]
+        │
+        ▼
+Redirect to /invoice/order_xyz789
 ```
 
 ---
