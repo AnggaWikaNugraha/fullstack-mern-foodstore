@@ -639,6 +639,127 @@ Status progression & banners:
 
 ---
 
+## Account
+
+Profile page accessible at `/account`. Contains tabs for Biodata, Riwayat Belanja, Keamanan, and links to Alamat Pengiriman and Wishlist.
+
+```
+User navigates to /account
+        │
+        ▼
+Auth check (Redux auth state)
+        ├─► Not logged in → redirect to /login
+        └─► Logged in → render Account page
+                │
+                ▼
+        Read ?tab= query param → set initial tab (default: biodata)
+                │
+                ▼
+        Component mounts — conditional fetch by role:
+        │
+        ├─► role: user
+        │       GET /api/invoices?limit=20
+        │       filter payment_status: waiting_payment | pending
+        │       → show PendingBanner if any unpaid invoices exist
+        │               Expand → list invoice rows (Order #, total, "Bayar →")
+        │               Click row → /invoice/<order_id>
+        │
+        └─► role: admin
+                GET /api/orders?status=processing&limit=20
+                → show AdminOrderBanner if any orders need shipping
+                        Expand → list order rows (Order #, buyer, qty item, "Proses →")
+                        Click row → /admin/orders
+                │
+                ▼
+        Sidebar tabs (shared SIDEBAR_TABS — one source of truth):
+        ├─► Biodata Diri       → /account?tab=biodata   (inline render)
+        ├─► Alamat Pengiriman  → /alamat-pengiriman      (navigate away)
+        ├─► Wishlist           → /wishlist               (navigate away)
+        ├─► Riwayat Belanja    → /account?tab=riwayat   (inline render)
+        ├─► Keamanan           → /account?tab=keamanan  (inline render)
+        └─► Admin Panel        → /account?tab=admin     (admin only, inline render)
+```
+
+---
+
+### Tab: Biodata
+
+```
+tab = 'biodata'  (default)
+        │
+        ▼
+Render from Redux auth state — no API call
+  Nama Lengkap  : user.full_name
+  Email         : user.email  + "Terverifikasi" badge
+  Role          : user.role
+  Customer ID   : user.customer_id  (if exists)
+  Login via Google : user.google_id ? "Ya" : "Tidak"
+```
+
+---
+
+### Tab: Riwayat Belanja
+
+```
+tab = 'riwayat'
+        │
+        ▼
+GET /api/invoices?limit=20
+  → [ { _id, total, payment_status, createdAt, order: { order_number, _id } } ]
+        │
+        ▼
+Render invoice list
+  Each row: 🧾 Order # · tanggal · total · status badge
+  Status badge logic:
+    settlement/paid/capture  → "Lunas"        (hijau)
+    pending                  → "Menunggu"     (oranye)
+    deny/cancel/expire/failed → "Gagal"       (merah)
+    (none)                   → "Belum Bayar"  (abu)
+        │
+        └─► Click row → /invoice/<order._id>
+```
+
+---
+
+### Tab: Keamanan
+
+```
+tab = 'keamanan'
+        │
+        ▼
+Check user.has_password
+  ├─► false → show info box: "Akun ini terdaftar via Google, buat password untuk login tanpa Google"
+  └─► true  → show "Ganti password akun Anda"
+        │
+        ▼
+Form: Password Baru · Konfirmasi Password
+        │
+        ▼
+Submit → POST /api/auth/set-password  { password, password_confirmation }
+  ├─► error   → show error message
+  └─► success → show "Password berhasil disimpan!"
+                dispatch(userLogin({ ...user, has_password: true }, token))
+                (updates Redux so info box disappears)
+```
+
+---
+
+### Tab: Admin Panel (admin only)
+
+```
+tab = 'admin'  AND  user.role === 'admin'
+        │
+        ▼
+Render admin menu grid (no API call)
+  📊 Dashboard  → /admin/dashboard
+  🍱 Produk     → /admin/product
+  🗂️ Kategori   → /admin/categories
+  🏷️ Tag        → /admin/tag
+  📦 Pesanan    → /admin/orders
+```
+
+---
+
 ## Wishlist
 
 Users can save products from the Home page and manage them via the profile sidebar.
