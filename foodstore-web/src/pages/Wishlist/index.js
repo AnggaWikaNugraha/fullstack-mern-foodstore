@@ -1,10 +1,9 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
-import { LayoutSidebar } from 'upkit';
 import styled from '@emotion/styled';
 import BounceLoader from 'react-spinners/BounceLoader';
-import AppSidebar from '../../component/AppSidebar';
+import AccountLayout from '../../component/AccountLayout';
 import { getWishlist, removeFromWishlist } from '../../api/wishlist';
 import { addItem } from '../../features/Cart/actions';
 import { formatRupiah } from '../../utils/format-rupiah';
@@ -41,71 +40,65 @@ export default function Wishlist() {
     };
 
     return (
-        <LayoutSidebar
-            sidebar={<AppSidebar />}
-            sidebarSize={80}
-            content={
-                <Page>
-                    <Title>Wishlist Saya</Title>
+        <AccountLayout activeTab="wishlist">
+            <Section>
+                <SectionTitle>Wishlist Saya</SectionTitle>
 
-                    {loading ? (
-                        <Center><BounceLoader color="#c0392b" size={36} /></Center>
-                    ) : items.length === 0 ? (
-                        <Empty>
-                            <span style={{ fontSize: 52 }}>🤍</span>
-                            <p>Belum ada produk di wishlist</p>
-                            <BackBtn onClick={() => history.push('/')}>Mulai Belanja</BackBtn>
-                        </Empty>
-                    ) : (
-                        <Grid>
-                            {items.map((item) => {
-                                const product = item.product;
-                                if (!product) return null;
-                                return (
-                                    <Card key={item._id}>
-                                        <Img
-                                            src={getImageUrl(product.image_url)}
-                                            alt={product.name}
-                                            onClick={() => history.push('/')}
-                                        />
-                                        <CardBody>
-                                            <ProductName>{product.name}</ProductName>
-                                            <Price>{formatRupiah(product.price)}</Price>
-                                            <Actions>
-                                                <CartBtn onClick={() => handleAddToCart(product)}>
-                                                    + Keranjang
-                                                </CartBtn>
-                                                <RemoveBtn
-                                                    onClick={() => handleRemove(product._id)}
-                                                    disabled={removingId === product._id}
-                                                >
-                                                    {removingId === product._id ? '...' : '🗑'}
-                                                </RemoveBtn>
-                                            </Actions>
-                                        </CardBody>
-                                    </Card>
-                                );
-                            })}
-                        </Grid>
-                    )}
-                </Page>
-            }
-        />
+                {loading ? (
+                    <Center><BounceLoader color="#c0392b" size={36} /></Center>
+                ) : items.length === 0 ? (
+                    <Empty>
+                        <span style={{ fontSize: 52 }}>🤍</span>
+                        <p>Belum ada produk di wishlist</p>
+                        <BackBtn onClick={() => history.push('/')}>Mulai Belanja</BackBtn>
+                    </Empty>
+                ) : (
+                    <Grid>
+                        {items.map((item) => {
+                            const product = item.product;
+                            if (!product) return null;
+                            return (
+                                <Card key={item._id}>
+                                    <Img
+                                        src={getImageUrl(product.image_url)}
+                                        alt={product.name}
+                                        onClick={() => history.push('/')}
+                                    />
+                                    <CardBody>
+                                        <ProductName>{product.name}</ProductName>
+                                        <Price>{formatRupiah(product.price)}</Price>
+                                        <Actions>
+                                            <CartBtn onClick={() => handleAddToCart(product)}>
+                                                + Keranjang
+                                            </CartBtn>
+                                            <RemoveBtn
+                                                onClick={() => handleRemove(product._id)}
+                                                disabled={removingId === product._id}
+                                            >
+                                                {removingId === product._id ? '...' : '🗑'}
+                                            </RemoveBtn>
+                                        </Actions>
+                                    </CardBody>
+                                </Card>
+                            );
+                        })}
+                    </Grid>
+                )}
+            </Section>
+        </AccountLayout>
     );
 }
 
-const Page = styled('div')({
-    maxWidth: 900,
-    margin: '0 auto',
-    padding: '40px 20px',
-    minHeight: '100vh',
+const Section = styled('div')({
+    padding: '1.5rem',
+    '@media (max-width: 640px)': { padding: '1rem 0.75rem' },
 });
 
-const Title = styled('h2')({
-    fontSize: 22,
+const SectionTitle = styled('h2')({
+    fontSize: '1.125rem',
     fontWeight: 700,
-    color: '#222',
-    marginBottom: 24,
+    color: '#111',
+    margin: '0 0 1.25rem',
 });
 
 const Center = styled('div')({
@@ -138,7 +131,7 @@ const BackBtn = styled('button')({
 
 const Grid = styled('div')({
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
     gap: 16,
 });
 
@@ -153,7 +146,7 @@ const Card = styled('div')({
 
 const Img = styled('img')({
     width: '100%',
-    height: 150,
+    height: 140,
     objectFit: 'cover',
     cursor: 'pointer',
 });

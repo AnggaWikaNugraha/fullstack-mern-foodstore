@@ -2,9 +2,10 @@ import { Link, useHistory } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import styled from '@emotion/styled';
 
-const SIDEBAR_TABS = [
+export const SIDEBAR_TABS = [
     { key: 'biodata',  label: 'Biodata Diri',     icon: '👤', to: '/account?tab=biodata'  },
     { key: 'alamat',   label: 'Alamat Pengiriman', icon: '📍', to: '/alamat-pengiriman'    },
+    { key: 'wishlist', label: 'Wishlist',          icon: '🤍', to: '/wishlist'             },
     { key: 'riwayat',  label: 'Riwayat Belanja',   icon: '🧾', to: '/account?tab=riwayat'  },
     { key: 'keamanan', label: 'Keamanan',           icon: '🔐', to: '/account?tab=keamanan' },
 ];

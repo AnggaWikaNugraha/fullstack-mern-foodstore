@@ -639,6 +639,66 @@ Status progression & banners:
 
 ---
 
+## Wishlist
+
+Users can save products from the Home page and manage them via the profile sidebar.
+
+```
+User clicks 🤍 icon on a product card
+        │
+        ▼
+Auth check (Redux auth state)
+        ├─► Not logged in → redirect to /login
+        └─► Logged in
+                │
+                ▼
+        POST /api/wishlists  { product_id: "prod_1" }
+        → { _id: "wl_1", user: "user_1", product: "prod_1" }
+                │
+                ▼
+        Heart icon turns filled (local state update)
+```
+
+```
+User navigates to /wishlist
+        │
+        ▼
+Auth check (Redux auth state)
+        ├─► Not logged in → redirect to /login
+        └─► Logged in → render Wishlist page (AccountLayout, activeTab="wishlist")
+                │
+                ▼
+        Component mounts
+        GET /api/wishlists
+        → [
+            { _id: "wl_1", product: { _id: "prod_1", name: "Nasi Goreng", price: 25000, image_url: "..." } },
+            { _id: "wl_2", product: { _id: "prod_2", name: "Ayam Bakar",  price: 35000, image_url: "..." } }
+          ]
+                │
+                ▼
+        Render product grid
+        ├─► Each card: image · name · price · 🗑 button · "+ Keranjang" button
+        │
+        ├─► 🗑 Remove from wishlist
+        │       DELETE /api/wishlists/prod_1
+        │       → 200 OK
+        │       Local state: filter out removed item (optimistic remove)
+        │       items = [{ _id: "wl_2", product: { ... } }]
+        │
+        └─► + Keranjang (add to cart)
+                dispatch(addItem(product))   ← Redux only, no direct API call
+                        │
+                        ▼
+                listener.js detects Redux cart state change
+                        │
+                        ▼
+                PUT /api/carts  [{ _id: "prod_2", qty: 1, checked: true }]
+                Backend re-fetches name/price/image from Product (tamper-proof)
+                → cart synced to backend
+```
+
+---
+
 ## Admin Dashboard
 
 Only accessible to users with `role: admin`. Non-admin users are redirected by the `OnlyAdmin` route guard.

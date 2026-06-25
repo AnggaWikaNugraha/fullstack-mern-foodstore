@@ -8,13 +8,7 @@ import BounceLoader from 'react-spinners/BounceLoader';
 import { getInvoices } from '../../api/invoice';
 import { getOrders } from '../../api/orders';
 import { formatRupiah } from '../../utils/format-rupiah';
-
-const TABS = [
-    { key: 'biodata',  label: 'Biodata Diri',       icon: '👤' },
-    { key: 'alamat',   label: 'Alamat Pengiriman',   icon: '📍' },
-    { key: 'riwayat',  label: 'Riwayat Belanja',     icon: '🧾' },
-    { key: 'keamanan', label: 'Keamanan',             icon: '🔐' },
-];
+import { SIDEBAR_TABS } from '../../component/AccountLayout';
 
 const ADMIN_MENUS = [
     { label: 'Dashboard',  desc: 'Statistik & ringkasan toko',   icon: '📊', to: '/admin/dashboard' },
@@ -124,14 +118,14 @@ export default function Account() {
 
                 {/* ── MOBILE: tab bar ── */}
                 <MobileTabBar>
-                    {TABS.map(t => (
-                        t.key === 'alamat' ? (
-                            <MobileTabItem key={t.key} active={tab === t.key} as={Link} to="/alamat-pengiriman">
+                    {SIDEBAR_TABS.map(t => (
+                        t.to.startsWith('/account') ? (
+                            <MobileTabItem key={t.key} active={tab === t.key} onClick={() => handleTabChange(t.key)}>
                                 <span>{t.icon}</span>
                                 <span>{t.label}</span>
                             </MobileTabItem>
                         ) : (
-                            <MobileTabItem key={t.key} active={tab === t.key} onClick={() => handleTabChange(t.key)}>
+                            <MobileTabItem key={t.key} active={tab === t.key} as={Link} to={t.to}>
                                 <span>{t.icon}</span>
                                 <span>{t.label}</span>
                             </MobileTabItem>
@@ -161,16 +155,16 @@ export default function Account() {
                     </SidebarTop>
 
                     <NavList>
-                        {TABS.map(t => (
-                            t.key === 'alamat' ? (
-                                <NavItem key={t.key} as={Link} to="/alamat-pengiriman" active={tab === t.key} style={{ textDecoration: 'none' }}>
+                        {SIDEBAR_TABS.map(t => (
+                            t.to.startsWith('/account') ? (
+                                <NavItem key={t.key} active={tab === t.key} onClick={() => handleTabChange(t.key)}>
                                     <NavIcon>{t.icon}</NavIcon>
                                     <NavLabel active={tab === t.key}>{t.label}</NavLabel>
                                 </NavItem>
                             ) : (
-                                <NavItem key={t.key} active={tab === t.key} onClick={() => handleTabChange(t.key)}>
+                                <NavItem key={t.key} as={Link} to={t.to} active={0} style={{ textDecoration: 'none' }}>
                                     <NavIcon>{t.icon}</NavIcon>
-                                    <NavLabel active={tab === t.key}>{t.label}</NavLabel>
+                                    <NavLabel>{t.label}</NavLabel>
                                 </NavItem>
                             )
                         ))}
