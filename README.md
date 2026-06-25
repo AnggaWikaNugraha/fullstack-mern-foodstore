@@ -699,6 +699,118 @@ Auth check (Redux auth state)
 
 ---
 
+## Delivery Address
+
+Accessible from the profile sidebar (**Alamat Pengiriman** tab) or redirected from Checkout Step 2. Requires login.
+
+### Read — List Addresses (`/alamat-pengiriman`)
+
+```
+User navigates to /alamat-pengiriman
+        │
+        ▼
+AccountLayout renders (activeTab="alamat")
+        │
+        ▼
+useAddressData() hook mounts
+        │
+        ▼
+GET /api/delivery-addresses?limit=10&skip=0
+  DeliveryAddress.find({ user: req.user._id }).limit(10).skip(0).sort("-createdAt")
+  → { data: [ { _id, nama, provinsi, kabupaten, kecamatan, kelurahan, detail } ] }
+        │
+        ▼
+Render address list
+  Each card: 📍 nama · kelurahan, kecamatan, kabupaten, provinsi · detail
+        │
+        ├─► count > limit → pagination buttons
+        │       setPage(n) → hook refetches with new skip = (n * limit) - limit
+        │
+        └─► From Checkout? (URL: ?from=checkout&step=2)
+                ├─► Show "← Kembali ke Checkout" bar
+                ├─► "Pilih" button on each card
+                │       → redirect to /checkout?step=2&address=<addr_id>
+                └─► "+ Tambah Alamat" → /alamat-pengiriman/tambah?from=checkout&step=2
+```
+
+---
+
+### Create — Add Address (`/alamat-pengiriman/tambah`)
+
+```
+User clicks "+ Tambah Alamat"
+        │
+        ▼
+Navigate to /alamat-pengiriman/tambah
+        │
+        ▼
+Render form — cascading region dropdowns (SelectWilayah component):
+
+  Provinsi selected
+        │
+        ▼
+  GET /api/wilayah/kabupaten?kode_induk=<kode_provinsi>
+  → kabupaten/kota options  (resets kabupaten, kecamatan, kelurahan)
+
+  Kabupaten selected
+        │
+        ▼
+  GET /api/wilayah/kecamatan?kode_induk=<kode_kabupaten>
+  → kecamatan options  (resets kecamatan, kelurahan)
+
+  Kecamatan selected
+        │
+        ▼
+  GET /api/wilayah/desa?kode_induk=<kode_kecamatan>
+  → kelurahan/desa options  (resets kelurahan)
+        │
+        ▼
+User fills: Nama Alamat · Provinsi · Kabupaten · Kecamatan · Kelurahan · Detail
+        │
+        ▼
+Submit → handleSubmit(onSubmit)
+        │
+        ▼
+POST /api/delivery-addresses
+  CASL policy check → user must have 'create' on DeliveryAddress
+  new DeliveryAddress({ ...payload, user: req.user._id }).save()
+  → saved DeliveryAddress object
+        │
+        ├─► error → show error message, stay on form
+        ├─► From Checkout → redirect to /alamat-pengiriman?from=checkout&step=2
+        └─► Normal        → redirect to /alamat-pengiriman
+```
+
+---
+
+### Update — Edit Address
+
+> Backend only — no frontend page implemented.
+
+```
+PUT /api/delivery-addresses/:id
+  DeliveryAddress.findOne({ _id: id })
+  CASL policy check → owner only (address.user === req.user._id)
+  DeliveryAddress.findOneAndUpdate({ _id: id }, payload, { new: true })
+  → updated DeliveryAddress object
+```
+
+---
+
+### Delete — Remove Address
+
+> Backend only — no frontend page implemented.
+
+```
+DELETE /api/delivery-addresses/:id
+  DeliveryAddress.findOne({ _id: id })
+  CASL policy check → owner only (address.user === req.user._id)
+  DeliveryAddress.findOneAndDelete({ _id: id })
+  → deleted DeliveryAddress object
+```
+
+---
+
 ## Admin Dashboard
 
 Only accessible to users with `role: admin`. Non-admin users are redirected by the `OnlyAdmin` route guard.
@@ -1232,7 +1344,14 @@ Same fields as POST, all optional. Old image auto-deleted from Cloudinary on upd
 ```
 
 **`PUT /api/delivery-addresses/:id` — Owner only**
+**Body**
+```json
+{ "nama": "string", "provinsi": "string", "kabupaten": "string", "kecamatan": "string", "kelurahan": "string", "detail": "string" }
+```
+**Response** — updated DeliveryAddress object
+
 **`DELETE /api/delivery-addresses/:id` — Owner only**
+**Response** — deleted DeliveryAddress object
 
 ---
 
