@@ -641,6 +641,8 @@ Status progression & banners:
 
 ## Review
 
+![Login](docs/images/review.png)
+
 Reviews are submitted from the Invoice page after payment is confirmed. Each order item can be rated once per user.
 
 ```
@@ -708,6 +710,8 @@ Render order items list
 
 ## Account
 
+![Login](docs/images/account.png)
+
 Profile page accessible at `/account`. Contains tabs for Biodata, Riwayat Belanja, Keamanan, and links to Alamat Pengiriman and Wishlist.
 
 ```
@@ -747,10 +751,6 @@ Auth check (Redux auth state)
         └─► Admin Panel        → /account?tab=admin     (admin only, inline render)
 ```
 
----
-
-## Tab: Biodata
-
 ```
 tab = 'biodata'  (default)
         │
@@ -765,7 +765,9 @@ Render from Redux auth state — no API call
 
 ---
 
-## Tab: Riwayat Belanja
+## Riwayat Belanja
+
+![Login](docs/images/riwayat%20belanja.png)
 
 ```
 tab = 'riwayat'
@@ -790,6 +792,8 @@ Render invoice list
 
 ## Tab: Keamanan
 
+![Login](docs/images/keamanan.png)
+
 ```
 tab = 'keamanan'
         │
@@ -813,6 +817,8 @@ Submit → POST /api/auth/set-password  { password, password_confirmation }
 
 ## Tab: Admin Panel (admin only)
 
+![Login](docs/images/admin%20panel.png)
+
 ```
 tab = 'admin'  AND  user.role === 'admin'
         │
@@ -828,6 +834,8 @@ Render admin menu grid (no API call)
 ---
 
 ## Wishlist
+
+![Login](docs/images/whislist.png)
 
 Users can save products from the Home page and manage them via the profile sidebar.
 
@@ -888,6 +896,8 @@ Auth check (Redux auth state)
 ---
 
 ## Delivery Address
+
+![Login](docs/images/address.png)
 
 Accessible from the profile sidebar (**Alamat Pengiriman** tab) or redirected from Checkout Step 2. Requires login.
 
