@@ -639,6 +639,73 @@ Status progression & banners:
 
 ---
 
+## Review
+
+Reviews are submitted from the Invoice page after payment is confirmed. Each order item can be rated once per user.
+
+```
+Invoice page loads
+        │
+        ▼
+GET /api/reviews?order_id=<order_id>   (chained after getInvoiceByOrderId)
+  filter: { order: order_id, user: req.user._id }
+  → { data: [{ _id, product: { _id }, rating, comment }] }
+        │
+        ▼
+reviewedIds = data.map(r => r.product._id)
+(tracks which product_ids in this order already have a review)
+        │
+        ▼
+Render order items list
+  For each item:
+        ├─► payStatus ≠ settlement/paid/capture  → empty placeholder (review not available)
+        ├─► product._id in reviewedIds           → show "⭐ Dinilai" badge
+        └─► not yet reviewed                     → show "Beri Rating" button
+                │
+                ▼
+        User clicks "Beri Rating"
+                │
+                ▼
+        Modal opens:
+          product name
+          StarRating (1–5)  ←→  hint text updates live:
+            1 → "Sangat buruk"
+            2 → "Kurang memuaskan"
+            3 → "Cukup baik"
+            4 → "Bagus!"
+            5 → "Sempurna! 🎉"
+          Textarea comment (optional, max 500 chars)
+          "Simpan Rating" button
+                │
+                ▼
+        User selects stars → optional comment → Submit
+                │
+                ├─► No star selected → "Pilih bintang dulu ya!" (stay in modal)
+                │
+                └─► POST /api/reviews  { product_id, order_id, rating, comment }
+                        │
+                        ▼
+                Backend:
+                  Save Review { user, product, order, rating, comment }
+                  unique index on { user, product } — one review per product per user
+                        │
+                        ├─► Duplicate (reviewed before)
+                        │       → error "Kamu sudah memberi rating untuk produk ini"
+                        │
+                        └─► Saved
+                                Recalculate product avg_rating:
+                                  allReviews = Review.find({ product: product_id })
+                                  avg = sum(ratings) / count
+                                  Product.update({ avg_rating: round(avg,1), review_count: count })
+                                → return saved Review object
+                                        │
+                                        ▼
+                                reviewedIds = [...prev, product_id]
+                                Modal closes → button changes to "⭐ Dinilai"
+```
+
+---
+
 ## Account
 
 Profile page accessible at `/account`. Contains tabs for Biodata, Riwayat Belanja, Keamanan, and links to Alamat Pengiriman and Wishlist.
@@ -682,7 +749,7 @@ Auth check (Redux auth state)
 
 ---
 
-### Tab: Biodata
+## Tab: Biodata
 
 ```
 tab = 'biodata'  (default)
@@ -698,7 +765,7 @@ Render from Redux auth state — no API call
 
 ---
 
-### Tab: Riwayat Belanja
+## Tab: Riwayat Belanja
 
 ```
 tab = 'riwayat'
@@ -721,7 +788,7 @@ Render invoice list
 
 ---
 
-### Tab: Keamanan
+## Tab: Keamanan
 
 ```
 tab = 'keamanan'
@@ -744,7 +811,7 @@ Submit → POST /api/auth/set-password  { password, password_confirmation }
 
 ---
 
-### Tab: Admin Panel (admin only)
+## Tab: Admin Panel (admin only)
 
 ```
 tab = 'admin'  AND  user.role === 'admin'
