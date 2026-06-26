@@ -790,7 +790,7 @@ Render invoice list
 
 ---
 
-## Tab: Keamanan
+## Keamanan
 
 ![Login](docs/images/keamanan.png)
 
@@ -815,7 +815,7 @@ Submit → POST /api/auth/set-password  { password, password_confirmation }
 
 ---
 
-## Tab: Admin Panel (admin only)
+## Admin Panel (admin only)
 
 ![Login](docs/images/admin%20panel.png)
 
