@@ -8,95 +8,115 @@ A full-featured food e-commerce application built with the MERN Stack (MongoDB, 
 
 ```
 fullstack-mern-foodstore/
-├── foodstore-server/                  # Backend (Node.js + Express)
-│   ├── app/
-│   │   ├── auth/                      # Register, login, logout, me, Google OAuth
-│   │   ├── cart/                      # Shopping cart
-│   │   ├── cart-item/                 # Cart item model
-│   │   ├── category/                  # Product categories
-│   │   ├── dashboard/                 # Admin dashboard stats & charts
-│   │   ├── delivery-address/          # Delivery addresses
-│   │   ├── invoice/                   # Order invoices
-│   │   ├── order/                     # Orders
-│   │   ├── order-item/                # Order items
-│   │   ├── payment/                   # Midtrans Snap payment gateway
-│   │   ├── policy/                    # Role-based access control (CASL)
-│   │   ├── product/                   # Food products
-│   │   ├── review/                    # Product reviews & ratings
-│   │   ├── tag/                       # Product tags
-│   │   ├── user/                      # User model, set-password, avatar upload, FCM token
-│   │   ├── upload/                    # General image upload to Cloudinary
-│   │   ├── pusher-auth/               # Pusher private channel auth endpoint
-│   │   ├── wilayah/                   # Indonesian regional data (CSV-based)
-│   │   ├── wishlist/                  # Wishlist
-│   │   ├── utils/
-│   │   │   ├── cloudinary.js          # Cloudinary upload/delete helper
-│   │   │   ├── expo-push.js           # Expo push notification sender
-│   │   │   ├── firebase.js            # Firebase Admin SDK init (FCM fallback)
-│   │   │   ├── logger.js              # API request/response logger middleware
-│   │   │   ├── mailer.js              # Nodemailer transporter
-│   │   │   └── get-token.js           # JWT token helper
-│   │   └── config.js
-│   ├── database/                      # MongoDB connection
-│   └── app.js                         # Express entry point
-│
-└── foodstore-web/                     # Frontend (React)
-    └── src/
-        ├── api/                       # Axios API call layer
-        │   ├── auth.js                # login, register, logout, getMe, setPassword
-        │   ├── cart.js
-        │   ├── category.js
-        │   ├── dashboard.js
-        │   ├── invoice.js
-        │   ├── orders.js
-        │   ├── payment.js
-        │   ├── products.js
-        │   ├── review.js
-        │   ├── tag.js
-        │   └── wishlist.js
-        ├── app/                       # Redux store & middleware listener
-        ├── component/                 # Reusable components
-        │   ├── AppSidebar/            # Category & admin navigation
-        │   ├── Cart/                  # Cart drawer
-        │   ├── OnlyAdmin/             # Admin route guard
-        │   ├── OnlyGuest/             # Guest route guard
-        │   ├── OnlyLogin/             # Auth route guard
-        │   ├── SelectWilayah/         # Indonesian region selector
-        │   ├── SocketNotification/    # Pusher real-time notification panel (admin)
-        │   ├── StarRating/            # Star rating display
-        │   ├── StatusLabel/           # Payment status badge
-        │   └── Topbar/                # Top navigation bar
-        ├── features/                  # Redux slices
-        │   ├── Auth/
-        │   ├── Cart/
-        │   ├── categories/
-        │   └── products/
-        ├── hooks/                     # Custom React hooks
-        ├── pages/                     # Application pages
-        │   ├── 404/
-        │   ├── Account/               # Profile, order history, set password
-        │   ├── AdminOrderDetail/      # Admin order detail page
-        │   ├── AdminOrders/
-        │   ├── AuthCallback/          # Google OAuth callback — reads token from URL
-        │   ├── CekEmail/              # "Silakan cek email" prompt after register or unverified login
-        │   ├── VerifyEmail/           # Process verification token from email link
-        │   ├── Checkout/
-        │   ├── Dashboard/
-        │   ├── Home/
-        │   ├── Login/                 # Email/password + Google login button
-        │   ├── Register/
-        │   ├── RegisterSucces/
-        │   ├── UserAddressAdd/
-        │   ├── Wishlist/
-        │   ├── categories/
-        │   ├── invoice/
-        │   ├── logout/
-        │   ├── product/
-        │   ├── tag/
-        │   └── userAddress/
-        ├── styles/
-        └── utils/
+├── foodstore-server/   # Backend  — Node.js + Express + MongoDB
+└── foodstore-web/      # Frontend — React + Redux
 ```
+
+---
+
+### Backend (`foodstore-server/`)
+
+```
+app/
+├── auth/               # Register, login, logout, me, Google OAuth
+├── cart/               # Shopping cart (GET + PUT — replace strategy)
+├── cart-item/          # CartItem model
+├── category/           # Product categories (CRUD)
+├── dashboard/          # Admin stats: revenue, orders, top products
+├── delivery-address/   # User delivery addresses (CRUD)
+├── invoice/            # Order invoices
+├── order/              # Orders (CRUD + status update)
+├── order-item/         # OrderItem model
+├── payment/            # Midtrans Snap — token, verify, webhook
+├── policy/             # CASL role-based access control
+├── product/            # Food products (CRUD + Cloudinary image)
+├── pusher-auth/        # Pusher private channel auth
+├── review/             # Product reviews & star ratings
+├── tag/                # Product tags (CRUD)
+├── upload/             # General image upload to Cloudinary
+├── user/               # set-password, avatar upload, FCM token
+├── wilayah/            # Indonesian regional data (CSV: provinsi → desa)
+├── wishlist/           # User wishlist
+└── utils/
+    ├── cloudinary.js   # Cloudinary upload/delete helper
+    ├── expo-push.js    # Expo push notification sender
+    ├── firebase.js     # Firebase Admin SDK (FCM fallback)
+    ├── logger.js       # Request/response logger middleware
+    ├── mailer.js       # Nodemailer transporter
+    └── get-token.js    # JWT token extraction helper
+database/               # MongoDB connection
+app.js                  # Express entry point
+```
+
+---
+
+### Frontend (`foodstore-web/src/`)
+
+```
+api/                        # Axios API call layer (one file per domain)
+│   ├── auth.js             # login, register, logout, getMe, setPassword
+│   ├── cart.js             # getCart, saveCart
+│   ├── address.js          # getAddress, createAddress
+│   ├── category.js
+│   ├── dashboard.js
+│   ├── invoice.js
+│   ├── orders.js
+│   ├── payment.js
+│   ├── products.js
+│   ├── review.js
+│   ├── tag.js
+│   └── wishlist.js
+app/                        # Redux store, listener, Pusher
+│   ├── store.js
+│   ├── listener.js         # Auto-saves cart on Redux state change
+│   └── constants.js
+component/                  # Reusable UI components
+│   ├── AccountLayout/      # Shared profile sidebar (SIDEBAR_TABS source of truth)
+│   ├── AdminLayout/        # Admin page wrapper
+│   ├── AppSidebar/         # Category & admin navigation sidebar
+│   ├── OnlyAdmin/          # Route guard — admin only
+│   ├── OnlyGuest/          # Route guard — unauthenticated only
+│   ├── OnlyLogin/          # Route guard — login required
+│   ├── SelectWilayah/      # Cascading region dropdowns
+│   ├── SocketNotification/ # Pusher real-time toast panel (admin)
+│   ├── StarRating/         # Interactive star rating
+│   ├── StatusLabel/        # Payment status badge
+│   └── Topbar/             # Top navigation bar
+features/                   # Redux slices
+│   ├── Auth/               # userLogin, userLogout actions
+│   ├── Cart/               # addItem, removeItem, setItems, qty actions
+│   ├── categories/
+│   └── products/
+hooks/
+│   └── address.js          # useAddressData() — fetch + paginate addresses
+pages/
+│   ├── Account/            # Profile tabs: Biodata, Riwayat, Keamanan
+│   ├── AdminOrderDetail/   # Admin order detail + status update
+│   ├── AdminOrders/        # Admin order management table
+│   ├── AuthCallback/       # Google OAuth callback — reads ?token= from URL
+│   ├── CekEmail/           # "Check your email" prompt
+│   ├── Checkout/           # Multi-step checkout (items → address → confirm)
+│   ├── Dashboard/          # Admin dashboard: charts + stat cards
+│   ├── Home/               # Product listing + category/tag filter
+│   ├── Keranjang/          # Shopping cart
+│   ├── Login/              # Email/password + Google login
+│   ├── Register/           # Registration form
+│   ├── RegisterSucces/     # Post-registration success screen
+│   ├── UserAddressAdd/     # Add delivery address form
+│   ├── VerifyEmail/        # Email verification token handler
+│   ├── Wishlist/           # User wishlist
+│   ├── categories/         # Admin category management
+│   ├── invoice/            # Invoice & Midtrans payment page
+│   ├── logout/             # Logout handler (clears Redux + localStorage)
+│   ├── product/            # Admin product management
+│   ├── tag/                # Admin tag management
+│   └── userAddress/        # Delivery address list
+utils/
+│   ├── format-rupiah.js
+│   └── image-url.js
+styles/
+```
+
 ---
 
 ## Tech Stack
@@ -158,7 +178,7 @@ fullstack-mern-foodstore/
 
 - Rekomendasi produk AI — integrasi OpenAI API
 - monitoring Sentry — error tracking production, tau kalau ada crash di user
-- **Device ID & One Account One Device** — setiap login menyimpan `device_id` (generated dari fingerprint perangkat) ke DB. Satu akun hanya boleh login di satu HP sekaligus. Jika login dari perangkat baru, sesi di perangkat lama otomatis dicabut. Backend menyimpan `{ token, device_id, last_active }` per sesi di array `sessions[]` dalam dokumen User.
+- Device ID & One Account One Device — setiap login menyimpan `device_id` (generated dari fingerprint perangkat) ke DB. Satu akun hanya boleh login di satu HP sekaligus. Jika login dari perangkat baru, sesi di perangkat lama otomatis dicabut. Backend menyimpan `{ token, device_id, last_active }` per sesi di array `sessions[]` dalam dokumen User.
   - **Enhanced:** `POST /auth/login` — tambah field `device_id` di body, simpan sesi baru, cabut sesi lama jika device berbeda
   - **Enhanced:** `POST /auth/logout` — invalidate hanya sesi device yang sedang aktif (bukan semua token)
   - **New API:** `GET /api/users/sessions` — list semua sesi aktif milik user `[{ device_id, last_active, current }]`
@@ -168,24 +188,24 @@ fullstack-mern-foodstore/
 - Jest + React Testing Library
 - TanStack Query (React Query) — gantikan manual loading/error state, auto cache, refetch.
 - Swagger / OpenAPI
-- **Mode Kasir / POS (Point of Sale)**
-- **Barcode Scanner** — extend product search, scan via kamera (ZXing) atau USB reader
-- **Pembayaran Tunai** — extend payment page, tambah opsi "Tunai" di samping Midtrans, hitung kembalian otomatis
-- **Order Source Flag** — tambah field `source: 'kasir' | 'online'` di Order model
-- **Walk-in Customer** — transaksi tanpa akun, reuse guest flow
-- **Struk Printer**
-- **Barcode Produk**
+- Mode Kasir / POS (Point of Sale)
+- Barcode Scanner — extend product search, scan via kamera (ZXing) atau USB reader
+- Pembayaran Tunai — extend payment page, tambah opsi "Tunai" di samping Midtrans, hitung kembalian otomatis
+- Order Source Flag — tambah field `source: 'kasir' | 'online'` di Order model
+- Walk-in Customer — transaksi tanpa akun, reuse guest flow
+- Struk Printer
+- Barcode Produk
 
 ## New Features
 
-- **Midtrans Payment Gateway**
-- **Admin Dashboard** — 30-day revenue chart, orders per day, top 5 best-selling products, summary cards
-- **Admin Order Management** — admin updates order status from UI (processing → in_delivery → delivered)
-- **Rating & Review**
-- **Cloudinary Image Upload**
-- **Order Confirmation Email**
-- **Stock Management**
-- **Pusher Real-time Notifications** — admin gets instant toast when payment settles, customer sees order status update live (Pusher used instead of Socket.io for Vercel serverless compatibility)
+- Midtrans Payment Gateway
+- Admin Dashboard — 30-day revenue chart, orders per day, top 5 best-selling products, summary cards
+- Admin Order Management — admin updates order status from UI (processing → in_delivery → delivered)
+- Rating & Review
+- Cloudinary Image Upload
+- Order Confirmation Email
+- Stock Management
+- Pusher Real-time Notifications** — admin gets instant toast when payment settles, customer sees order status update live (Pusher used instead of Socket.io for Vercel serverless compatibility)
 
   ```
   [Order dibuat]
@@ -209,36 +229,38 @@ fullstack-mern-foodstore/
   → 🔔 FCM ke user (mobile)
   ```
 
-- **Google OAuth** — login with Google account via `passport-google-oauth20`. Smart account merge: if the Google email already exists in DB (registered via email/password), `google_id` is linked to the existing account — no duplicate accounts. New Google users are auto-registered without a password. Users can optionally set a password later from the Account page to enable both login methods on the same account.
+- Google OAuth — login with Google account via `passport-google-oauth20`. Smart account merge: if the Google email already exists in DB (registered via email/password), `google_id` is linked to the existing account — no duplicate accounts. New Google users are auto-registered without a password. Users can optionally set a password later from the Account page to enable both login methods on the same account.
 
-- **Email Verification** — all new accounts (email/password or Google) must verify their email before logging in. A verification link is sent via Nodemailer and expires in 24 hours. If the link expires or login is attempted before verifying, a new link is automatically re-sent and the user is redirected to `/cek-email`.
+- Email Verification — all new accounts (email/password or Google) must verify their email before logging in. A verification link is sent via Nodemailer and expires in 24 hours. If the link expires or login is attempted before verifying, a new link is automatically re-sent and the user is redirected to `/cek-email`.
 
-- **Export Laporan Excel**
+- Export Laporan Excel
 
-- **Google Sign-In Mobile** — `POST /auth/google/mobile` endpoint for Google login from Flutter / React Native apps. Mobile app sends the `id_token` from the Google SDK, backend verifies it via `google-auth-library`, runs the same account merge logic as the web OAuth flow, and returns `{ user, token }`. No browser redirect required.
+- Google Sign-In Mobile — `POST /auth/google/mobile` endpoint for Google login from Flutter / React Native apps. Mobile app sends the `id_token` from the Google SDK, backend verifies it via `google-auth-library`, runs the same account merge logic as the web OAuth flow, and returns `{ user, token }`. No browser redirect required.
 
-- **Low Stock Alert**
+- Low Stock Alert
 
 ## Features
 
-- Product listing with search by keyword, category, and tags
-- User registration & login (JWT-based auth + Google OAuth)
-- Email verification before first login
-- Shopping cart (per-user, isolated)
-- Checkout with delivery address selection
-- Midtrans Snap payment gateway (sandbox)
-- Order history & invoice detail with visual timeline
-- Real-time order status tracking via Pusher
-- User can confirm delivery directly from invoice page
-- Product rating & review (only after payment settled)
-- Wishlist — save favourite products
-- Manage delivery addresses with Indonesian regional data (province, city, district, village)
-- Account page with collapsible pending-payment banner (user) / pending-orders banner (admin)
-- Admin product, category & order management
-- Admin dashboard — revenue chart, top products, summary cards
-- Low-stock alert via Pusher when stock ≤ 5
-- Export all orders to Excel (client-side, SheetJS)
-- Role-based access control (guest / user / admin)
+| Feature                | Description                                                                        |
+|------------------------|------------------------------------------------------------------------------------|
+| Product Listing        | Search by keyword, category, and tags                                              |
+| Authentication         | User registration & login — JWT-based auth + Google OAuth                          |
+| Email Verification     | Required before first login                                                        |
+| Shopping Cart          | Per-user cart, isolated                                                            |
+| Checkout               | Checkout with delivery address selection                                           |
+| Payment                | Midtrans Snap payment gateway (sandbox)                                            |
+| Order History          | Invoice detail with visual timeline                                                |
+| Real-time Status       | Order status tracking via Pusher                                                   |
+| Confirm Delivery       | User can confirm delivery directly from invoice page                               |
+| Rating & Review        | Product rating & review (only after payment settled)                               |
+| Wishlist               | Save favourite products                                                            |
+| Delivery Address       | Manage addresses with Indonesian regional data (province, city, district, village) |
+| Account Page           | Collapsible pending-payment banner (user) / pending-orders banner (admin)          |
+| Admin Management       | Admin product, category & order management                                         |
+| Admin Dashboard        | Revenue chart, top products, summary cards                                         |
+| Low-stock Alert        | Pusher notification when stock ≤ 5                                                 |
+| Export Excel           | Export all orders to Excel (client-side, SheetJS)                                  |
+| Access Control         | Role-based access control (guest / user / admin)                                   |
 
 ---
 
@@ -246,7 +268,7 @@ fullstack-mern-foodstore/
 
 ### Register
 
-![Login](docs/images/register.png)
+![Register](docs/images/register.png)
 
 ```
 User fills register form (full_name, email, password)
@@ -261,13 +283,23 @@ POST /auth/register
                 ▼
             Create user { verified: false }
             Hash password (bcrypt)
-            Send verification link at email (Nodemailer)
+            Send verification link via Nodemailer
             Return { message: "Register success" }
                 │
                 ▼
             Redirect to /cek-email
             (user must verify before login)
 ```
+
+**BE Tasks:**
+- [x] User model (`full_name`, `email`, `password`, `google_id`, `verified`, `verification_token`, `verification_token_expired`, `role`, `image_url`, `fcm_token`, `tokens[]`)
+- [x] `POST /auth/register` — check email uniqueness, hash password (bcrypt), create user `{ verified: false }`, generate `verification_token`, send link via Nodemailer
+- [x] Verification email template (HTML via Nodemailer)
+
+**FE Tasks:**
+- [x] `/register` — registration form (full_name, email, password)
+- [x] `/cek-email` — "check your email" page shown after register
+- [x] Redirect to `/cek-email` on successful register response
 
 ---
 
