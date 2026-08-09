@@ -1,6 +1,10 @@
 # Fullstack MERN Foodstore
 
+> 🇬🇧 English · [🇮🇩 Bahasa Indonesia](README.id.md)
+
 A full-featured food e-commerce application built with the MERN Stack (MongoDB, Express, React, Node.js). Users can browse food products, add to cart, checkout with delivery address, pay via Midtrans, track order status in real-time via Pusher, confirm delivery, review purchased items, and save favourites to wishlist. Authentication supports email/password with email verification and Google OAuth. Admins can manage products, categories, and orders, and monitor a live dashboard with revenue charts, low-stock alerts, and Excel export. Ships with a mobile-ready REST API including Google Sign-In mobile endpoint and Expo push notifications for real-time order status updates (React Native / Flutter).
+
+> **Note on language:** the application UI is in Indonesian. Literal UI labels are kept as-is in the flow diagrams below, with the English meaning in parentheses.
 
 ---
 
@@ -176,25 +180,25 @@ styles/
 
 ## Coming soon
 
-- Rekomendasi produk AI — integrasi OpenAI API
-- monitoring Sentry — error tracking production, tau kalau ada crash di user
-- Device ID & One Account One Device — setiap login menyimpan `device_id` (generated dari fingerprint perangkat) ke DB. Satu akun hanya boleh login di satu HP sekaligus. Jika login dari perangkat baru, sesi di perangkat lama otomatis dicabut. Backend menyimpan `{ token, device_id, last_active }` per sesi di array `sessions[]` dalam dokumen User.
-  - **Enhanced:** `POST /auth/login` — tambah field `device_id` di body, simpan sesi baru, cabut sesi lama jika device berbeda
-  - **Enhanced:** `POST /auth/logout` — invalidate hanya sesi device yang sedang aktif (bukan semua token)
-  - **New API:** `GET /api/users/sessions` — list semua sesi aktif milik user `[{ device_id, last_active, current }]`
-  - **New API:** `DELETE /api/users/sessions/:device_id` — paksa logout dari perangkat tertentu (remote logout)
+- AI product recommendations — OpenAI API integration
+- Sentry monitoring — production error tracking, so crashes on the user side are visible
+- Device ID & One Account One Device — every login stores a `device_id` (generated from the device fingerprint) in the DB. One account may only be logged in on one phone at a time. Logging in from a new device automatically revokes the session on the old one. The backend stores `{ token, device_id, last_active }` per session in a `sessions[]` array on the User document.
+  - **Enhanced:** `POST /auth/login` — add a `device_id` field to the body, store the new session, revoke the old session if the device differs
+  - **Enhanced:** `POST /auth/logout` — invalidate only the currently active device session (not every token)
+  - **New API:** `GET /api/users/sessions` — list all active sessions owned by the user `[{ device_id, last_active, current }]`
+  - **New API:** `DELETE /api/users/sessions/:device_id` — force logout from a specific device (remote logout)
 
 - PWA (Progressive Web App)
 - Jest + React Testing Library
-- TanStack Query (React Query) — gantikan manual loading/error state, auto cache, refetch.
+- TanStack Query (React Query) — replace manual loading/error state with automatic caching and refetching
 - Swagger / OpenAPI
-- Mode Kasir / POS (Point of Sale)
-- Barcode Scanner — extend product search, scan via kamera (ZXing) atau USB reader
-- Pembayaran Tunai — extend payment page, tambah opsi "Tunai" di samping Midtrans, hitung kembalian otomatis
-- Order Source Flag — tambah field `source: 'kasir' | 'online'` di Order model
-- Walk-in Customer — transaksi tanpa akun, reuse guest flow
-- Struk Printer
-- Barcode Produk
+- Cashier / POS (Point of Sale) mode
+- Barcode Scanner — extend product search, scan via camera (ZXing) or USB reader
+- Cash Payment — extend the payment page, add a "Tunai" (Cash) option alongside Midtrans, calculate change automatically
+- Order Source Flag — add a `source: 'kasir' | 'online'` field to the Order model
+- Walk-in Customer — transactions without an account, reusing the guest flow
+- Receipt Printer
+- Product Barcode
 
 ## New Features
 
@@ -205,35 +209,35 @@ styles/
 - Cloudinary Image Upload
 - Order Confirmation Email
 - Stock Management
-- Pusher Real-time Notifications** — admin gets instant toast when payment settles, customer sees order status update live (Pusher used instead of Socket.io for Vercel serverless compatibility)
+- Pusher Real-time Notifications — admin gets instant toast when payment settles, customer sees order status update live (Pusher used instead of Socket.io for Vercel serverless compatibility)
 
   ```
-  [Order dibuat]
+  [Order created]
   order.status    = waiting_payment
   payment_status  = waiting_payment
-  → 📧 Email ke user
+  → 📧 Email to user
           ↓
-  [User bayar via Midtrans]
+  [User pays via Midtrans]
   payment_status  = settlement
-  order.status    = processing  ← otomatis
+  order.status    = processing  ← automatic
   → 📡 Pusher: private-admin       (payment:settlement)
   → 📡 Pusher: private-order-{id}  (order:status_updated)
-  → 🔔 FCM ke user (mobile)
+  → 🔔 FCM to user (mobile)
           ↓
-  [Admin update → in_delivery]
+  [Admin updates → in_delivery]
   → 📡 Pusher: private-order-{id}  (order:status_updated)
-  → 🔔 FCM ke user (mobile)
+  → 🔔 FCM to user (mobile)
           ↓
-  [User/Admin konfirmasi → delivered]
+  [User/Admin confirms → delivered]
   → 📡 Pusher: private-order-{id}  (order:status_updated)
-  → 🔔 FCM ke user (mobile)
+  → 🔔 FCM to user (mobile)
   ```
 
 - Google OAuth — login with Google account via `passport-google-oauth20`. Smart account merge: if the Google email already exists in DB (registered via email/password), `google_id` is linked to the existing account — no duplicate accounts. New Google users are auto-registered without a password. Users can optionally set a password later from the Account page to enable both login methods on the same account.
 
 - Email Verification — all new accounts (email/password or Google) must verify their email before logging in. A verification link is sent via Nodemailer and expires in 24 hours. If the link expires or login is attempted before verifying, a new link is automatically re-sent and the user is redirected to `/cek-email`.
 
-- Export Laporan Excel
+- Excel Report Export
 
 - Google Sign-In Mobile — `POST /auth/google/mobile` endpoint for Google login from Flutter / React Native apps. Mobile app sends the `id_token` from the Google SDK, backend verifies it via `google-auth-library`, runs the same account merge logic as the web OAuth flow, and returns `{ user, token }`. No browser redirect required.
 
@@ -320,8 +324,8 @@ POST /auth/login
         ├─► Account not yet verified
         │       │
         │       ▼
-        │   Resend verification link at email (Nodemailer)
-        │   Redirect to /cek-email (flow Email Verification)
+        │   Resend verification link by email (Nodemailer)
+        │   Redirect to /cek-email (see Email Verification flow)
         │
         └─► Valid account & verified
                 │
@@ -355,7 +359,7 @@ GET /auth/google/callback  (handled by passport-google-oauth20)
         │       → Login as existing account
         │
         ├─► Email found but no google_id
-        │       → add obj google_id from res google to existing account (merge, no duplicate)
+        │       → attach google_id from the Google response to the existing account (merge, no duplicate)
         │       → Login as existing account
         │
         └─► Email & google_id not found
@@ -363,10 +367,10 @@ GET /auth/google/callback  (handled by passport-google-oauth20)
                 │
                 ▼
         Check verified:
-        ├─► Not Verified -> send email && Redirect to /cek-email (flow Email Verification)
-        └─► Verified → generate token, redirect to:
+        ├─► Not verified → send email && redirect to /cek-email (see Email Verification flow)
+        └─► Verified     → generate token, redirect to:
                 CLIENT_URL/#/auth/callback?token=<jwt>
-                (auto redrect)
+                (auto redirect)
                 │
                 ▼
             Frontend reads token from URL params
@@ -377,15 +381,15 @@ GET /auth/google/callback  (handled by passport-google-oauth20)
 
 ---
 
-### flow Email Verification
+### Email Verification Flow
 
 ![Login](docs/images/verivikasi.png)
 
 ```
-pages check email
+"check email" page
         ▼
 Send email with link:
-  /verify-email?token=<uuid> (ui loading verifikation)
+  /verify-email?token=<uuid> (verification loading UI)
   (link valid for 24 hours)
         │
         ▼
@@ -401,43 +405,43 @@ GET /auth/verify-email/:token
             Set verified: true in DB
             Remove verification token
             Return { message: "Account successfully verified" }
-            /verify-email?token=<uuid> (ui succes verified)
+            /verify-email?token=<uuid> (verification success UI)
             User can now login normally
 ```
 
 ---
 
-### Beranda (Home)
+### Home (Beranda)
 
 ![Login](docs/images/beranda.png)
 
 ```
-User buka halaman /
+User opens the / page
         │
         ▼
-GET /api/products?limit=6&skip=0   ← load produk (Redux fetchProducts)
-GET /api/categories                ← load kategori sidebar
+GET /api/products?limit=6&skip=0   ← load products (Redux fetchProducts)
+GET /api/categories                ← load sidebar categories
 GET /api/tags                      ← load tag filter
-GET /api/wishlists                 ← load wishlist user (jika login)
+GET /api/wishlists                 ← load user wishlist (if logged in)
         │
         ▼
-Tampil grid produk
+Product grid rendered
         │
-        ├─► Klik kategori          → Redux setCategory → refetch products
-        ├─► Klik tag               → Redux toggleTag   → refetch products
-        ├─► Ketik search           → Redux setKeyword  → refetch products?q=<keyword>
+        ├─► Click category         → Redux setCategory → refetch products
+        ├─► Click tag              → Redux toggleTag   → refetch products
+        ├─► Type in search         → Redux setKeyword  → refetch products?q=<keyword>
         ├─► Pagination             → Redux setPage / goToNextPage → refetch products?skip=<n>
         │
-        ├─► Klik ❤️ / 🤍 wishlist
-        │       ├─► Belum login    → tidak ada aksi
-        │       ├─► Sudah ada      → DELETE /api/wishlists/:product_id
-        │       └─► Belum ada      → POST /api/wishlists
+        ├─► Click ❤️ / 🤍 wishlist
+        │       ├─► Not logged in  → no action
+        │       ├─► Already saved  → DELETE /api/wishlists/:product_id
+        │       └─► Not saved yet  → POST /api/wishlists
         │
-        └─► Klik "Tambah ke Keranjang"
-                ├─► Belum login    → redirect /login
-                └─► Sudah login    → Redux addItem (update local state)
-                                      PUT /api/carts (sync ke backend)
-                                      icon cart di topbar update count
+        └─► Click "Tambah ke Keranjang" (Add to Cart)
+                ├─► Not logged in  → redirect /login
+                └─► Logged in      → Redux addItem (update local state)
+                                      PUT /api/carts (sync to backend)
+                                      cart icon in the topbar updates its count
 ```
 
 ---
@@ -456,7 +460,7 @@ Cart page
         ├─► +/- qty buttons     → Redux update → PUT /api/carts  body: { items: [{ _id, qty, checked }] }
         ├─► Delete (trash icon) → Redux update → PUT /api/carts  body: { items: [{ _id, qty, checked }] }
         │
-        └─► Click "Beli (n)"
+        └─► Click "Beli (n)" — Buy (n)
                 │
                 ▼
             Redirect to /checkout
@@ -479,22 +483,22 @@ Step 1 — Order Items
         Review selected items, qty, and price (data from Redux)
         │
         ▼
-Click "Selanjutnya →"
+Click "Selanjutnya →" (Next)
 
 Step 2 — Delivery Address
         │
         Choose from saved addresses (radio select)
-        ├─► No address yet → click "+ Tambah Alamat" → /alamat-pengiriman/tambah?from=checkout&step=2
+        ├─► No address yet → click "+ Tambah Alamat" (Add Address) → /alamat-pengiriman/tambah?from=checkout&step=2
         │
         ▼
-Click "Selanjutnya →"  (disabled if no address selected)
+Click "Selanjutnya →" (Next)  (disabled if no address selected)
 
 Step 3 — Order Confirmation
         │
         Review: delivery address, items, subtotal, shipping fee, total
         │
         ▼
-Click "🛒 Bayar Sekarang"
+Click "🛒 Bayar Sekarang" (Pay Now)
         │
         ▼
 PUT /api/carts
@@ -503,11 +507,11 @@ PUT /api/carts
             { "_id": "prod_2", "qty": 1, "checked": true }
           ]}
         │
-        │   Redux cart sebelum:
+        │   Redux cart before:
         │   [
-              { _id: "prod_1", qty: 2, checked: true  },   ← dikirim
-        │     { _id: "prod_2", qty: 1, checked: true  },   ← dikirim
-        │     { _id: "prod_3", qty: 1, checked: false }]   ← tidak dikirim
+              { _id: "prod_1", qty: 2, checked: true  },   ← sent
+        │     { _id: "prod_2", qty: 1, checked: true  },   ← sent
+        │     { _id: "prod_3", qty: 1, checked: false }]   ← not sent
         │
         │   Backend: deleteMany ALL user cart []
         │            insertMany [prod_1, prod_2] (checked only)
@@ -525,18 +529,18 @@ POST /api/orders
         }
 
         │
-        │   Backend: ambil CartItem checked:true
-        │            DB cart saat ini: [
+        │   Backend: take CartItems where checked:true
+        │            current DB cart: [
         │              { product: "prod_1", ... },
         │              { product: "prod_2", ... }
         │            ]
-        │            → buat OrderItem (snapshot, disimpan ke collection order-items):
+        │            → create OrderItems (snapshot, stored in the order-items collection):
         │            [
         │              { ..., product: "prod_1" },
         │              { ..., product: "prod_2" }
         │            ]
         │            → deleteMany CartItem { checked: true }
-        │            DB cart setelah: [] (kosong)
+        │            DB cart after: [] (empty)
         ├─► Stock decremented automatically
         │       Product.findByIdAndUpdate(prod_1, { $inc: { stock: -2 } })
         │       Product.findByIdAndUpdate(prod_2, { $inc: { stock: -1 } })
@@ -547,21 +551,21 @@ POST /api/orders
         └─► Order confirmation email sent via Nodemailer (fire-and-forget)
         │
         │
-        │   Frontend pakai response:
-        │   ├─► response._id → redirect ke /invoice/order_xyz789
+        │   Frontend uses the response:
+        │   ├─► response._id → redirect to /invoice/order_xyz789
         │   └─► dispatch(setItems([prod_3]))
 
             dispatch(
               setItems(cart.filter(i => !orderedIds.has(i._id)))
-            ) hasil filter → [prod_3]  ← sisa yang tidak dibeli
+            ) filter result → [prod_3]  ← leftover items that were not purchased
 
         │
-        │   Redux cart setelah:
-        │   [{ _id: "prod_3", qty: 1, checked: false }]   ← sisa yang tidak dibeli
+        │   Redux cart after:
+        │   [{ _id: "prod_3", qty: 1, checked: false }]   ← leftover items not purchased
         │
-        │   listener deteksi Redux berubah →
+        │   listener detects the Redux change →
         │   PUT /api/carts body: { "items": [{ "_id": "prod_3", "qty": 1, "checked": false }] }
-        │   DB cart setelah: [prod_3]
+        │   DB cart after: [prod_3]
         │
         ▼
 Redirect to /invoice/order_xyz789
@@ -583,8 +587,8 @@ GET /api/invoices/order/:order_id       ← load invoice + order data
 GET /api/reviews/my-order/:order_id     ← load already-reviewed product ids
         │
         ▼
-Status banner: ⏳ "Menunggu Pembayaran"
-User clicks "🔒 Bayar Sekarang"
+Status banner: ⏳ "Menunggu Pembayaran" (Awaiting Payment)
+User clicks "🔒 Bayar Sekarang" (Pay Now)
         │
         ▼
 GET /api/payments/token/:order_id
@@ -658,16 +662,16 @@ on channel: private-order-<id>
         ▼
 Invoice page receives event → order.status updates live
 
-Status progression & banners:
-  ⏳  waiting_payment / pending  → "Menunggu Pembayaran"     + 🔒 Bayar Sekarang button
-  ✅  settlement (default)       → "Pembayaran Dikonfirmasi"
-  🔄  processing                 → "Pesanan Sedang Diproses"
-  🚚  in_delivery                → "Pesanan Dalam Pengiriman" + ✓ Konfirmasi Diterima button
-  🎉  delivered                  → "Pesanan Berhasil Diterima!"
-  ❌  failed / deny / cancel / expire → "Pembayaran Gagal"
+Status progression & banners (UI labels are Indonesian, English meaning in parentheses):
+  ⏳  waiting_payment / pending  → "Menunggu Pembayaran"        (Awaiting Payment)       + 🔒 Bayar Sekarang button
+  ✅  settlement (default)       → "Pembayaran Dikonfirmasi"    (Payment Confirmed)
+  🔄  processing                 → "Pesanan Sedang Diproses"    (Order Being Processed)
+  🚚  in_delivery                → "Pesanan Dalam Pengiriman"   (Order Out for Delivery) + ✓ Konfirmasi Diterima button
+  🎉  delivered                  → "Pesanan Berhasil Diterima!" (Order Received!)
+  ❌  failed / deny / cancel / expire → "Pembayaran Gagal"      (Payment Failed)
 ```
 
-> The **✓ Konfirmasi Diterima** button is shown to the user when the order is `in_delivery`. Clicking it calls `PUT /api/orders/:id/status { status: "delivered" }` — user can confirm receipt without going through admin.
+> The **✓ Konfirmasi Diterima** (Confirm Received) button is shown to the user when the order is `in_delivery`. Clicking it calls `PUT /api/orders/:id/status { status: "delivered" }` — the user can confirm receipt without going through an admin.
 
 ---
 
@@ -693,28 +697,28 @@ reviewedIds = data.map(r => r.product._id)
 Render order items list
   For each item:
         ├─► payStatus ≠ settlement/paid/capture  → empty placeholder (review not available)
-        ├─► product._id in reviewedIds           → show "⭐ Dinilai" badge
-        └─► not yet reviewed                     → show "Beri Rating" button
+        ├─► product._id in reviewedIds           → show "⭐ Dinilai" (Rated) badge
+        └─► not yet reviewed                     → show "Beri Rating" (Give Rating) button
                 │
                 ▼
-        User clicks "Beri Rating"
+        User clicks "Beri Rating" (Give Rating)
                 │
                 ▼
         Modal opens:
           product name
           StarRating (1–5)  ←→  hint text updates live:
-            1 → "Sangat buruk"
-            2 → "Kurang memuaskan"
-            3 → "Cukup baik"
-            4 → "Bagus!"
-            5 → "Sempurna! 🎉"
+            1 → "Sangat buruk"      (Very bad)
+            2 → "Kurang memuaskan"  (Not satisfying)
+            3 → "Cukup baik"        (Good enough)
+            4 → "Bagus!"            (Great!)
+            5 → "Sempurna! 🎉"      (Perfect! 🎉)
           Textarea comment (optional, max 500 chars)
-          "Simpan Rating" button
+          "Simpan Rating" (Save Rating) button
                 │
                 ▼
         User selects stars → optional comment → Submit
                 │
-                ├─► No star selected → "Pilih bintang dulu ya!" (stay in modal)
+                ├─► No star selected → "Pilih bintang dulu ya!" (Pick a star first — stays in modal)
                 │
                 └─► POST /api/reviews  { product_id, order_id, rating, comment }
                         │
@@ -725,6 +729,7 @@ Render order items list
                         │
                         ├─► Duplicate (reviewed before)
                         │       → error "Kamu sudah memberi rating untuk produk ini"
+                        │         (You have already rated this product)
                         │
                         └─► Saved
                                 Recalculate product avg_rating:
@@ -735,7 +740,7 @@ Render order items list
                                         │
                                         ▼
                                 reviewedIds = [...prev, product_id]
-                                Modal closes → button changes to "⭐ Dinilai"
+                                Modal closes → button changes to "⭐ Dinilai" (Rated)
 ```
 
 ---
@@ -744,7 +749,7 @@ Render order items list
 
 ![Login](docs/images/account.png)
 
-Profile page accessible at `/account`. Contains tabs for Biodata, Riwayat Belanja, Keamanan, and links to Alamat Pengiriman and Wishlist.
+Profile page accessible at `/account`. Contains tabs for Biodata (Profile Info), Riwayat Belanja (Purchase History) and Keamanan (Security), plus links to Alamat Pengiriman (Delivery Address) and Wishlist.
 
 ```
 User navigates to /account
@@ -764,23 +769,23 @@ Auth check (Redux auth state)
         │       GET /api/invoices?limit=20
         │       filter payment_status: waiting_payment | pending
         │       → show PendingBanner if any unpaid invoices exist
-        │               Expand → list invoice rows (Order #, total, "Bayar →")
+        │               Expand → list invoice rows (Order #, total, "Bayar →" / Pay →)
         │               Click row → /invoice/<order_id>
         │
         └─► role: admin
                 GET /api/orders?status=processing&limit=20
                 → show AdminOrderBanner if any orders need shipping
-                        Expand → list order rows (Order #, buyer, qty item, "Proses →")
+                        Expand → list order rows (Order #, buyer, item qty, "Proses →" / Process →)
                         Click row → /admin/orders
                 │
                 ▼
         Sidebar tabs (shared SIDEBAR_TABS — one source of truth):
-        ├─► Biodata Diri       → /account?tab=biodata   (inline render)
-        ├─► Alamat Pengiriman  → /alamat-pengiriman      (navigate away)
-        ├─► Wishlist           → /wishlist               (navigate away)
-        ├─► Riwayat Belanja    → /account?tab=riwayat   (inline render)
-        ├─► Keamanan           → /account?tab=keamanan  (inline render)
-        └─► Admin Panel        → /account?tab=admin     (admin only, inline render)
+        ├─► Biodata Diri       (Profile Info)      → /account?tab=biodata   (inline render)
+        ├─► Alamat Pengiriman  (Delivery Address)  → /alamat-pengiriman     (navigate away)
+        ├─► Wishlist                               → /wishlist              (navigate away)
+        ├─► Riwayat Belanja    (Purchase History)  → /account?tab=riwayat   (inline render)
+        ├─► Keamanan           (Security)          → /account?tab=keamanan  (inline render)
+        └─► Admin Panel                            → /account?tab=admin     (admin only, inline render)
 ```
 
 ```
@@ -788,16 +793,16 @@ tab = 'biodata'  (default)
         │
         ▼
 Render from Redux auth state — no API call
-  Nama Lengkap  : user.full_name
-  Email         : user.email  + "Terverifikasi" badge
-  Role          : user.role
-  Customer ID   : user.customer_id  (if exists)
-  Login via Google : user.google_id ? "Ya" : "Tidak"
+  Nama Lengkap (Full Name)   : user.full_name
+  Email                      : user.email  + "Terverifikasi" (Verified) badge
+  Role                       : user.role
+  Customer ID                : user.customer_id  (if exists)
+  Login via Google           : user.google_id ? "Ya" (Yes) : "Tidak" (No)
 ```
 
 ---
 
-## Riwayat Belanja
+## Riwayat Belanja (Purchase History)
 
 ![Login](docs/images/riwayat%20belanja.png)
 
@@ -810,19 +815,19 @@ GET /api/invoices?limit=20
         │
         ▼
 Render invoice list
-  Each row: 🧾 Order # · tanggal · total · status badge
+  Each row: 🧾 Order # · date · total · status badge
   Status badge logic:
-    settlement/paid/capture  → "Lunas"        (hijau)
-    pending                  → "Menunggu"     (oranye)
-    deny/cancel/expire/failed → "Gagal"       (merah)
-    (none)                   → "Belum Bayar"  (abu)
+    settlement/paid/capture   → "Lunas"       (Paid)        — green
+    pending                   → "Menunggu"    (Pending)     — orange
+    deny/cancel/expire/failed → "Gagal"       (Failed)      — red
+    (none)                    → "Belum Bayar" (Not Paid)    — grey
         │
         └─► Click row → /invoice/<order._id>
 ```
 
 ---
 
-## Keamanan
+## Keamanan (Security)
 
 ![Login](docs/images/keamanan.png)
 
@@ -832,17 +837,18 @@ tab = 'keamanan'
         ▼
 Check user.has_password
   ├─► false → show info box: "Akun ini terdaftar via Google, buat password untuk login tanpa Google"
-  └─► true  → show "Ganti password akun Anda"
+  │           (This account was registered via Google — create a password to log in without Google)
+  └─► true  → show "Ganti password akun Anda" (Change your account password)
         │
         ▼
-Form: Password Baru · Konfirmasi Password
+Form: Password Baru (New Password) · Konfirmasi Password (Confirm Password)
         │
         ▼
 Submit → POST /api/auth/set-password  { password, password_confirmation }
   ├─► error   → show error message
-  └─► success → show "Password berhasil disimpan!"
+  └─► success → show "Password berhasil disimpan!" (Password saved successfully!)
                 dispatch(userLogin({ ...user, has_password: true }, token))
-                (updates Redux so info box disappears)
+                (updates Redux so the info box disappears)
 ```
 
 ---
@@ -856,11 +862,11 @@ tab = 'admin'  AND  user.role === 'admin'
         │
         ▼
 Render admin menu grid (no API call)
-  📊 Dashboard  → /admin/dashboard
-  🍱 Produk     → /admin/product
-  🗂️ Kategori   → /admin/categories
-  🏷️ Tag        → /admin/tag
-  📦 Pesanan    → /admin/orders
+  📊 Dashboard              → /admin/dashboard
+  🍱 Produk    (Products)   → /admin/product
+  🗂️ Kategori  (Categories) → /admin/categories
+  🏷️ Tag       (Tags)       → /admin/tag
+  📦 Pesanan   (Orders)     → /admin/orders
 ```
 
 ---
@@ -905,7 +911,7 @@ Auth check (Redux auth state)
                 │
                 ▼
         Render product grid
-        ├─► Each card: image · name · price · 🗑 button · "+ Keranjang" button
+        ├─► Each card: image · name · price · 🗑 button · "+ Keranjang" (+ Cart) button
         │
         ├─► 🗑 Remove from wishlist
         │       DELETE /api/wishlists/prod_1
@@ -951,16 +957,16 @@ GET /api/delivery-addresses?limit=10&skip=0
         │
         ▼
 Render address list
-  Each card: 📍 nama · kelurahan, kecamatan, kabupaten, provinsi · detail
+  Each card: 📍 name · village, district, city, province · detail
         │
         ├─► count > limit → pagination buttons
         │       setPage(n) → hook refetches with new skip = (n * limit) - limit
         │
         └─► From Checkout? (URL: ?from=checkout&step=2)
-                ├─► Show "← Kembali ke Checkout" bar
-                ├─► "Pilih" button on each card
+                ├─► Show "← Kembali ke Checkout" (Back to Checkout) bar
+                ├─► "Pilih" (Select) button on each card
                 │       → redirect to /checkout?step=2&address=<addr_id>
-                └─► "+ Tambah Alamat" → /alamat-pengiriman/tambah?from=checkout&step=2
+                └─► "+ Tambah Alamat" (Add Address) → /alamat-pengiriman/tambah?from=checkout&step=2
 ```
 
 ---
@@ -968,7 +974,7 @@ Render address list
 ### Create — Add Address (`/alamat-pengiriman/tambah`)
 
 ```
-User clicks "+ Tambah Alamat"
+User clicks "+ Tambah Alamat" (Add Address)
         │
         ▼
 Navigate to /alamat-pengiriman/tambah
@@ -976,26 +982,26 @@ Navigate to /alamat-pengiriman/tambah
         ▼
 Render form — cascading region dropdowns (SelectWilayah component):
 
-  Provinsi selected
+  Provinsi (Province) selected
         │
         ▼
   GET /api/wilayah/kabupaten?kode_induk=<kode_provinsi>
-  → kabupaten/kota options  (resets kabupaten, kecamatan, kelurahan)
+  → regency/city options  (resets kabupaten, kecamatan, kelurahan)
 
-  Kabupaten selected
+  Kabupaten (Regency/City) selected
         │
         ▼
   GET /api/wilayah/kecamatan?kode_induk=<kode_kabupaten>
-  → kecamatan options  (resets kecamatan, kelurahan)
+  → district options  (resets kecamatan, kelurahan)
 
-  Kecamatan selected
+  Kecamatan (District) selected
         │
         ▼
   GET /api/wilayah/desa?kode_induk=<kode_kecamatan>
-  → kelurahan/desa options  (resets kelurahan)
+  → village options  (resets kelurahan)
         │
         ▼
-User fills: Nama Alamat · Provinsi · Kabupaten · Kecamatan · Kelurahan · Detail
+User fills: Nama Alamat (Address Name) · Provinsi · Kabupaten · Kecamatan · Kelurahan · Detail
         │
         ▼
 Submit → handleSubmit(onSubmit)
@@ -1080,18 +1086,18 @@ OnlyAdmin guard checks Redux auth state
                         │
                         ▼
                 Render:
-                ├─► 4 Summary Cards (Revenue, Orders, Produk, User)
-                ├─► Area Chart — Revenue 30 Hari Terakhir (Recharts)
-                ├─► Bar Chart  — Orders per Hari (Recharts, same chartData)
-                └─► Top 5 Produk Terlaris (ranked list with image)
+                ├─► 4 Summary Cards (Revenue, Orders, Products, Users)
+                ├─► Area Chart — Revenue, last 30 days (Recharts)
+                ├─► Bar Chart  — Orders per day (Recharts, same chartData)
+                └─► Top 5 best-selling products (ranked list with image)
 ```
 ---
 
-## Admin — Manage Produk
+## Admin — Manage Products
 
 ![Login](docs/images/admin%20products.png)
 
-1. retrieve
+1. Retrieve
 ```
 Admin navigates to /admin/product
         │
@@ -1112,7 +1118,7 @@ Render DataTable (react-data-table-component):
   Pagination: server-side, 10 per page
         │
         ├─► Stock badge logic:
-        │       stock === 0   → red badge "Habis"
+        │       stock === 0   → red badge "Habis" (Out of stock)
         │       stock <= 5    → orange badge "⚠ {n}"
         │       stock > 5     → plain number
         │
@@ -1121,14 +1127,14 @@ Render DataTable (react-data-table-component):
 2. Create
 
 ```
-Admin clicks "+ Tambah Produk"
+Admin clicks "+ Tambah Produk" (Add Product)
         │
         ▼
 Modal opens (selectedProduct = null)
 Form fields: Name*, Description, Price*, Stock*, Category (dropdown), Tags (checkboxes), Image (file)
         │
         ▼
-Admin fills form → clicks "Simpan"
+Admin fills form → clicks "Simpan" (Save)
         │
         ▼
 handleSubmit:
@@ -1183,7 +1189,7 @@ Frontend: close modal → re-fetch product list
 Admin clicks "Delete" on a row
         │
         ▼
-window.confirm('Yakin hapus produk ini?')
+window.confirm('Yakin hapus produk ini?')   ← "Delete this product?"
   ├─► Cancel → nothing
   └─► OK
         │
@@ -1199,7 +1205,7 @@ Backend (destroy):
         ▼
 Frontend: re-fetch product list
 ```
-5. realtime notif stok lower and update stok if order by user
+5. Real-time low-stock notification & stock update on customer order
 
 Stock is not decremented manually — it happens automatically at order creation:
 
@@ -1223,7 +1229,7 @@ For each order item:
 
 ---
 
-## Admin — Manajemen Order
+## Admin — Order Management
 
 ![Login](docs/images/admin%20orders.png)
 
@@ -1243,33 +1249,34 @@ Component mounts — fire 2 parallel requests:
         │
         ▼
 Render:
-  ├─► 4 Stat Cards (Total Order, Menunggu Bayar, Diproses/Dikirim, Diterima)
+  ├─► 4 Stat Cards (Total Orders, Awaiting Payment, Processing/Shipped, Received)
   ├─► Status Tabs (Semua · Menunggu Bayar · Diproses · Dikirim · Diterima · Pending)
+  │       (All · Awaiting Payment · Processing · Shipped · Received · Pending)
   │       Tab click → setActiveTab + reset page → re-fetch with ?status=<key>
   │
   └─► DataTable — server-side pagination, 10 per page
-        Columns: Order# · Tanggal · Customer · Items · Total · Status · Aksi
+        Columns: Order# · Date · Customer · Items · Total · Status · Action
         Row click → navigate to /admin/orders/:id (order detail)
 ```
 
-### Status Flow & Aksi Button
+### Status Flow & Action Button
 
 Status progression is one-way, defined in `STATUS_FLOW`:
 
 ```
 waiting_payment  →  (no action — payment decides this transition)
-processing       →  [→ Dikirim]   (next: in_delivery)
-in_delivery      →  [→ Diterima]  (next: delivered)
+processing       →  [→ Dikirim]   (→ Shipped;  next: in_delivery)
+in_delivery      →  [→ Diterima]  (→ Received; next: delivered)
 delivered        →  —             (terminal)
 pending          →  —             (terminal)
 ```
 
-The "Aksi" column reads `STATUS_FLOW[row.status].next` — if `null`, shows `—`. Otherwise renders the `→ {nextLabel}` button.
+The "Aksi" (Action) column reads `STATUS_FLOW[row.status].next` — if `null`, shows `—`. Otherwise renders the `→ {nextLabel}` button.
 
 ### Update Status (Admin)
 
 ```
-Admin clicks "→ Dikirim" or "→ Diterima"
+Admin clicks "→ Dikirim" (Shipped) or "→ Diterima" (Received)
         │
         ▼
 handleUpdateStatus(order, newStatus):
@@ -1311,9 +1318,10 @@ When admin updates status (above):
         │
         ▼
 Customer's invoice page receives event — status banner updates live:
-  processing   → "🔄 Pesanan Sedang Diproses"
-  in_delivery  → "🚚 Pesanan Dalam Pengiriman" + button "✓ Konfirmasi Diterima"
-  delivered    → "🎉 Pesanan Berhasil Diterima!"
+  processing   → "🔄 Pesanan Sedang Diproses"    (Order Being Processed)
+  in_delivery  → "🚚 Pesanan Dalam Pengiriman"   (Order Out for Delivery)
+                 + button "✓ Konfirmasi Diterima" (Confirm Received)
+  delivered    → "🎉 Pesanan Berhasil Diterima!" (Order Received!)
 
 No page reload needed.
 
@@ -1323,7 +1331,7 @@ On unmount: channel.unbind_all() + pusher.unsubscribe(channel)
 ### User Self-Confirm Delivery
 
 ```
-Customer clicks "✓ Konfirmasi Diterima" (only visible when status = in_delivery)
+Customer clicks "✓ Konfirmasi Diterima" (Confirm Received — only visible when status = in_delivery)
         │
         ▼
 PUT /api/orders/:id/status  { status: 'delivered' }
@@ -1348,10 +1356,10 @@ GET /api/orders/export  (admin only, no pagination)
         │
         ▼
 Client-side (SheetJS):
-  Sheet 1 "Ringkasan Order" — one row per order
-    (No. Order, Tanggal, Customer, Email, Jumlah Item, Sub Total, Ongkir, Total, Status, Alamat)
+  Sheet 1 "Ringkasan Order" (Order Summary) — one row per order
+    (Order No., Date, Customer, Email, Item Count, Sub Total, Shipping Fee, Total, Status, Address)
   Sheet 2 "Detail Items" — one row per product line
-    (No. Order, Tanggal, Customer, Nama Produk, Qty, Harga Satuan, Subtotal)
+    (Order No., Date, Customer, Product Name, Qty, Unit Price, Subtotal)
   XLSX.writeFile → download laporan-order-{date}.xlsx
   No file generated on server.
 ```
@@ -1407,7 +1415,7 @@ On failure:
 ```
 
 **`POST /auth/resend-verification`**
-Resend verification email. Used on `/cek-email` page when user didn't receive the link.
+Resend verification email. Used on the `/cek-email` page when the user didn't receive the link.
 
 **Body (form-data)**
 ```json
@@ -1433,22 +1441,22 @@ Redirects to `CLIENT_URL/#/auth/callback?token=<jwt>` on success.
 - Neither found → auto-register new user (no password)
 
 **`POST /auth/google/mobile` — Mobile only (Flutter / React Native)**
-Login Google dari aplikasi mobile. Mobile app mengirim `id_token` dari Google SDK — tidak pakai redirect browser.
+Google login from a mobile app. The mobile app sends the `id_token` from the Google SDK — no browser redirect involved.
 
 **Body**
 ```json
-{ "id_token": "<id_token dari Google SDK>" }
+{ "id_token": "<id_token from Google SDK>" }
 ```
-**Response sukses**
+**Success response**
 ```json
 { "message": "logged in successfully", "user": { "_id": "", "full_name": "", "role": "user" }, "token": "<jwt>" }
 ```
-**Response belum verifikasi email**
+**Response when email is not yet verified**
 ```json
 { "error": 1, "message": "email_not_verified", "email": "user@gmail.com" }
 ```
 
-Merge logic sama persis seperti OAuth web. Cara pakai:
+Merge logic is exactly the same as the web OAuth flow. Usage:
 - **Flutter:** `google_sign_in` → `googleUser.authentication.idToken`
 - **React Native:** `@react-native-google-signin/google-signin` → `GoogleSignin.signIn().idToken`
 
@@ -1495,7 +1503,7 @@ Save FCM token from mobile device. Used to send push notifications when order st
 ### Upload — Login required
 
 **`POST /api/upload`**
-General-purpose image upload to Cloudinary (`foodstore/uploads`). For mobile apps that need to upload images outside of product/avatar flow.
+General-purpose image upload to Cloudinary (`foodstore/uploads`). For mobile apps that need to upload images outside of the product/avatar flow.
 
 **Body (form-data):** `image` (file, max 5MB)
 
@@ -1783,32 +1791,32 @@ Channels used:
 
 ### Wilayah (Indonesian Regional Data)
 
-Data wilayah Indonesia dari file CSV. Filter menggunakan `kode_induk` (kode numerik dari level di atasnya).
+Indonesian regional data loaded from a CSV file. Filtering uses `kode_induk` (the numeric code of the parent level).
 
-**`GET /api/wilayah/provinsi`**
+**`GET /api/wilayah/provinsi`** — provinces
 **Response**
 ```json
 [ { "kode": "11", "nama": "ACEH" }, { "kode": "32", "nama": "JAWA BARAT" } ]
 ```
 
-**`GET /api/wilayah/kabupaten?kode_induk=<kode_provinsi>`**
-**Query params:** `kode_induk` — `kode` dari provinsi
+**`GET /api/wilayah/kabupaten?kode_induk=<kode_provinsi>`** — regencies/cities
+**Query params:** `kode_induk` — the `kode` of the province
 
 **Example:** `GET /api/wilayah/kabupaten?kode_induk=32`
 ```json
 [ { "kode": "3201", "kode_provinsi": "32", "nama": "KABUPATEN BOGOR" } ]
 ```
 
-**`GET /api/wilayah/kecamatan?kode_induk=<kode_kabupaten>`**
-**Query params:** `kode_induk` — `kode` dari kabupaten/kota
+**`GET /api/wilayah/kecamatan?kode_induk=<kode_kabupaten>`** — districts
+**Query params:** `kode_induk` — the `kode` of the regency/city
 
 **Example:** `GET /api/wilayah/kecamatan?kode_induk=3201`
 ```json
 [ { "kode": "3201010", "kode_kabupaten": "3201", "nama": "CIOMAS" } ]
 ```
 
-**`GET /api/wilayah/desa?kode_induk=<kode_kecamatan>`**
-**Query params:** `kode_induk` — `kode` dari kecamatan
+**`GET /api/wilayah/desa?kode_induk=<kode_kecamatan>`** — villages
+**Query params:** `kode_induk` — the `kode` of the district
 
 **Example:** `GET /api/wilayah/desa?kode_induk=3201010`
 ```json
