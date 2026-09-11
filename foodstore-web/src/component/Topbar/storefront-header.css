@@ -1,0 +1,241 @@
+.store-header {
+    position: sticky;
+    top: -34px;
+    z-index: 200;
+    background: #fff;
+    color: #292822;
+    border-bottom: 1px solid #eeece7;
+}
+.store-header * {
+    box-sizing: border-box;
+}
+.store-header a {
+    text-decoration: none;
+}
+.store-header button,
+.store-header input {
+    font: inherit;
+}
+.store-announcement {
+    background: #f6f1e9;
+    min-height: 34px;
+    padding: 7px max(24px, calc((100% - 1240px) / 2));
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    color: #70685d;
+    font-size: 11px;
+}
+.store-announcement span:last-child {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.store-navigation {
+    max-width: 1288px;
+    margin: auto;
+    min-height: 90px;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 48px;
+}
+.store-brand {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -1.1px;
+    color: #292822;
+}
+.store-brand > span:not(.store-brand-mark) {
+    color: #ba392b;
+}
+.store-brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 39px;
+    height: 39px;
+    margin-right: 9px;
+    background: #ba392b;
+    color: white;
+    border-radius: 12px;
+}
+.store-brand-dot {
+    color: #e49b4c;
+}
+.store-search {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f8f8f6;
+    border: 1px solid #e9e8e3;
+    border-radius: 10px;
+    padding: 6px 7px 6px 16px;
+    color: #89877f;
+    min-width: 0;
+}
+.store-search:focus-within {
+    border-color: #ba392b;
+    box-shadow: 0 0 0 3px #ba392b12;
+}
+.store-search input {
+    min-width: 0;
+    width: 100%;
+    padding: 6px 0;
+    border: 0;
+    outline: 0;
+    font-size: 13px;
+    color: #292822;
+    background: transparent;
+}
+.store-search button {
+    border: 0;
+    background: #ba392b;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 7px;
+    cursor: pointer;
+}
+.store-actions {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    flex-shrink: 0;
+}
+.store-icon-link {
+    width: 32px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    color: #38382f;
+}
+.store-cart-count {
+    position: absolute;
+    top: 0;
+    right: -4px;
+    border: 2px solid white;
+    background: #ba392b;
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    border-radius: 20px;
+    padding: 1px 5px;
+}
+.store-nav-divider {
+    height: 26px;
+    width: 1px;
+    background: #eae8e2;
+}
+.store-login {
+    font-size: 13px;
+    color: #49443b;
+    font-weight: 600;
+}
+.store-register {
+    padding: 11px 19px;
+    border-radius: 8px;
+    color: #fff;
+    background: #ba392b;
+    font-size: 13px;
+    font-weight: 600;
+}
+.store-account {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #49443b;
+    font-size: 13px;
+}
+.store-avatar {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f9eae6;
+    color: #ba392b;
+    font-weight: 700;
+}
+.store-account-name {
+    max-width: 95px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.store-header a:focus-visible,
+.store-header button:focus-visible {
+    outline: 3px solid #ba392b;
+    outline-offset: 4px;
+}
+@media (max-width: 1000px) {
+    .store-navigation {
+        gap: 22px;
+    }
+    .store-actions {
+        gap: 12px;
+    }
+}
+@media (max-width: 700px) {
+    .store-header {
+        top: -28px;
+    }
+    .store-announcement {
+        justify-content: center;
+        min-height: 28px;
+        padding: 6px 16px;
+        font-size: 10px;
+    }
+    .store-announcement span:last-child {
+        display: none;
+    }
+    .store-navigation {
+        flex-wrap: wrap;
+        padding: 14px 20px;
+        gap: 14px;
+        justify-content: space-between;
+    }
+    .store-brand {
+        font-size: 23px;
+    }
+    .store-brand-mark {
+        width: 34px;
+        height: 34px;
+    }
+    .store-search {
+        flex-basis: 100%;
+        order: 3;
+    }
+    .store-actions {
+        gap: 10px;
+    }
+    .store-register {
+        padding: 9px 13px;
+    }
+    .store-wishlist-link,
+    .store-nav-divider,
+    .store-account-name {
+        display: none;
+    }
+}
+@media (max-width: 370px) {
+    .store-navigation {
+        padding-inline: 14px;
+    }
+    .store-actions {
+        gap: 7px;
+    }
+    .store-brand {
+        font-size: 20px;
+    }
+    .store-login {
+        font-size: 12px;
+    }
+}

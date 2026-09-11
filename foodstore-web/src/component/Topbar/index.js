@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useHistory } from 'react-router-dom';
+import { Link, useHistory, useLocation } from 'react-router-dom';
+import StorefrontHeader from './StorefrontHeader';
 import FaSignOutAlt from "@meronex/icons/fa/FaSignOutAlt";
 import styled from '@emotion/styled';
 
@@ -8,6 +9,7 @@ export default function TopBar() {
     const auth = useSelector(state => state.auth);
     const cart = useSelector(state => state.cart);
     const history = useHistory();
+    const location = useLocation();
     const user = auth?.user;
 
     const cartQty = cart.reduce((sum, item) => sum + item.qty, 0);
@@ -15,6 +17,8 @@ export default function TopBar() {
     const initials = user?.full_name
         ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
         : null;
+
+    if (location.pathname === '/') return <StorefrontHeader />;
 
     return (
         <NavBar>

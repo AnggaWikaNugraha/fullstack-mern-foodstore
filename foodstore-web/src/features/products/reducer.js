@@ -22,7 +22,7 @@ const initialState = {
     data: [],
     currentPage: 1,
     totalItems: -1,
-    perPage: 6,
+    perPage: 8,
     keyword: '',
     category: '',
     tags: [],
@@ -49,7 +49,7 @@ export default function reducer(state = initialState, action) {
             return { ...state, currentPage: action.currentPage }
 
         case SET_KEYWORD_PRODUCT:
-            return { ...state, keyword: action.keyword, category: '', tags: [] }
+            return { ...state, currentPage: 1, keyword: action.keyword, category: '', tags: [] }
 
         case SET_CATEGORY_PRODUCT:
             return { ...state, currentPage: 1, tags: [], category: action.category, keyword: '' }
