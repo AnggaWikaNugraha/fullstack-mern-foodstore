@@ -1,12 +1,14 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useHistory, useLocation } from 'react-router-dom';
 import { setKeyword } from '../../features/products/actions';
 import StoreIcon from '../StoreIcon';
 import './storefront-header.css';
 
 export default function StorefrontHeader() {
     const dispatch = useDispatch();
+    const history = useHistory();
+    const location = useLocation();
     const keyword = useSelector((state) => state.products.keyword);
     const user = useSelector((state) => state.auth?.user);
     const cart = useSelector((state) => state.cart);
@@ -17,6 +19,7 @@ export default function StorefrontHeader() {
     function handleSearch(event) {
         event.preventDefault();
         dispatch(setKeyword(search.trim()));
+        if (location.pathname !== '/') history.push('/');
         document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 

@@ -17,7 +17,7 @@ import Wishlist from './pages/Wishlist';
 import Dashboard from './pages/Dashboard';
 import AdminOrders from './pages/AdminOrders';
 import AdminOrderDetail from './pages/AdminOrderDetail';
-import Keranjang from './pages/Keranjang';
+import Keranjang from './pages/keranjang';
 import AuthCallback from './pages/AuthCallback';
 import VerifyEmail from './pages/VerifyEmail';
 import CekEmail from './pages/cek-email';

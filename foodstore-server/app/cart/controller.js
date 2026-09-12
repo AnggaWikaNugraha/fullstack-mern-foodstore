@@ -85,6 +85,7 @@ async function index(req, res, next) {
             price: item.price,
             image_url: item.image_url,
             qty: item.qty,
+            stock: item.product?.stock ?? 0,
             checked: item.checked !== undefined ? item.checked : true
         }));
 

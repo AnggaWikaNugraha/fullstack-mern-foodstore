@@ -17,27 +17,40 @@ export async function saveCart(token, cart) {
 
 }
 
+let loadingCart = null;
+let loadingToken = null;
+
 export async function getCart() {
-
-    let { token } = localStorage.getItem('auth')
-        ? JSON.parse(localStorage.getItem('auth')) : {};
-
+    const { token } = store.getState().auth;
     if (!token) {
         store.dispatch({ type: CART_LOADED });
-        return;
+        return true;
     }
+    if (loadingCart && loadingToken === token) return loadingCart;
 
-    try {
-        let { data } = await axios.get(`${config.api_host}/api/carts`, {
-            headers: { authorization: `Bearer ${token}` }
-        });
-
-        if (!data.error) {
+    loadingToken = token;
+    const request = (async () => {
+        try {
+            const { data } = await axios.get(`${config.api_host}/api/carts`, {
+                headers: { authorization: `Bearer ${token}` },
+            });
+            if (store.getState().auth.token !== token || !Array.isArray(data)) return false;
             cartState.skipNextSave = true;
             store.dispatch(setItems(data));
+            return true;
+        } catch {
+            return false;
+        } finally {
+            if (store.getState().auth.token === token) store.dispatch({ type: CART_LOADED });
         }
+    })();
+    loadingCart = request;
+    try {
+        return await request;
     } finally {
-        store.dispatch({ type: CART_LOADED });
+        if (loadingCart === request) {
+            loadingCart = null;
+            loadingToken = null;
+        }
     }
-
 }
