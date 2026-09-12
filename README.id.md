@@ -446,7 +446,7 @@ Tampil grid produk
 
 ### Keranjang
 
-![Login](docs/images/cart.webp)
+![Login](docs/images/cart.png)
 
 ```
 Halaman keranjang
