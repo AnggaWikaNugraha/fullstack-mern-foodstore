@@ -6,6 +6,10 @@ export async function registerUser(data) {
     return await axios.post(`${config.api_host}/auth/register`, data);
 }
 
+export async function resendVerification(email) {
+    return await axios.post(`${config.api_host}/auth/resend-verification`, { email });
+}
+
 export async function login(email, password) {
 
     return await axios.post(`${config.api_host}/auth/login`, { email, password });

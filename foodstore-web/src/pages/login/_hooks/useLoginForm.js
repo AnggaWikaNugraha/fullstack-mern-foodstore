@@ -25,7 +25,7 @@ export default function useLoginForm() {
             const { data } = await login(email.trim(), password);
             if (data?.error) {
                 if (data.message === 'email_not_verified') {
-                    history.push('/cek-email');
+                    history.push('/cek-email', { email: email.trim() });
                 } else {
                     setError('Email atau password salah. Silakan coba lagi.');
                 }
@@ -40,7 +40,7 @@ export default function useLoginForm() {
         } catch (requestError) {
             const response = requestError.response;
             if (response?.data?.message === 'email_not_verified') {
-                history.push('/cek-email');
+                history.push('/cek-email', { email: email.trim() });
             } else if (response?.status === 401) {
                 setError('Email atau password salah. Silakan coba lagi.');
             } else {

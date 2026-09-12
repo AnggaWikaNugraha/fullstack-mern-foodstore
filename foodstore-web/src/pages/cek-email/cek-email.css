@@ -1,0 +1,19 @@
+.verify-email-page .auth-card { max-width: 420px; padding-block: 10px; }
+.verification-mail-icon { display: grid; place-items: center; width: 56px; height: 56px; margin-bottom: 22px; border: 1px solid #efdcd0; border-radius: 16px; color: var(--auth-red); background: #fbefe5; }
+.verify-email-page .auth-card h1 em { display: inline; }
+.verification-steps { display: grid; gap: 18px; padding: 0; margin: 25px 0 0; list-style: none; }
+.verification-steps li { display: flex; align-items: flex-start; gap: 13px; }
+.verification-steps li > span { display: grid; place-items: center; flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: #f5eee4; color: #956642; font-size: 10px; font-weight: 650; }
+.verification-steps strong { display: block; font-size: 12px; font-weight: 650; line-height: 1.6; }
+.verification-steps p { margin-top: 3px; color: #79746a; font-size: 11px; line-height: 1.7; }
+.verification-resend { margin-top: 27px; padding-top: 24px; border-top: 1px solid #e9e4da; }
+.verification-resend h2 { font-size: 15px; font-weight: 650; letter-spacing: -0.2px; }
+.verification-resend .verification-resend-intro { margin-top: 9px; color: #79746a; font-size: 12px; line-height: 1.8; }
+.verification-resend .auth-form { margin-top: 18px; }
+.verification-resend .auth-submit { margin-top: 18px; }
+.verification-success { margin-bottom: 18px !important; padding: 12px 14px; border: 1px solid #cadbc7; border-radius: 8px; color: #3c6338; background: #f2f7ee; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.verification-resend .auth-error { overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+    .verify-email-page .auth-card { max-width: 400px; }
+    .verification-mail-icon { margin-bottom: 20px; }
+}

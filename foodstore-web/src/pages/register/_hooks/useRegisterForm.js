@@ -31,7 +31,7 @@ export default function useRegisterForm() {
         try {
             const response = await registerUser({ full_name, email, password, password_confirmation });
             if (response.status >= 200 && response.status < 300 && response.data && !response.data.error) {
-                history.push('/cek-email');
+                history.push('/cek-email', { email });
             } else {
                 showServerErrors(response.data);
             }

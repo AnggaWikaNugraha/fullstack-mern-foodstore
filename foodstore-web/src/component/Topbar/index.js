@@ -19,7 +19,7 @@ export default function TopBar() {
         : null;
 
     if (location.pathname === '/') return <StorefrontHeader />;
-    if (/^\/(login|register)\/?$/.test(location.pathname)) return null;
+    if (/^\/(login|register|cek-email)\/?$/.test(location.pathname)) return null;
 
     return (
         <NavBar>

@@ -20,7 +20,7 @@ import AdminOrderDetail from './pages/AdminOrderDetail';
 import Keranjang from './pages/Keranjang';
 import AuthCallback from './pages/AuthCallback';
 import VerifyEmail from './pages/VerifyEmail';
-import CekEmail from './pages/CekEmail';
+import CekEmail from './pages/cek-email';
 import ErrorPage from './pages/404'
 
 import { HashRouter as Router, Route, Switch } from "react-router-dom";

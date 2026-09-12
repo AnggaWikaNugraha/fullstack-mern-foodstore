@@ -19,4 +19,5 @@ The folder is lowercase `register`, with the application import updated accordin
 
 - `CI=true npm test -- --watchAll=false --runInBand`: 41 tests pass, including 18 register cases and the existing login/home tests.
 - `npm run build`: successful production build.
+- Chrome review at 1440, 768, 390, and 320 pixels: no horizontal overflow, image loads, and no JavaScript runtime exceptions. Required-field validation and navigation back to login work in the browser.
 - Authentication and registration requests are mocked in tests; live account creation, verification email delivery, and Google OAuth are not exercised.

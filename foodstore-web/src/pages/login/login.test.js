@@ -90,6 +90,7 @@ test.each(['resolved', 'rejected'])('unverified email redirects to email verific
     const { history } = setup();
     submit();
     await waitFor(() => expect(history.location.pathname).toBe('/cek-email'));
+    expect(history.location.state).toEqual({ email: 'user@example.com' });
 });
 
 test('HTTP 401 explains that the credentials were rejected', async () => {

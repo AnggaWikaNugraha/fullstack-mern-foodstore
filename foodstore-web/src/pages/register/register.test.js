@@ -76,6 +76,7 @@ test.each([200, 201])('registration success (%s) sends trimmed data and opens em
     const history = setup();
     fill({ 'Nama lengkap': '  Pengguna Baru  ', Email: ' user@example.com ' }); submit();
     await waitFor(() => expect(history.location.pathname).toBe('/cek-email'));
+    expect(history.location.state).toEqual({ email: 'user@example.com' });
     expect(registerUser).toHaveBeenCalledWith({ full_name: 'Pengguna Baru', email: 'user@example.com', password: 'secret-password', password_confirmation: 'secret-password' });
 });
 
