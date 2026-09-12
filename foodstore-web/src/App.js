@@ -1,8 +1,8 @@
 import React from "react";
 import store from "./app/store";
-import Register from "./pages/Register/index";
+import Register from "./pages/register";
 import RegisterSuccess from "./pages/RegisterSucces";
-import Login from "./pages/Login";
+import Login from "./pages/login";
 import Home from "./pages/Home/index";
 import UserAddressAdd from "./pages/UserAddressAdd";
 import UserAddress from "./pages/userAddress";
@@ -84,7 +84,7 @@ function App() {
             <CekEmail />
           </Route>
 
-          <OnlyGuest path="/register">
+          <OnlyGuest exact path="/register">
             <Register />
           </OnlyGuest>
           <OnlyGuest path="/login">

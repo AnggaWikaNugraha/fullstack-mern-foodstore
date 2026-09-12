@@ -1,6 +1,7 @@
 const rules = {
     email: {
         required: { value: true, message: 'Email tidak boleh kosong.' },
+        pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Masukkan alamat email yang valid.' },
         maxLength: { value: 255, message: 'Panjang email maksimal 255 karakter' }
     },
     password: {
