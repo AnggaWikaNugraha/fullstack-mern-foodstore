@@ -71,11 +71,11 @@ test('both password visibility buttons work independently without submitting', (
     expect(registerUser).not.toHaveBeenCalled();
 });
 
-test.each([200, 201])('registration success (%s) sends trimmed data and opens email verification', async (status) => {
+test.each([200, 201])('registration success (%s) sends trimmed data and opens registration success', async (status) => {
     registerUser.mockResolvedValue({ status, data: { message: 'Register success' } });
     const history = setup();
     fill({ 'Nama lengkap': '  Pengguna Baru  ', Email: ' user@example.com ' }); submit();
-    await waitFor(() => expect(history.location.pathname).toBe('/cek-email'));
+    await waitFor(() => expect(history.location.pathname).toBe('/register/berhasil'));
     expect(history.location.state).toEqual({ email: 'user@example.com' });
     expect(registerUser).toHaveBeenCalledWith({ full_name: 'Pengguna Baru', email: 'user@example.com', password: 'secret-password', password_confirmation: 'secret-password' });
 });
@@ -91,7 +91,7 @@ test.each(['resolved', 'rejected'])('server field errors (%s) stay on the form a
     registerUser.mockResolvedValueOnce({ status: 200, data: { message: 'Register success' } });
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'new@example.com' } });
     submit();
-    await waitFor(() => expect(history.location.pathname).toBe('/cek-email'));
+    await waitFor(() => expect(history.location.pathname).toBe('/register/berhasil'));
 });
 
 test('network failure releases loading and permits retry', async () => {
@@ -101,7 +101,7 @@ test('network failure releases loading and permits retry', async () => {
     expect(screen.getByRole('button', { name: 'Daftar sekarang', exact: true })).toBeEnabled();
     registerUser.mockResolvedValueOnce({ status: 200, data: { message: 'Register success' } });
     submit();
-    await waitFor(() => expect(history.location.pathname).toBe('/cek-email'));
+    await waitFor(() => expect(history.location.pathname).toBe('/register/berhasil'));
 });
 
 test('pending registration blocks duplicate requests and keeps credentials intact', async () => {

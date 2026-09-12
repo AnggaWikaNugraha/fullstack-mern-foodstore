@@ -11,7 +11,7 @@ Register uses the same cream background, brick-red accents, serif headings, and 
 - `register.css` adjusts spacing for the longer form.
 - `component/AuthLayout/` shares the layout, header, password input, Google button, and theme with login.
 
-Validation requires a trimmed name of 3–255 characters, a valid email, a password of 6–255 characters, and a matching confirmation. Successful registration continues to `/cek-email`. Server field errors are attached to their inputs, and failed requests allow retry. No backend authentication behavior was changed.
+Validation requires a trimmed name of 3–255 characters, a valid email, a password of 6–255 characters, and a matching confirmation. Successful registration opens `/register/berhasil`, which links to login and `/cek-email` while preserving the email in router state. Server field errors are attached to their inputs, and failed requests allow retry. No backend authentication behavior was changed.
 
 The folder is lowercase `register`, with the application import updated accordingly. The register route is exact so `/register/berhasil` can reach its existing success page. The legacy topbar is hidden only on `/register` and `/register/`.
 

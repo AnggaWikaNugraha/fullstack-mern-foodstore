@@ -9,7 +9,7 @@ The `/cek-email` page uses the shared auth layout, cream background, brick-red a
 - `_components/` contains the brand panel, three-step verification guide, and resend form.
 - `src/api/auth.js` exposes `resendVerification` using the existing `/auth/resend-verification` endpoint.
 
-Successful registration and unverified login pass the email through router state so the resend field is prefilled without putting it in the URL. Direct visits allow manual entry. The page only sends an email after form submission, clears stale feedback when the address changes, and confirms success only after a valid server response. Users can return to login after verification.
+The registration success page and unverified login pass the email through router state so the resend field is prefilled without putting it in the URL. Direct visits allow manual entry. The page only sends an email after form submission, clears stale feedback when the address changes, and confirms success only after a valid server response. Users can return to login after verification.
 
 ## Verification
 

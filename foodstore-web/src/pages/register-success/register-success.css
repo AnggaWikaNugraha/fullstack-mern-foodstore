@@ -1,0 +1,21 @@
+.register-success-page .auth-card { max-width: 420px; }
+.success-check { display: grid; place-items: center; width: 68px; height: 68px; margin-bottom: 26px; border: 1px solid #e7d9c5; border-radius: 50%; background: #f4ecde; color: var(--auth-red); box-shadow: 0 0 0 8px #faf6ee; }
+.success-confirmation > .auth-eyebrow { color: var(--auth-red); }
+.success-email-note { display: flex; align-items: flex-start; gap: 13px; margin-top: 27px; padding: 20px; border: 1px solid #ede1d1; border-radius: 13px; background: #faf5ec; }
+.success-email-icon { display: flex; flex-shrink: 0; color: #a06d47; padding-top: 2px; }
+.success-email-note > div { min-width: 0; }
+.success-email-note h2 { font-size: 13px; font-weight: 650; line-height: 1.7; }
+.success-email-note p { margin-top: 8px; color: #797063; font-size: 12px; line-height: 1.8; }
+.success-email-address { display: block; color: #51473b; font-weight: 650; overflow-wrap: anywhere; }
+.success-login { margin-top: 28px; text-align: center; }
+.success-login svg { flex-shrink: 0; }
+.success-note { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 29px; padding-top: 21px; border-top: 1px solid #ede7dc; color: #837b6e; font-size: 10px; line-height: 1.7; text-align: center; }
+.success-note svg { flex-shrink: 0; }
+@media (max-width: 700px) {
+    .register-success-page .auth-card { max-width: 400px; }
+    .success-check { width: 60px; height: 60px; margin-top: 8px; }
+}
+@media (max-width: 370px) {
+    .success-email-note { padding: 16px; gap: 10px; }
+    .success-login { font-size: 12px; padding-inline: 12px; gap: 8px; }
+}
