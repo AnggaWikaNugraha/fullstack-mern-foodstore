@@ -448,7 +448,7 @@ Product grid rendered
 
 ### Cart
 
-![Login](docs/images/cart.webp)
+![Login](docs/images/cart.png)
 
 ```
 Cart page
