@@ -473,7 +473,7 @@ Cart page
 
 3-step checkout flow with a visual progress bar. Each step must be completed before proceeding.
 
-![Login](docs/images/checkout.webp)
+![Login](docs/images/checkout.png)
 
 ```
 On Checkout mount → GET /api/delivery-addresses (preload saved addresses)

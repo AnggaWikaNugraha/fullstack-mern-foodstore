@@ -471,7 +471,7 @@ Halaman keranjang
 
 Alur checkout 3 langkah dengan progress bar visual. Setiap langkah harus selesai sebelum lanjut.
 
-![Login](docs/images/checkout.webp)
+![Login](docs/images/checkout.png)
 
 ```
 Saat Checkout dimuat → GET /api/delivery-addresses (preload alamat tersimpan)
