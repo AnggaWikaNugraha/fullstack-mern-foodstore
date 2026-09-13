@@ -32,7 +32,13 @@ async function store(req, res, next) {
       .find({ user: req.user._id, checked: true })
       .populate("product");
 
-    let address = await DeliveryAddress.findOne({ _id: delivery_address });
+    if (!items.length) return res.json({ error: 1, message: 'Pilih menu di keranjang sebelum membuat pesanan.' });
+    if (items.some(item => !item.product || item.qty > item.product.stock || item.qty < 1)) {
+      return res.json({ error: 1, message: 'Stok menu tidak mencukupi. Periksa kembali keranjangmu.' });
+    }
+
+    let address = await DeliveryAddress.findOne({ _id: delivery_address, user: req.user._id });
+    if (!address) return res.json({ error: 1, message: 'Alamat pengiriman tidak ditemukan. Pilih alamat lain.' });
 
     // create order but don't save it yet.
     // using mongoose.Types.ObjectId() to generate id for saving ref

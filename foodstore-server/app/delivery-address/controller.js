@@ -4,7 +4,6 @@ const { subject } = require("@casl/ability");
 
 async function index(req, res, next) {
   const policy = policyFor(req.user);
-  console.log(policy);
   if (!policy.can("view", "DeliveryAddress")) {
     return res.json({
       error: 1,
@@ -13,18 +12,17 @@ async function index(req, res, next) {
   }
 
   try {
-    let { limit = 10, skip = 0 } = req.query;
+    let { limit = 10, skip = 0, id } = req.query;
+    const query = { user: req.user._id, ...(id ? { _id: id } : {}) };
     // (1) dapatkan jumlah data alamat pengiriman
-    const count = await DeliveryAddress.find({
-      user: req.user._id,
-    }).countDocuments();
+    const count = await DeliveryAddress.find(query).countDocuments();
 
-    const deliveryAddresses = await DeliveryAddress.find()
+    const deliveryAddresses = await DeliveryAddress.find(query)
       .limit(parseInt(limit))
       .skip(parseInt(skip))
       .sort("-createdAt");
 
-    return res.json({ data: deliveryAddresses });
+    return res.json({ data: deliveryAddresses, count });
   } catch (err) {
     if (err && err.name == "ValidationError") {
       return res.json({

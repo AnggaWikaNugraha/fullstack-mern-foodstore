@@ -6,7 +6,7 @@ import Login from "./pages/login";
 import Home from "./pages/Home/index";
 import UserAddressAdd from "./pages/UserAddressAdd";
 import UserAddress from "./pages/userAddress";
-import Checkout from "./pages/Checkout";
+import Checkout from "./pages/checkout";
 import Invoice from "./pages/invoice";
 import Product from "./pages/product";
 import Categories from "./pages/categories";

@@ -18,7 +18,7 @@ export default function TopBar() {
         ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
         : null;
 
-    if (location.pathname === '/' || /^\/keranjang\/?$/.test(location.pathname)) return <StorefrontHeader />;
+    if (location.pathname === '/' || /^\/(keranjang|checkout)\/?$/.test(location.pathname)) return <StorefrontHeader />;
     if (/^\/(login|register|register\/berhasil|cek-email)\/?$/.test(location.pathname)) return null;
 
     return (

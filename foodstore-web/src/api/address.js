@@ -10,7 +10,8 @@ export async function getAddress(params) {
 
         params: {
             limit: params.limit,
-            skip: params.page * params.limit - params.limit
+            skip: params.page * params.limit - params.limit,
+            ...(params.id ? { id: params.id } : {}),
         },
 
         headers: {
